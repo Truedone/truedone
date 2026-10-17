@@ -1,4 +1,4 @@
-// What each truedone.dev page shows (WEB-01), as a plain tree that dom.mjs mounts with textContent only: PR text is
+// What each truedone.pages.dev page shows (WEB-01), as a plain tree that dom.mjs mounts with textContent only: PR text is
 // never parsed as HTML (S7). Every page ends with the next rung, which says that red-green on someone else's PR
 // executes that PR's code (PV-W05). The wording states what was observed and never addresses the PR's author.
 // A node is { tag, text?, attrs?, children? }.
@@ -92,5 +92,5 @@ export function errorView(message) {
 }
 
 export function notFoundView() {
-  return el('main', undefined, undefined, [el('h1', 'Not a truedone.dev page'), el('p', 'truedone.dev pages look like /owner/repo/pull/123.'), nextRung(null)]);
+  return el('main', undefined, undefined, [el('h1', 'Not a truedone.pages.dev page'), el('p', 'truedone.pages.dev pages look like /owner/repo/pull/123.'), nextRung(null)]);
 }
