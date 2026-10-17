@@ -45,7 +45,7 @@ flowchart TD
   spec ==>|update| design
   requirements ==>|update| contract
   core ==>|update| bundles
-  core_run ==>|update| bundles
+  core_run -.->|review| bundles
   readme -.->|review| design
   spec -.->|review| requirements
   spec -.->|review| contract
@@ -109,7 +109,7 @@ flowchart TD
 | `root` | manifests and licence | `package.json`, `LICENSE`, `packages/*/package.json`, `packages/*/README.md` |   | `readme` | live |
 | `community` | contributing, conduct, notice, changelog, templates | `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `NOTICE`, `CHANGELOG.md`, `.github/ISSUE_TEMPLATE/**`, `.github/PULL_REQUEST_TEMPLATE.md` |   | `readme` | live |
 | `core` | analyse() and judge(), pure functions | `packages/core/src/**`, `packages/core/package.json`, `packages/core/README.md` | `bundles` | `core-test`, `spec` | live |
-| `core-run` | the red-green runner | `packages/core/run/**` | `bundles` | `core-test`, `spec` | planned |
+| `core-run` | the red-green runner | `packages/core/run/**` |   | `bundles`, `core-test`, `spec` | live |
 | `core-test` | core tests and fixtures | `packages/core/test/**` |   | `core` | live |
 | `bundles` | the built single files | `packages/core/core.mjs`, `packages/web/core.mjs`, `packages/cli/truedone.mjs`, `packages/cli/plugin/hooks/stop.mjs`, `packages/action/dist/index.mjs` |   | `web`, `cli`, `app`, `action` | live |
 | `web` | truedone.dev | `packages/web/**` |   | `readme`, `design` | live |
@@ -147,7 +147,7 @@ flowchart TD
     "root": {"paths": ["package.json", "LICENSE", "packages/*/package.json", "packages/*/README.md"], "update": [], "review": ["readme"]},
     "community": {"paths": ["CONTRIBUTING.md", "CODE_OF_CONDUCT.md", "NOTICE", "CHANGELOG.md", ".github/ISSUE_TEMPLATE/**", ".github/PULL_REQUEST_TEMPLATE.md"], "update": [], "review": ["readme"]},
     "core": {"paths": ["packages/core/src/**", "packages/core/package.json", "packages/core/README.md"], "update": ["bundles"], "review": ["core-test", "spec"]},
-    "core-run": {"planned": true, "paths": ["packages/core/run/**"], "update": ["bundles"], "review": ["core-test", "spec"]},
+    "core-run": {"paths": ["packages/core/run/**"], "update": [], "review": ["bundles", "core-test", "spec"]},
     "core-test": {"paths": ["packages/core/test/**"], "update": [], "review": ["core"]},
     "bundles": {"paths": ["packages/core/core.mjs", "packages/web/core.mjs", "packages/cli/truedone.mjs", "packages/cli/plugin/hooks/stop.mjs", "packages/action/dist/index.mjs"], "update": [], "review": ["web", "cli", "app", "action"]},
     "web": {"paths": ["packages/web/**"], "update": [], "review": ["readme", "design"]},

@@ -1,0 +1,278 @@
+{
+ "projects": [
+  {
+   "name": "vitest from scripts.test",
+   "files": {
+    "package.json": "{\"scripts\": {\"test\": \"vitest run\"}}"
+   },
+   "test": "src/a.test.ts",
+   "expect": {
+    "runner": "vitest",
+    "cwd": ".",
+    "reporter": "vitest-json"
+   }
+  },
+  {
+   "name": "jest from scripts.test",
+   "files": {
+    "package.json": "{\"scripts\": {\"test\": \"jest --coverage\"}}"
+   },
+   "test": "src/a.test.js",
+   "expect": {
+    "runner": "jest",
+    "cwd": ".",
+    "reporter": "jest-json"
+   }
+  },
+  {
+   "name": "jest through react-scripts",
+   "files": {
+    "package.json": "{\"scripts\": {\"test\": \"react-scripts test\"}}"
+   },
+   "test": "src/App.test.jsx",
+   "expect": {
+    "runner": "jest",
+    "cwd": ".",
+    "reporter": "jest-json"
+   }
+  },
+  {
+   "name": "mocha from scripts.test",
+   "files": {
+    "package.json": "{\"scripts\": {\"test\": \"mocha 'test/**/*.spec.js'\"}}"
+   },
+   "test": "test/a.spec.js",
+   "expect": {
+    "runner": "mocha",
+    "cwd": ".",
+    "reporter": "mocha-json"
+   }
+  },
+  {
+   "name": "mocha under nyc",
+   "files": {
+    "package.json": "{\"scripts\": {\"test\": \"nyc --reporter=text mocha\"}}"
+   },
+   "test": "test/a.js",
+   "expect": {
+    "runner": "mocha",
+    "cwd": ".",
+    "reporter": "mocha-json"
+   }
+  },
+  {
+   "name": "node --test from scripts.test",
+   "files": {
+    "package.json": "{\"scripts\": {\"test\": \"node --test\"}}"
+   },
+   "test": "test/a.test.mjs",
+   "expect": {
+    "runner": "node-test",
+    "cwd": ".",
+    "reporter": "junit"
+   }
+  },
+  {
+   "name": "node --test under c8",
+   "files": {
+    "package.json": "{\"scripts\": {\"test\": \"c8 node --test test/\"}}"
+   },
+   "test": "test/b.test.js",
+   "expect": {
+    "runner": "node-test",
+    "cwd": ".",
+    "reporter": "junit"
+   }
+  },
+  {
+   "name": "node --test through tsx",
+   "files": {
+    "package.json": "{\"scripts\": {\"test\": \"tsx --test src/**/*.test.ts\"}}"
+   },
+   "test": "src/x.test.ts",
+   "expect": {
+    "runner": "node-test",
+    "cwd": ".",
+    "reporter": "junit",
+    "command_has": "tsx --test"
+   }
+  },
+  {
+   "name": "vitest from devDependencies only",
+   "files": {
+    "package.json": "{\"devDependencies\": {\"vitest\": \"^2.0.0\", \"typescript\": \"^5\"}}"
+   },
+   "test": "src/a.spec.ts",
+   "expect": {
+    "runner": "vitest",
+    "cwd": ".",
+    "reporter": "vitest-json"
+   }
+  },
+  {
+   "name": "jest from the jest key",
+   "files": {
+    "package.json": "{\"jest\": {\"testEnvironment\": \"node\"}}"
+   },
+   "test": "__tests__/a.js",
+   "expect": {
+    "runner": "jest",
+    "cwd": ".",
+    "reporter": "jest-json"
+   }
+  },
+  {
+   "name": "one npm run hop to the runner",
+   "files": {
+    "package.json": "{\"scripts\": {\"test\": \"npm run test:unit\", \"test:unit\": \"jest\"}}"
+   },
+   "test": "src/a.test.js",
+   "expect": {
+    "runner": "jest",
+    "cwd": ".",
+    "reporter": "jest-json"
+   }
+  },
+  {
+   "name": "monorepo: the nearest package.json wins",
+   "files": {
+    "package.json": "{\"scripts\": {\"test\": \"vitest run\"}}",
+    "packages/a/package.json": "{\"scripts\": {\"test\": \"jest\"}}"
+   },
+   "test": "packages/a/src/x.test.js",
+   "expect": {
+    "runner": "jest",
+    "cwd": "packages/a",
+    "reporter": "jest-json"
+   }
+  },
+  {
+   "name": "monorepo: a package with no runner falls through to the root",
+   "files": {
+    "package.json": "{\"scripts\": {\"test\": \"vitest run\"}}",
+    "packages/b/package.json": "{\"name\": \"b\"}"
+   },
+   "test": "packages/b/src/y.test.ts",
+   "expect": {
+    "runner": "vitest",
+    "cwd": ".",
+    "reporter": "vitest-json"
+   }
+  },
+  {
+   "name": "pytest from pytest.ini",
+   "files": {
+    "pytest.ini": "[pytest]\naddopts = -q\n"
+   },
+   "test": "tests/test_a.py",
+   "expect": {
+    "runner": "pytest",
+    "cwd": ".",
+    "reporter": "junit"
+   }
+  },
+  {
+   "name": "pytest from pyproject.toml's tool table",
+   "files": {
+    "pyproject.toml": "[project]\nname = \"p\"\n\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\n"
+   },
+   "test": "tests/test_a.py",
+   "expect": {
+    "runner": "pytest",
+    "cwd": ".",
+    "reporter": "junit"
+   }
+  },
+  {
+   "name": "pytest from setup.cfg",
+   "files": {
+    "setup.cfg": "[metadata]\nname = p\n\n[tool:pytest]\ntestpaths = tests\n"
+   },
+   "test": "tests/test_b.py",
+   "expect": {
+    "runner": "pytest",
+    "cwd": ".",
+    "reporter": "junit"
+   }
+  },
+  {
+   "name": "pytest from a pyproject.toml dependency",
+   "files": {
+    "pyproject.toml": "[project]\nname = \"p\"\n\n[project.optional-dependencies]\ntest = [\"pytest>=7\", \"coverage\"]\n"
+   },
+   "test": "tests/test_c.py",
+   "expect": {
+    "runner": "pytest",
+    "cwd": ".",
+    "reporter": "junit"
+   }
+  },
+  {
+   "name": "a Python test uses the Python manifest, not a nearer package.json",
+   "files": {
+    "package.json": "{\"scripts\": {\"test\": \"jest\"}}",
+    "py/pyproject.toml": "[tool.pytest.ini_options]\n",
+    "py/tests/package.json": "{\"name\": \"fixture\"}"
+   },
+   "test": "py/tests/test_d.py",
+   "expect": {
+    "runner": "pytest",
+    "cwd": "py",
+    "reporter": "junit"
+   }
+  },
+  {
+   "name": "bun test is not a version 1 runner",
+   "files": {
+    "package.json": "{\"scripts\": {\"test\": \"bun test\"}}"
+   },
+   "test": "src/a.test.ts",
+   "expect": {
+    "runner": null,
+    "reason": "bun"
+   }
+  },
+  {
+   "name": "ava is not a version 1 runner",
+   "files": {
+    "package.json": "{\"scripts\": {\"test\": \"ava\"}}"
+   },
+   "test": "test/a.js",
+   "expect": {
+    "runner": null,
+    "reason": "ava"
+   }
+  },
+  {
+   "name": "npm's default test script names no runner",
+   "files": {
+    "package.json": "{\"scripts\": {\"test\": \"echo \\\"Error: no test specified\\\" && exit 1\"}}"
+   },
+   "test": "test/a.test.js",
+   "expect": {
+    "runner": null,
+    "reason": "package.json"
+   }
+  },
+  {
+   "name": "no manifest at all",
+   "files": {},
+   "test": "test/a.test.js",
+   "expect": {
+    "runner": null,
+    "reason": "no package.json"
+   }
+  },
+  {
+   "name": "a Python test with no Python manifest",
+   "files": {
+    "package.json": "{\"scripts\": {\"test\": \"jest\"}}"
+   },
+   "test": "tests/test_e.py",
+   "expect": {
+    "runner": null,
+    "reason": "pyproject.toml"
+   }
+  }
+ ]
+}
