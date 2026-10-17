@@ -111,7 +111,7 @@ flowchart TD
 | `core` | analyse() and judge(), pure functions | `packages/core/src/**`, `packages/core/package.json`, `packages/core/README.md` | `bundles` | `core-test`, `spec` | live |
 | `core-run` | the red-green runner | `packages/core/run/**` | `bundles` | `core-test`, `spec` | planned |
 | `core-test` | core tests and fixtures | `packages/core/test/**` |   | `core` | live |
-| `bundles` | the built single files | `packages/core/core.mjs`, `packages/web/core.mjs`, `packages/cli/truedone.mjs`, `packages/cli/plugin/hooks/stop.mjs`, `packages/action/dist/index.mjs` |   | `web`, `cli`, `app`, `action` | planned |
+| `bundles` | the built single files | `packages/core/core.mjs`, `packages/web/core.mjs`, `packages/cli/truedone.mjs`, `packages/cli/plugin/hooks/stop.mjs`, `packages/action/dist/index.mjs` |   | `web`, `cli`, `app`, `action` | live |
 | `web` | truedone.dev | `packages/web/**` |   | `readme`, `design` | live |
 | `cli` | npx truedone and the plugin | `packages/cli/**`, `.claude-plugin/**` |   | `readme`, `design` | live |
 | `app` | the GitHub App | `packages/app/**` |   | `readme`, `design` | live |
@@ -149,7 +149,7 @@ flowchart TD
     "core": {"paths": ["packages/core/src/**", "packages/core/package.json", "packages/core/README.md"], "update": ["bundles"], "review": ["core-test", "spec"]},
     "core-run": {"planned": true, "paths": ["packages/core/run/**"], "update": ["bundles"], "review": ["core-test", "spec"]},
     "core-test": {"paths": ["packages/core/test/**"], "update": [], "review": ["core"]},
-    "bundles": {"planned": true, "paths": ["packages/core/core.mjs", "packages/web/core.mjs", "packages/cli/truedone.mjs", "packages/cli/plugin/hooks/stop.mjs", "packages/action/dist/index.mjs"], "update": [], "review": ["web", "cli", "app", "action"]},
+    "bundles": {"paths": ["packages/core/core.mjs", "packages/web/core.mjs", "packages/cli/truedone.mjs", "packages/cli/plugin/hooks/stop.mjs", "packages/action/dist/index.mjs"], "update": [], "review": ["web", "cli", "app", "action"]},
     "web": {"paths": ["packages/web/**"], "update": [], "review": ["readme", "design"]},
     "cli": {"paths": ["packages/cli/**", ".claude-plugin/**"], "update": [], "review": ["readme", "design"]},
     "app": {"paths": ["packages/app/**"], "update": [], "review": ["readme", "design"]},
