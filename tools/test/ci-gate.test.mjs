@@ -95,6 +95,13 @@ test("a failed signature check stops the gate before the owner key is removed", 
   assert.ok(!order.includes("remove:guard/owner.pub"), "owner.pub survives a failed signature check");
 });
 
+test("the workflow runs on every pull request and fails on a fork", () => {
+  const yml = fs.readFileSync(new URL("../../.github/workflows/ci.yml", import.meta.url), "utf8");
+  assert.doesNotMatch(yml, /if:.*head\.repo\.full_name/, "no job-level if skips the gate on forks");
+  assert.match(yml, /github\.event\.pull_request\.head\.repo\.full_name \}\}"\s*==\s*"\$\{\{ github\.repository \}\}"/s);
+  assert.match(yml, /fork pull requests are gated by the lead runner/, "the fork message is named");
+});
+
 test("the gate never uses --ci and pins an exact proofline version", () => {
   const src = fs.readFileSync(new URL("../ci-gate.mjs", import.meta.url), "utf8");
   assert.doesNotMatch(src, /--ci\b/);

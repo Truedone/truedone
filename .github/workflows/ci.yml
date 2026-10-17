@@ -7,8 +7,15 @@ permissions: {}
 jobs:
   truedone-gate:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.head.repo.full_name == github.repository
     steps:
+      - name: Fork pull requests are gated by the lead runner
+        run: |
+          if [ "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]; then
+            echo "same repository: the gate runs"
+          else
+            echo "::error::fork pull requests are gated by the lead runner"
+            exit 1
+          fi
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0

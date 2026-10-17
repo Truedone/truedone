@@ -13,7 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 
-export const PROOFLINE_PIN = '@optitransfer/proofline@0.2.0-next.0';
+export const PROOFLINE_PIN = '@optitransfer/proofline@0.2.0-next.1';
 
 export function parseTaskId(title) {
   const m = String(title || '').match(/^([A-Z]+-\d+[A-Z]*):\s/);
