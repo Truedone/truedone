@@ -59,7 +59,9 @@ export function nextRung(link) {
 
 function reasonList(reasons) {
   const shown = reasons.slice(0, MAX_REASONS);
-  const items = shown.map((r) => el('li', `${r.file}${r.line ? `:${r.line}` : ''}: ${r.message}`));
+  // a reason with no file, such as the partial note, is its message alone
+  const where = (r) => (r.file ? `${r.file}${r.line ? `:${r.line}` : ''}: ` : '');
+  const items = shown.map((r) => el('li', `${where(r)}${r.message}`));
   if (reasons.length > shown.length) items.push(el('li', `${reasons.length - shown.length} more not shown`));
   return el('ul', undefined, { class: 'reasons' }, items);
 }

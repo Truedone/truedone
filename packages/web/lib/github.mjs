@@ -2,7 +2,8 @@
 // for the PR, then the file pages of 100, fetched together, so a PR of 300 files takes 4 calls. Contents come from
 // raw.githubusercontent.com, which needs no API quota: base and head of each file core classifies as a test, setup,
 // runner-config, workflow or truedone config file, up to the static limit of 100 fetched files. A rate-limit response
-// throws RateLimited, so the page can offer sign-in (WEB-02 adds the sign-in and its token).
+// throws RateLimited, so the page can offer sign-in. After sign-in (WEB-02) the token goes to api.github.com only,
+// never to raw.githubusercontent.com (S8).
 export const API = 'https://api.github.com';
 export const RAW = 'https://raw.githubusercontent.com';
 export const LIMITS = { files: 300, lines: 20000, fetched: 100 };   // docs/spec.md, Limits (static)
@@ -32,11 +33,13 @@ async function pool(items, n, fn) {
   return out;
 }
 
-export async function loadPR({ owner, repo, number }, { fetch, classify, api = API, raw = RAW, limits = LIMITS }) {
+export async function loadPR({ owner, repo, number }, { fetch, classify, token = null, api = API, raw = RAW, limits = LIMITS }) {
   let calls = 0;
   const get = async (url) => {
     calls++;
-    const res = await fetch(url, { headers: { accept: 'application/vnd.github+json' } });
+    const headers = { accept: 'application/vnd.github+json' };
+    if (token) headers.authorization = `Bearer ${token}`;
+    const res = await fetch(url, { headers });
     if (isRateLimit(res)) throw new RateLimited(res.headers.get('x-ratelimit-reset'));
     if (!res.ok) throw new GitHubError(res.status);
     return res.json();

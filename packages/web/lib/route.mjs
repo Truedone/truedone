@@ -1,5 +1,6 @@
-// The routes of truedone.pages.dev (WEB-01): /<owner>/<repo>/pull/<n>, /p/<owner>/<repo> and /. parseTarget reads what a
-// visitor pastes on the home page: a github.com or truedone.pages.dev PR link, or owner/repo#n.
+// The routes of truedone.pages.dev (WEB-01): /<owner>/<repo>/pull/<n>, /p/<owner>/<repo> and /; WEB-02 adds /signin and
+// /signin/callback. parseTarget reads what a visitor pastes on the home page: a github.com or truedone.pages.dev PR
+// link, or owner/repo#n.
 const OWNER = '[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})';
 const REPO = '[A-Za-z0-9._-]{1,100}';
 
@@ -9,6 +10,8 @@ export function route(pathname) {
   m = pathname.match(new RegExp(`^/p/(${OWNER})/(${REPO})/?$`));
   if (m && m[2] !== '.' && m[2] !== '..') return { kind: 'precomputed', owner: m[1], repo: m[2] };
   if (pathname === '/' || pathname === '/index.html') return { kind: 'home' };
+  if (pathname === '/signin') return { kind: 'signin' };
+  if (pathname === '/signin/callback') return { kind: 'callback' };
   return { kind: 'not_found' };
 }
 
