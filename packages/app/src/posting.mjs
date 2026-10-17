@@ -28,6 +28,18 @@ export function parseConfig(text) {
   return cfg;
 }
 
+// The daily sweep: a raced delivery can write a key after uninstall's list, so the
+// cron re-runs the same deletion for every installation seen removed (R6, PV-R06).
+export async function sweepLeftovers(env, installationId) {
+  const removed = await deleteInstallationData(env, installationId);
+  await env.KV.delete(`removed:${installationId}`);
+  return removed;
+}
+
+export async function markRemoved(env, installationId) {
+  await env.KV.put(`removed:${installationId}`, "1");
+}
+
 // installation.deleted: delete the installation's KV keys at once (R6, PV-R06).
 // The daily sweep (a Worker cron) removes anything left; both share listDelete.
 export async function deleteInstallationData(env, installationId) {

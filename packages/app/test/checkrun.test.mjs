@@ -20,6 +20,17 @@ function fakeFetch(routes) {
   return fetch;
 }
 
+function memoryKV() {
+  const store = new Map();
+  return {
+    store,
+    async get(k) { const e = store.get(k); return e === undefined ? null : e.v; },
+    async put(k, v, opts = {}) { store.set(k, { v, ttl: opts.expirationTtl ?? null }); },
+    async delete(k) { store.delete(k); },
+    async list({ prefix }) { return [...store.keys()].filter((k) => k.startsWith(prefix)); },
+  };
+}
+
 const PR_FILES = [
   { path: "src/a.mjs", status: "modified", patch: "@@ -1 +1 @@" },
   { path: "test/a.test.mjs", status: "added", patch: "@@ +1" },
@@ -41,6 +52,7 @@ function makeEnv(analyseResult) {
   return {
     env: {
       INSTALLATION_TOKEN: "t",
+      KV: memoryKV(),
       core: { analyse: async () => analyseResult },
       LOG: (l) => logLines.push(l),
     },
