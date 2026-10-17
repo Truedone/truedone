@@ -233,7 +233,7 @@ All are met before the app is offered at the end of week 4, and still met at the
 
 | Item | Week |
 |---|---|
-| Register npm `truedone`, the repository mgillr/truedone and the Cloudflare Pages project truedone; run the EUIPO and USPTO searches in classes 9 and 42; choose the fallback name if one fails | 1 |
+| Register npm `truedone`, the repository mgillr/truedone and the Cloudflare Pages project truedone; no trademark search is run (Ryan, 2026-10-17) | 1 |
 | Cloudflare account, GitHub App registration, the private key into Worker secrets, and the development app | 1 |
 | No credential on the lanes: only the lead runner reaches GitHub, with your login (D25) | 1 |
 | Confirm or change D1 to D31, then sign and commit the contracts | 1 |
@@ -357,7 +357,7 @@ Copy this list into `REQUIREMENTS.md`. Every task names the ids it serves in its
 - PV-R05: The load test at 1,000 installs' volume ran and its cost is published
 - PV-R06: Uninstall deletes the installation's stored data within 24 hours
 - PV-B01: truedone's CI re-runs every task's criteria from the default-branch contract, and branch protection requires it (D22)
-- PV-N01: The npm name, the repository mgillr/truedone and the Cloudflare Pages project truedone are registered, and the EUIPO and USPTO search results are recorded
+- PV-N01: The npm name, the repository mgillr/truedone and the Cloudflare Pages project truedone are registered
 - PV-N02: The lanes hold no GitHub credential; only the lead runner pushes branches and opens pull requests, with Ryan's login, and every pull request passes the CI gate
 - PV-D01: Every section of docs/spec.md, the decisions and the requirements list excepted, has a design document with a Mermaid flow diagram and a Mermaid schematic, joined in one master schematic (D29)
 - PV-D02: docs/DEPENDENCY-MAP.md puts every file in a node, and a change to a node includes every node it must update; every task checks it (D28)

@@ -513,7 +513,7 @@
     },
     {
       "id": "OPS-01",
-      "title": "[W1] Pages project, sandbox repository and trademark searches",
+      "title": "[W1] Pages project and sandbox repository",
       "phase": "plan",
       "owner": "ryan",
       "depends_on": [
@@ -522,10 +522,9 @@
       "requirements": [
         "PV-N01"
       ],
-      "description": "There is no domain (D26). Create the Cloudflare Pages project truedone, production branch main, on your Cloudflare account (its workers.dev subdomain is ledgerguard-global), so the deploy publishes the truedone site at https://truedone.pages.dev; set the repository homepage to that address and record it in docs/ops/repository.md, and name truedone.pages.dev in the bug report form. The public repository mgillr/truedone-sandbox already exists. Run the EUIPO and USPTO searches for TRUEDONE in classes 9 and 42. Record the results with links and \"Outcome: clear\" or \"Outcome: conflict\" in docs/ops/names.md. On a conflict, STOP: choose truepr or fairtest (both free on GitHub and npm on 2026-10-17), rename in docs/spec.md and re-sign. The npm name is registered in OPS-07.",
+      "description": "There is no domain (D26). Create the Cloudflare Pages project truedone, production branch main, on your Cloudflare account (its workers.dev subdomain is ledgerguard-global), so the deploy publishes the truedone site at https://truedone.pages.dev; set the repository homepage to that address and record it in docs/ops/repository.md, and name truedone.pages.dev in the bug report form. The public repository mgillr/truedone-sandbox already exists. Ryan decided on 2026-10-17 to run no trademark search for the name. The npm name is registered in OPS-07.",
       "scope": {
         "allow": [
-          "docs/ops/names.md",
           "docs/ops/repository.md",
           ".github/ISSUE_TEMPLATE/bug_report.yml",
           "docs/DEPENDENCY-MAP.md"
@@ -566,24 +565,12 @@
           }
         },
         {
-          "id": "OPS-01-AC04",
-          "mandatory": true,
-          "statement": "both trademark registers are recorded with an outcome",
-          "verifier": {
-            "type": "grep",
-            "file": "docs/ops/names.md",
-            "pattern": "(EUIPO[\\s\\S]*USPTO|USPTO[\\s\\S]*EUIPO)[\\s\\S]*^Outcome: (clear|conflict)$",
-            "must": "present",
-            "flags": "m"
-          }
-        },
-        {
           "id": "OPS-01-AC05",
           "mandatory": true,
-          "statement": "Ryan signed the record",
+          "statement": "Ryan signed the repository record",
           "verifier": {
             "type": "command",
-            "cmd": "git -c gpg.ssh.allowedSignersFile=.github/allowed_signers verify-commit \"$(git log -1 --format=%H -- docs/ops/names.md)\"",
+            "cmd": "git -c gpg.ssh.allowedSignersFile=.github/allowed_signers verify-commit \"$(git log -1 --format=%H -- docs/ops/repository.md)\"",
             "expect_exit": 0,
             "timeout_s": 900
           }

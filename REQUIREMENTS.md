@@ -64,7 +64,7 @@
 - PV-R05: The load test at 1,000 installs' volume ran and its cost is published
 - PV-R06: Uninstall deletes the installation's stored data within 24 hours
 - PV-B01: truedone's CI re-runs every task's criteria from the default-branch contract, and branch protection requires it (D22)
-- PV-N01: The npm name, the repository mgillr/truedone and the Cloudflare Pages project truedone are registered, and the EUIPO and USPTO search results are recorded
+- PV-N01: The npm name, the repository mgillr/truedone and the Cloudflare Pages project truedone are registered
 - PV-N02: The lanes hold no GitHub credential; only the lead runner pushes branches and opens pull requests, with Ryan's login, and every pull request passes the CI gate
 - PV-D01: Every section of docs/spec.md, the decisions and the requirements list excepted, has a design document with a Mermaid flow diagram and a Mermaid schematic, joined in one master schematic (D29)
 - PV-D02: docs/DEPENDENCY-MAP.md puts every file in a node, and a change to a node includes every node it must update; every task checks it (D28)

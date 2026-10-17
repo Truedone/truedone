@@ -4,7 +4,7 @@ Source section: Ryan only
 
 These items are Ryan's alone, each with the week it falls in.
 
-- Week 1: register npm `truedone`, the repository mgillr/truedone and the Cloudflare Pages project truedone; run the EUIPO and USPTO searches in classes 9 and 42, and choose the fallback name if one fails.
+- Week 1: register npm `truedone`, the repository mgillr/truedone and the Cloudflare Pages project truedone; no trademark search is run.
 - Week 1: the Cloudflare account, the GitHub App registration, the private key into Worker secrets, and the development app.
 - Week 1: no credential on the lanes: only the lead runner reaches GitHub, with his login (D25).
 - Week 1: confirm or change D1 to D31, then sign and commit the contracts.
@@ -22,7 +22,7 @@ These items are Ryan's alone, each with the week it falls in.
 ```mermaid
 flowchart LR
   W1["week 1"] --> W2["week 2"] --> W4["week 4"] --> W5["week 5"] --> W6["week 6"]
-  N["npm name, the repository mgillr/truedone, the Cloudflare Pages project; EUIPO and USPTO searches in classes 9 and 42; fallback name if one fails"] --- W1
+  N["npm name, the repository mgillr/truedone, the Cloudflare Pages project"] --- W1
   CF["Cloudflare account, GitHub App registration, private key into Worker secrets, development app"] --- W1
   TOK["no credential on the lanes; only the lead runner reaches GitHub, with his login, D25"] --- W1
   CON["confirm or change D1 to D31, then sign and commit the contracts"] --- W1
@@ -47,7 +47,6 @@ flowchart TB
   RYAN["Ryan"]
   subgraph NAMES["name and registrations"]
     N1["npm truedone, the repository mgillr/truedone, the Cloudflare Pages project truedone"]
-    N2["EUIPO and USPTO searches, classes 9 and 42; fallback name"]
   end
   subgraph ACCESS["accounts, keys and tokens"]
     A1["Cloudflare account and token"]
