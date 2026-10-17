@@ -9,6 +9,8 @@ import { detect } from '../run/detect.mjs';
 import { redGreen } from '../run/run.mjs';
 
 test('a live pytest repository produces a report', async () => {
+  const probe = spawnSync('python3', ['-c', 'import pytest'], { encoding: 'utf8' });
+  if (probe.status !== 0) assert.fail('pytest is required: python3 -m pip install pytest');
   const dir = mkdtempSync(path.join(tmpdir(), 'td-live-py-'));
   try {
     cpSync(fileURLToPath(new URL('./fixtures/live/pytest/', import.meta.url)), dir, { recursive: true });
