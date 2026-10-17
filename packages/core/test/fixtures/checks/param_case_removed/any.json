@@ -1,0 +1,9 @@
+{
+  "files": [
+    {
+      "path": "a.test.js",
+      "base": "test.each([[1], [2]])('n', () => { expect(1).toBe(1); });\n",
+      "head": "test.each([[1]])('n', () => { expect(1).toBe(1); });\n"
+    }
+  ]
+}

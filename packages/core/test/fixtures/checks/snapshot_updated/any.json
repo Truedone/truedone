@@ -1,0 +1,9 @@
+{
+  "files": [
+    {
+      "path": "a.test.js.snap",
+      "base": "exports[`adds 1`] = `1`;\n",
+      "head": "exports[`adds 1`] = `2`;\n"
+    }
+  ]
+}

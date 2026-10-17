@@ -1,0 +1,14 @@
+{
+  "files": [
+    {
+      "path": "test_a.py",
+      "base": "from foo import add\ndef test_adds():\n    assert add(1, 1) == 2\n",
+      "head": ""
+    },
+    {
+      "path": "foo.py",
+      "base": "def add(a, b):\n    return a + b\n",
+      "head": "def add(a, b):\n    return a + b\n"
+    }
+  ]
+}

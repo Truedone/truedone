@@ -1,0 +1,9 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "base": "old\n",
+      "head": "new\n"
+    }
+  ]
+}

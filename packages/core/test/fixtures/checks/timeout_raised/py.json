@@ -1,0 +1,9 @@
+{
+  "files": [
+    {
+      "path": "test_a.py",
+      "base": "import pytest\n@pytest.mark.timeout(1000)\ndef test_adds():\n    assert 1 == 1\n",
+      "head": "import pytest\n@pytest.mark.timeout(5000)\ndef test_adds():\n    assert 1 == 1\n"
+    }
+  ]
+}

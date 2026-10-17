@@ -1,0 +1,14 @@
+{
+  "files": [
+    {
+      "path": "a.test.ts",
+      "base": "test('adds', () => { expect(1).toBe(1); });\n",
+      "head": ""
+    },
+    {
+      "path": "b.test.ts",
+      "base": "",
+      "head": "test('adds', () => { expect(1).toBe(1); });\n"
+    }
+  ]
+}
