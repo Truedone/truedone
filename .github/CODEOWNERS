@@ -1,0 +1,20 @@
+# Paths only Ryan changes (D25): the contract, its signature, the guard, the spec,
+# the gates, the releases, the ops records and the workflows.
+/proofline.json @mgillr
+/proofline.json.sig @mgillr
+/guard/ @mgillr
+/REQUIREMENTS.md @mgillr
+/docs/spec.md @mgillr
+/docs/gates/ @mgillr
+/docs/releases/ @mgillr
+/docs/ops/ @mgillr
+/.github/ @mgillr
+/tools/ci-gate.mjs @mgillr
+/tools/corpus/agents.json @mgillr
+/tools/corpus/data/ @mgillr
+/SECURITY.md @mgillr
+/docs/privacy.md @mgillr
+/docs/terms.md @mgillr
+/tools/depmap-check.mjs @mgillr
+/tools/docs-check.mjs @mgillr
+/tools/readme-check.mjs @mgillr
