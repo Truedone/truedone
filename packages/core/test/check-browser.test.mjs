@@ -6,7 +6,7 @@ import { spawn } from 'node:child_process';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
 test('the browser check answers the page and finishes', async () => {
   const dir = mkdtempSync(path.join(tmpdir(), 'td-fake-browser-'));
