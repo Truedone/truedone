@@ -1,0 +1,8 @@
+{
+  "schema": "proofline/1",
+  "tasks": [
+    { "id": "SEC-01", "criteria": [ { "id": "SEC-01-AC01" }, { "id": "SEC-01-AC09" } ] },
+    { "id": "APP-02", "criteria": [ { "id": "APP-02-AC01" }, { "id": "APP-02-AC03" } ] }
+  ],
+  "ci": { "env_bound": { "SEC-01": ["SEC-01-AC09"], "APP-02": ["APP-02-AC03"] } }
+}

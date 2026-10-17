@@ -1,0 +1,31 @@
+# The truedone CI gate (SEC-01, D22/D27): every task's criteria re-run from the SIGNED
+# contract on main. Pull request only, never the pull-request-target route; branches of
+# truedone/truedone only (a pull request from a forked repository fails below); full history for the merge-base.
+name: ci
+on: pull_request
+permissions: {}
+jobs:
+  truedone-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fork pull requests are gated by the lead runner
+        if: github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          echo "::error::fork pull requests are gated by the lead runner"
+          exit 1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - name: Python fixtures
+        run: pip install pytest
+      - name: The runner's Chrome
+        run: echo "CHROMIUM_BIN=$(which google-chrome || which chromium || echo /usr/bin/google-chrome)" >> "$GITHUB_ENV"
+      - name: The gate, from main and never from this PR
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          git show origin/main:tools/ci-gate.mjs > /tmp/ci-gate.mjs
+          node /tmp/ci-gate.mjs
