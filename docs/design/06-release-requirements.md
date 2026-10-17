@@ -4,7 +4,7 @@ Source section: Release requirements
 
 All eight requirements are met before the app is offered at the end of week 4, and still met at the week-6 proof release.
 
-- **R1.** `LICENSE` (D21), `SECURITY.md` with a contact address, and a privacy note and terms on truedone.dev that say what the app reads and stores, and for how long.
+- **R1.** `LICENSE` (D21), `SECURITY.md` with a contact address, and a privacy note and terms on truedone.pages.dev that say what the app reads and stores, and for how long.
 - **R2.** npm releases go through trusted publishing from the release workflow, with provenance. There is no npm token on any machine. The release job needs Ryan's approval.
 - **R3.** The action is released by tag and SHA to `mgillr/truedone-action`. The app knows the published release SHAs (D18).
 - **R4.** Monitoring and alerts to Ryan: webhook errors, queue age, label latency p50 and p95, and a dead-letter queue.
@@ -17,7 +17,7 @@ All eight requirements are met before the app is offered at the end of week 4, a
 
 ```mermaid
 flowchart TD
-  R1["R1: LICENSE, SECURITY.md contact, privacy note and terms on truedone.dev"] --> ALL{"R1 to R8 all met?"}
+  R1["R1: LICENSE, SECURITY.md contact, privacy note and terms on truedone.pages.dev"] --> ALL{"R1 to R8 all met?"}
   R2["R2: npm trusted publishing with provenance; release job approved by Ryan"] --> ALL
   R3["R3: action released by tag and SHA to mgillr/truedone-action; the app knows the SHAs"] --> ALL
   R4["R4: monitoring and alerts to Ryan"] --> ALL
@@ -38,7 +38,7 @@ flowchart LR
     direction TB
     LIC["LICENSE, D21"]
     SECM["SECURITY.md with a contact address"]
-    PRIV["privacy note and terms on truedone.dev: what the app reads and stores, and for how long"]
+    PRIV["privacy note and terms on truedone.pages.dev: what the app reads and stores, and for how long"]
   end
   subgraph RELEASE["releases"]
     direction TB

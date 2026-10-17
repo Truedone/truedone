@@ -8,7 +8,7 @@ Source section: Report, configuration, labels and limits
 
 **Configuration.** `.github/truedone.yml` is optional. It holds flat `key: value` lines only, read by a small reader in core with no YAML library. The keys are `test`, `comments`, `conclusion`, `ignore` and `enabled`. Unknown keys are ignored and named in a reason line.
 
-**Labels, check run and comment.** There is one check run named `truedone` per head SHA: the static result is posted first, then updated in place with red-green. A PR carries exactly one `truedone:*` label at any time. It is replaced when the latest head's verdict changes, and removed for Not applicable. Labels are created on first use, with fixed colours and descriptions under GitHub's 100-character limit, ending in `truedone.dev/why`. The comment is posted only when `comments: on`, and there is one, edited in place. The summary gives the verdict, up to 10 one-line reasons, what would change the verdict, and the truedone.dev link.
+**Labels, check run and comment.** There is one check run named `truedone` per head SHA: the static result is posted first, then updated in place with red-green. A PR carries exactly one `truedone:*` label at any time. It is replaced when the latest head's verdict changes, and removed for Not applicable. Labels are created on first use, with fixed colours and descriptions under GitHub's 100-character limit, ending in `truedone.pages.dev/why`. The comment is posted only when `comments: on`, and there is one, edited in place. The summary gives the verdict, up to 10 one-line reasons, what would change the verdict, and the truedone.pages.dev link.
 
 **Limits.** Static: up to 300 changed files, 20,000 changed lines and 100 fetched files. Beyond that, files are analysed in path order up to the limit and the verdict carries "(partial)". A partial PR is never Not applicable. Red-green: up to 50 changed tests, 5 minutes a run and 20 minutes for the whole step.
 
@@ -28,7 +28,7 @@ flowchart TD
   OK -->|no| REF["the app refuses it"]
   OK -->|yes| APP["the app"]
   APP --> CR["check run truedone per head SHA: static result first, then updated in place with red-green"]
-  CR --> SUM["summary: verdict, up to 10 one-line reasons, what would change the verdict, truedone.dev link"]
+  CR --> SUM["summary: verdict, up to 10 one-line reasons, what would change the verdict, truedone.pages.dev link"]
   CR --> LB{"latest head's verdict"}
   LB -->|changed| REPL["the one truedone:* label is replaced"]
   LB -->|Not applicable| RM["the label is removed"]
@@ -72,7 +72,7 @@ flowchart LR
   subgraph GITHUB["what the app sets on GitHub"]
     direction TB
     CR["check run truedone, one per head SHA"]
-    LB["one truedone:* label; descriptions under 100 characters, ending in truedone.dev/why"]
+    LB["one truedone:* label; descriptions under 100 characters, ending in truedone.pages.dev/why"]
     CM["one comment, only when comments: on"]
   end
   subgraph LIMITS["limits"]

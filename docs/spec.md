@@ -31,13 +31,13 @@ Each default stands unless Ryan changes it before signing the contracts.
 | D17 | Plugin in week 3 | It blocks on the three cases using head runs only. Its red-green arrives with the week-6 proof release, after the red-green gates | Each release only after its gates |
 | D18 | Upgrading the truedone step | A PR that changes only the pinned SHA of the truedone step, to the SHA of a published truedone release, is Test changes: review. Any other change to the step is Tampered. The app and the CLI read the published SHAs from the tags of mgillr/truedone-action and pass them to analyse | Otherwise every upgrade is Tampered |
 | D19 | Free blocking | `.github/truedone.yml` may set `conclusion: fail-on-tampered`. Requiring Proven to merge across an organisation stays in the Team tier | Keeps the paid tier distinct |
-| D20 | Lanes | Four lanes, reaching GitHub only through the lead runner (D25). lane-a: the corpus sample, the static and red-green gates, the index, gate 6, the release documents, the design documents and the README. lane-b: runner detection, truedone.dev, the CLI and the plugin. lane-c: the repository skeleton, core, its runner, judge() and the release pipeline. lane-d: the CI gate, the app, the action and the deploys. Ryan: the table under "Ryan only" | Four lanes work in parallel, and core's week-1 chain stays with one lane |
+| D20 | Lanes | Four lanes, reaching GitHub only through the lead runner (D25). lane-a: the corpus sample, the static and red-green gates, the index, gate 6, the release documents, the design documents and the README. lane-b: runner detection, truedone.pages.dev, the CLI and the plugin. lane-c: the repository skeleton, core, its runner, judge() and the release pipeline. lane-d: the CI gate, the app, the action and the deploys. Ryan: the table under "Ryan only" | Four lanes work in parallel, and core's week-1 chain stays with one lane |
 | D21 | Licence | Apache-2.0, as proofline | Same as the code it is extracted from |
 | D22 | Building under proofline while it has false-PASS routes | truedone's CI re-runs every task's criteria from the contract on the default branch, never from the PR, and branch protection requires that job. Ryan reads every test a task adds before he approves the task. Lifted when PL-RV01 to PL-RV05 land | The CI re-run closes routes C3, C4 and C5 for this repository; Ryan signing contract changes covers C2, and his read of new tests covers C1 |
 | D23 | Dependencies anywhere in the repository | No package.json declares dependencies or devDependencies. Tests use node:test, the single files come from tools/bundle.mjs, Chrome checks use the system Chromium, and deploys run wrangler through npx | Zero dependencies is the product's claim, and a dev dependency is supply-chain surface in the release path |
-| D24 | Where truedone.dev reads from | The PR and its file list come from api.github.com. File contents come from raw.githubusercontent.com, which allows any origin and does not use the API quota. A PR of 300 files takes 4 API calls | Fetching contents through the API, five changed test files would already exceed 10 calls, against an anonymous limit of 60 an hour |
+| D24 | Where truedone.pages.dev reads from | The PR and its file list come from api.github.com. File contents come from raw.githubusercontent.com, which allows any origin and does not use the API quota. A PR of 300 files takes 4 API calls | Fetching contents through the API, five changed test files would already exceed 10 calls, against an anonymous limit of 60 an hour |
 | D25 | How work reaches main | The repositories are mgillr/truedone, mgillr/truedone-action and mgillr/truedone-sandbox. Lanes commit in their own clones under their lane names, truedone-lane-a to truedone-lane-d, and hold no GitHub credential. The lead runner pushes each task branch and opens one pull request per task with Ryan's login; merge commits only. .github/CODEOWNERS lists Ryan for the contract, spec, gates, releases, ops records and workflows. Ryan signs his own records with his SSH key (.github/allowed_signers), and his tasks check that signature. The weekly index goes to the unprotected branch index-data | Ryan chose his own account on 2026-10-17: no organisation or machine account to create. GitHub does not let an author approve their own pull request, so the CI gate is the check on every pull request, and Ryan reads each test a task adds before he merges (D22). A squash merge would leave task commits off main |
-| D26 | Deploys | Only .github/workflows/deploy.yml deploys, on push to main: environment dev without approval, production after Ryan approves. The Cloudflare token lives in those environments; no lane holds it | Keeps secrets off agent machines (S5) |
+| D26 | Deploys | Only .github/workflows/deploy.yml deploys, on push to main: environment dev without approval, production after Ryan approves. The Cloudflare token lives in those environments; no lane holds it. There is no domain: Cloudflare Pages serves the truedone site as the project truedone at https://truedone.pages.dev, and the production app, the development app and the token exchange are the Cloudflare Workers truedone, truedone-dev and truedone-exchange on the account's workers.dev subdomain: https://truedone.ledgerguard-global.workers.dev, https://truedone-dev.ledgerguard-global.workers.dev and https://truedone-exchange.ledgerguard-global.workers.dev | Keeps secrets off agent machines (S5). Ryan decided on 2026-10-17 to register no domain: pages.dev and workers.dev need none, and Cloudflare Pages keeps the site's headers, redirects and path routes |
 | D27 | What the CI gate re-runs | Every criterion of the PR's task, from the signed contract on main, except those listed under ci.env_bound, which need an account or a live service. The lane runs those after the merge on its own machine; Ryan re-runs the live ones at each release decision | GitHub Actions has no lead runner login, sandbox token or deployed Worker. Skipping by a signed list keeps the choice out of the lanes' hands |
 | D28 | Dependency map | docs/DEPENDENCY-MAP.md puts every file in a node. tools/depmap-check.mjs fails a change that leaves a file unmapped or changes a node without the nodes it must update, and prints the nodes to review upstream and downstream. Every task checks it | A change to the spec, the contract or the code reaches every document and file that depends on it |
 | D29 | Design documents | Each section of this spec, the decisions and the requirements list excepted, has a document under docs/design/ with a Mermaid flow diagram and a Mermaid schematic; docs/design/00-master.md joins them in one master schematic, checked by tools/docs-check.mjs. A change to this spec changes the documents of its sections (D28) | One picture per part and one of the whole |
@@ -165,9 +165,9 @@ Failing by assertion means `AssertionError`, Node's `ERR_ASSERTION`, or a jest o
 
 - One check run named `truedone` per head SHA. The static result is posted first, then updated in place with red-green.
 - Exactly one `truedone:*` label on a PR at any time. It is replaced when the latest head's verdict changes, and removed for Not applicable.
-- Labels are created on first use, with fixed colours and descriptions under GitHub's 100-character limit, ending in `truedone.dev/why`.
+- Labels are created on first use, with fixed colours and descriptions under GitHub's 100-character limit, ending in `truedone.pages.dev/why`.
 - The comment is posted only when `comments: on`. There is one, edited in place.
-- The summary gives the verdict, up to 10 one-line reasons, what would change the verdict, and the truedone.dev link.
+- The summary gives the verdict, up to 10 one-line reasons, what would change the verdict, and the truedone.pages.dev link.
 
 **Limits.**
 
@@ -188,7 +188,7 @@ Failing by assertion means `AssertionError`, Node's `ERR_ASSERTION`, or a jest o
 
 Exit codes: 0 when a verdict is produced, 1 when `--fail-on` matches, 2 for a usage error, 3 for an internal error.
 
-**The plugin** is a Claude Code plugin with one Stop hook, declared in `hooks/hooks.json` and run as `node "${CLAUDE_PLUGIN_ROOT}/hooks/stop.mjs"`: a single file with core bundled in. It makes no network calls and keeps any state in `${CLAUDE_PLUGIN_DATA}`. The truedone repository holds `.claude-plugin/marketplace.json`, so one command installs it: `/plugin install truedone --marketplace mgillr/truedone` (Claude Code 2.1.275 or later). It is also submitted to the official marketplace, after which `/plugin install truedone@claude-plugins-official` works ([install](https://code.claude.com/docs/en/plugins/install), [components](https://code.claude.com/docs/en/plugins/components)).
+**The plugin** is a Claude Code plugin with one Stop hook, declared in `hooks/hooks.json` and run as `node "${CLAUDE_PLUGIN_ROOT}/hooks/stop.mjs"`: a single file with core bundled in. It makes no network calls and keeps any state in `${CLAUDE_PLUGIN_DATA}`. The truedone repository holds `.claude-plugin/marketplace.json`, so two commands install it: `/plugin marketplace add mgillr/truedone`, then `/plugin install truedone@truedone` (Claude Code 2.1.275 or later). It is also submitted to the official marketplace, after which `/plugin install truedone@claude-plugins-official` works ([install](https://code.claude.com/docs/en/plugins/install), [components](https://code.claude.com/docs/en/plugins/components)).
 
 | Case | Blocks? |
 |---|---|
@@ -211,7 +211,7 @@ The plugin's own limit of three blocks sits well under Claude Code's override of
 | S4 | When the CLI runs someone else's PR, the PR's code gets the environment minus every variable ending in `_TOKEN`, `_SECRET`, `_KEY` or `_PASSWORD`, and minus `AWS_*`, `AZURE_*`, `GOOGLE_APPLICATION_CREDENTIALS` and `NPM_CONFIG_*` |
 | S5 | The app's private key, webhook secret and OAuth client secret exist only as Cloudflare Worker secrets that Ryan sets. They are never in the repository or on an agent machine. Lanes test against a separate development app installed only on `mgillr/truedone-sandbox`, with its own key |
 | S6 | Webhooks: the signature is checked in constant time, each delivery id is handled once, and events for removed installations are dropped. Artifacts over 256 KB, or holding more than one file, are refused before unzipping |
-| S7 | PR titles, bodies and paths are shown as text only. truedone.dev uses no `innerHTML` for them and sets a content security policy that allows scripts from itself and connections to `api.github.com` and raw.githubusercontent.com only (D24). Check summaries and comments escape Markdown and neutralise `@` mentions taken from PR content |
+| S7 | PR titles, bodies and paths are shown as text only. truedone.pages.dev uses no `innerHTML` for them and sets a content security policy that allows scripts from itself and connections to `api.github.com` and raw.githubusercontent.com only (D24). Check summaries and comments escape Markdown and neutralise `@` mentions taken from PR content |
 | S8 | The Worker logs installation id, repository id, PR number, verdict and timings, never diff content, file contents or PR text. The sign-in token stays in the visitor's session storage, requests no scopes, and is sent only to `api.github.com` |
 
 ## Release requirements
@@ -220,7 +220,7 @@ All are met before the app is offered at the end of week 4, and still met at the
 
 | # | Requirement |
 |---|---|
-| R1 | `LICENSE` (D21), `SECURITY.md` with a contact address, and a privacy note and terms on truedone.dev that say what the app reads and stores, and for how long |
+| R1 | `LICENSE` (D21), `SECURITY.md` with a contact address, and a privacy note and terms on truedone.pages.dev that say what the app reads and stores, and for how long |
 | R2 | npm releases go through trusted publishing from the release workflow, with provenance. No npm token on any machine. The release job needs Ryan's approval |
 | R3 | The action is released by tag and SHA to `mgillr/truedone-action`. The app knows the published release SHAs (D18) |
 | R4 | Monitoring and alerts to Ryan: webhook errors, queue age, label latency p50 and p95, and a dead-letter queue |
@@ -233,7 +233,7 @@ All are met before the app is offered at the end of week 4, and still met at the
 
 | Item | Week |
 |---|---|
-| Register npm `truedone`, the repository mgillr/truedone and the domain; run the EUIPO and USPTO searches in classes 9 and 42; choose the fallback name if one fails | 1 |
+| Register npm `truedone`, the repository mgillr/truedone and the Cloudflare Pages project truedone; run the EUIPO and USPTO searches in classes 9 and 42; choose the fallback name if one fails | 1 |
 | Cloudflare account, GitHub App registration, the private key into Worker secrets, and the development app | 1 |
 | No credential on the lanes: only the lead runner reaches GitHub, with your login (D25) | 1 |
 | Confirm or change D1 to D31, then sign and commit the contracts | 1 |
@@ -261,7 +261,7 @@ Every PR gets exactly one verdict, chosen by the precedence below. Every verdict
 | **Proven (weak)** | `truedone:weak` | No | Red-green holds, but the test runs none of the changed non-test lines or asserts nothing about them |
 | **No red-green evidence** | `truedone:no-evidence` | Yes, when no test file changed | Source changed, and no test in the PR fails without the change |
 | **Waiting for approval** | `truedone:pending` | No: GitHub's run status | Tests changed and the repository has the truedone step, but GitHub is holding the run for a first-time contributor. The static findings are shown meanwhile |
-| **Tests changed: not run** | `truedone:unrun` | Yes | Tests were added or changed with nothing weakened, and no red-green has run: the repository has no truedone step, or the verdict comes from truedone.dev or the static CLI |
+| **Tests changed: not run** | `truedone:unrun` | Yes | Tests were added or changed with nothing weakened, and no red-green has run: the repository has no truedone step, or the verdict comes from truedone.pages.dev or the static CLI |
 | **Not applicable** | none | Yes | Docs only; a lockfile or dependency change; a dependency or release bot (Dependabot, Renovate, release-please; agent bots are always checked); a CI-only change that touches no test and not the truedone step; a pure rename; a language version 1 does not support, with the reason shown |
 
 **Precedence**, highest first: Tampered, Test changes: review, Could not run, Proven, Proven (new behaviour), Proven (weak), No red-green evidence, Waiting for approval, Tests changed: not run, Not applicable. Could not run applies only when no test reached a result. When several tests ran, the best result of any test stands and the others are listed.
@@ -278,7 +278,7 @@ Two sets of gates, so speed does not cost honesty. The static gates (1 to 4) nee
 | 2 | Does the label separate AI PRs from human ones? | The same measurement on 2,000 PRs with no agent signal, from the same repositories, window and mix of open, closed and merged. PRs opened before 2024 in the same repositories are reported beside it, as a check on unmarked agent work | The agent PRs' share is at least 10 points higher | The label does not filter the flood: reposition as a general quality check, or stop |
 | 3 | Is it quiet and right enough to keep? | Ryan, or a person he names who did not build the checks, reviews 200 Tampered and Test-changes flags (at least 50 Tampered) on PRs maintainers merged. With red-green, on the 200-PR sample: missed red (a PR test does fail on base, but truedone said no evidence) and false Proven (the test does not exercise the change) | False Tampered under 5%; false Test changes: review under 20%; missed red and false Proven each under 5% | Fix before releasing; never release at 5% or above |
 | 4 | Does it run with no configuration? | Static: runner detection across the corpus repositories. With red-green: the share whose changed tests actually ran | 70% or more with no config line | Add runners or a one-line config |
-| 5 | Do maintainers want it? | Ten maintainers of projects that have described AI-PR load get a precomputed truedone.dev page of their own last 20 PRs in week 2, and the app when it is live at the end of week 4 | At least 3 install the app by the end of week 6 | They want something else: rethink the app, keep the other rungs |
+| 5 | Do maintainers want it? | Ten maintainers of projects that have described AI-PR load get a precomputed truedone.pages.dev page of their own last 20 PRs in week 2, and the app when it is live at the end of week 4 | At least 3 install the app by the end of week 6 | They want something else: rethink the app, keep the other rungs |
 | 6 | Is the window still open? | Ryan checks the GitHub changelog, CodeRabbit and Copilot review before each release | None ships a red-green or test-tamper check first | Lead with the plugin, the index and the paid tier |
 
 Gates 1 and 2 also produce the launch post: the measured share of agent PRs that prove nothing, against the human baseline. Nobody else has that number.
@@ -306,7 +306,7 @@ Copy this list into `REQUIREMENTS.md`. Every task names the ids it serves in its
 - PV-C13: The truedone.yml reader accepts the five keys, ignores and names unknown keys, and needs no YAML library
 - PV-C14: proofline imports core for its forbidden-pattern and weakening checks, and its own tests still pass
 - PV-C15: No verdict, reason or summary template contains the words safe or correct, or addresses the PR's author
-- PV-W01: truedone.dev/owner/repo/pull/n renders the static verdict in the browser, using only api.github.com
+- PV-W01: truedone.pages.dev/owner/repo/pull/n renders the static verdict in the browser, using only api.github.com
 - PV-W02: The site has no server-side code except the token exchange, which stores nothing
 - PV-W03: On GitHub's rate-limit response the page offers sign-in instead of failing, and a page uses at most 10 API calls for a PR under the static limits
 - PV-W04: PR content is rendered as text only and the content security policy is set (S7)
@@ -322,7 +322,7 @@ Copy this list into `REQUIREMENTS.md`. Every task names the ids it serves in its
 - PV-P01: The plugin is one Stop hook file with core bundled and no network calls
 - PV-P02: The plugin blocks in exactly the three blocking cases of the plugin table and in no other
 - PV-P03: A refactor with no test is never blocked and is shown once to the user
-- PV-P04: /plugin install truedone --marketplace mgillr/truedone installs the plugin on Claude Code 2.1.275 or later
+- PV-P04: /plugin marketplace add mgillr/truedone, then /plugin install truedone@truedone, installs the plugin on Claude Code 2.1.275 or later
 - PV-P05: The plugin never blocks more than three times in a row
 - PV-A01: The app verifies webhook signatures in constant time and handles each delivery once
 - PV-A02: The app requests exactly checks write, pull requests write, contents read, actions read and metadata read
@@ -357,7 +357,7 @@ Copy this list into `REQUIREMENTS.md`. Every task names the ids it serves in its
 - PV-R05: The load test at 1,000 installs' volume ran and its cost is published
 - PV-R06: Uninstall deletes the installation's stored data within 24 hours
 - PV-B01: truedone's CI re-runs every task's criteria from the default-branch contract, and branch protection requires it (D22)
-- PV-N01: The npm name, the repository mgillr/truedone and the domain are registered, and the EUIPO and USPTO search results are recorded
+- PV-N01: The npm name, the repository mgillr/truedone and the Cloudflare Pages project truedone are registered, and the EUIPO and USPTO search results are recorded
 - PV-N02: The lanes hold no GitHub credential; only the lead runner pushes branches and opens pull requests, with Ryan's login, and every pull request passes the CI gate
 - PV-D01: Every section of docs/spec.md, the decisions and the requirements list excepted, has a design document with a Mermaid flow diagram and a Mermaid schematic, joined in one master schematic (D29)
 - PV-D02: docs/DEPENDENCY-MAP.md puts every file in a node, and a change to a node includes every node it must update; every task checks it (D28)

@@ -27,7 +27,7 @@ flowchart TD
   core_run["core-run<br/>the red-green runner"]
   core_test["core-test<br/>core tests and fixtures"]
   bundles["bundles<br/>the built single files"]
-  web["web<br/>truedone.dev"]
+  web["web<br/>truedone.pages.dev"]
   cli["cli<br/>npx truedone and the plugin"]
   app["app<br/>the GitHub App"]
   action["action<br/>the CI step"]
@@ -112,7 +112,7 @@ flowchart TD
 | `core-run` | the red-green runner | `packages/core/run/**` | `bundles` | `core-test`, `spec` | live |
 | `core-test` | core tests and fixtures | `packages/core/test/**` |   | `core` | live |
 | `bundles` | the built single files | `packages/core/core.mjs`, `packages/web/core.mjs`, `packages/cli/truedone.mjs`, `packages/cli/plugin/hooks/stop.mjs`, `packages/action/dist/index.mjs` |   | `web`, `cli`, `app`, `action` | live |
-| `web` | truedone.dev | `packages/web/**` |   | `readme`, `design` | live |
+| `web` | truedone.pages.dev | `packages/web/**` |   | `readme`, `design` | live |
 | `cli` | npx truedone and the plugin | `packages/cli/**`, `.claude-plugin/**` |   | `readme`, `design` | live |
 | `app` | the GitHub App | `packages/app/**` |   | `readme`, `design` | live |
 | `action` | the CI step | `packages/action/**` |   | `readme`, `design` | live |

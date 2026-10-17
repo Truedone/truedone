@@ -13,7 +13,7 @@
 - PV-C13: The truedone.yml reader accepts the five keys, ignores and names unknown keys, and needs no YAML library
 - PV-C14: proofline imports core for its forbidden-pattern and weakening checks, and its own tests still pass
 - PV-C15: No verdict, reason or summary template contains the words safe or correct, or addresses the PR's author
-- PV-W01: truedone.dev/owner/repo/pull/n renders the static verdict in the browser, using only api.github.com
+- PV-W01: truedone.pages.dev/owner/repo/pull/n renders the static verdict in the browser, using only api.github.com
 - PV-W02: The site has no server-side code except the token exchange, which stores nothing
 - PV-W03: On GitHub's rate-limit response the page offers sign-in instead of failing, and a page uses at most 10 API calls for a PR under the static limits
 - PV-W04: PR content is rendered as text only and the content security policy is set (S7)
@@ -29,7 +29,7 @@
 - PV-P01: The plugin is one Stop hook file with core bundled and no network calls
 - PV-P02: The plugin blocks in exactly the three blocking cases of the plugin table and in no other
 - PV-P03: A refactor with no test is never blocked and is shown once to the user
-- PV-P04: /plugin install truedone --marketplace mgillr/truedone installs the plugin on Claude Code 2.1.275 or later
+- PV-P04: /plugin marketplace add mgillr/truedone, then /plugin install truedone@truedone, installs the plugin on Claude Code 2.1.275 or later
 - PV-P05: The plugin never blocks more than three times in a row
 - PV-A01: The app verifies webhook signatures in constant time and handles each delivery once
 - PV-A02: The app requests exactly checks write, pull requests write, contents read, actions read and metadata read
@@ -64,7 +64,7 @@
 - PV-R05: The load test at 1,000 installs' volume ran and its cost is published
 - PV-R06: Uninstall deletes the installation's stored data within 24 hours
 - PV-B01: truedone's CI re-runs every task's criteria from the default-branch contract, and branch protection requires it (D22)
-- PV-N01: The npm name, the repository mgillr/truedone and the domain are registered, and the EUIPO and USPTO search results are recorded
+- PV-N01: The npm name, the repository mgillr/truedone and the Cloudflare Pages project truedone are registered, and the EUIPO and USPTO search results are recorded
 - PV-N02: The lanes hold no GitHub credential; only the lead runner pushes branches and opens pull requests, with Ryan's login, and every pull request passes the CI gate
 - PV-D01: Every section of docs/spec.md, the decisions and the requirements list excepted, has a design document with a Mermaid flow diagram and a Mermaid schematic, joined in one master schematic (D29)
 - PV-D02: docs/DEPENDENCY-MAP.md puts every file in a node, and a change to a node includes every node it must update; every task checks it (D28)
