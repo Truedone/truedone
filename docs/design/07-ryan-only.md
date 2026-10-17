@@ -7,6 +7,7 @@ These items are Ryan's alone, each with the week it falls in.
 - Week 1: register npm `truedone`, the repository mgillr/truedone and the Cloudflare Pages project truedone; no trademark search is run.
 - Week 1: the Cloudflare account, the GitHub App registration, the private key into Worker secrets, and the development app.
 - Week 1: no credential on the lanes: only the lead runner reaches GitHub, with his login (D25).
+- From 2026-10-17, while GitHub Actions do not run on his account (a billing lock), the lead runner runs the CI job in an isolated container and posts its result as a commit status, and deploys run the same way, production only after his yes (D22). This ends when Actions run again.
 - Week 1: confirm or change D1 to D31, then sign and commit the contracts.
 - Week 1: `.github/allowed_signers` with his SSH key (D25).
 - Weeks 1 and 2: the environments dev, production and release, the Cloudflare token, the mirror token, and the ruleset with the CI gate and merge commits only (D25, D26).

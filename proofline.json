@@ -266,6 +266,9 @@
       "REL-W6": [
         "REL-W6-AC04",
         "REL-W6-AC07"
+      ],
+      "SEC-02": [
+        "SEC-02-AC05"
       ]
     }
   },
@@ -3883,6 +3886,105 @@
         },
         {
           "id": "SEC-01-AC11",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "SEC-02",
+      "title": "[W1] CI gate: main() lists the changed files from the merge base (D22)",
+      "phase": "implement",
+      "owner": "lane-d",
+      "depends_on": [
+        "SEC-01"
+      ],
+      "requirements": [
+        "PV-B01"
+      ],
+      "description": "tools/ci-gate.mjs main() lists the pull request's changed files with git diff --name-only <base> HEAD, where <base> is git merge-base HEAD origin/main. On main it runs git diff --name-only merge-base HEAD, which takes the word merge-base as a revision, so the gate exits 128 on every pull request; the lead runner's container gate found it on #28 and #29 on 2026-10-17, and SEC-01's tests did not, because they inject git and never run main(). tools/test/ci-gate-main.test.mjs runs the changed-files step of main() with the real git against a temporary repository that has an origin/main and a branch which adds, changes and removes files, and checks the list. Every pull request's gate runs the copy of ci-gate.mjs on main, so a gate with the broken copy cannot pass this fix: SEC-02 lands by Ryan's signed commit to main after the lead runner's verify (D22), and the gate is then run on main.",
+      "scope": {
+        "allow": [
+          "tools/ci-gate.mjs",
+          "tools/test/ci-gate-main.test.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "SEC-02-AC01",
+          "mandatory": true,
+          "statement": "main() lists the changed files from the merge base, with the real git, on a temporary repository",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/ci-gate-main.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "SEC-02-AC02",
+          "mandatory": true,
+          "statement": "no git call takes the word merge-base as a revision",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -nE \"'diff', *'--name-only', *'merge-base'\" tools/ci-gate.mjs",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "SEC-02-AC03",
+          "mandatory": true,
+          "statement": "both gate suites are green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test tools/test/ci-gate.test.mjs tools/test/ci-gate-main.test.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 2,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "SEC-02-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "SEC-02-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "SEC-02-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "SEC-02-AC07",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
