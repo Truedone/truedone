@@ -1,0 +1,9 @@
+{
+  "files": [
+    {
+      "path": "jest.config.js",
+      "base": "export default { testTimeout: 1000 };\n",
+      "head": "export default { testTimeout: 5000 };\n"
+    }
+  ]
+}

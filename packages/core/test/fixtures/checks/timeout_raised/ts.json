@@ -1,0 +1,9 @@
+{
+  "files": [
+    {
+      "path": "a.test.ts",
+      "base": "test('adds', () => { jest.setTimeout(1000); expect(1).toBe(1); });\n",
+      "head": "test('adds', () => { jest.setTimeout(5000); expect(1).toBe(1); });\n"
+    }
+  ]
+}

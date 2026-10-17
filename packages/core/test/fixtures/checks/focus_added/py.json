@@ -1,0 +1,9 @@
+{
+  "files": [
+    {
+      "path": "test_a.py",
+      "base": "def test_adds():\n    assert 1 == 1\n",
+      "head": "import pytest\n@pytest.mark.only\ndef test_adds():\n    assert 1 == 1\n"
+    }
+  ]
+}

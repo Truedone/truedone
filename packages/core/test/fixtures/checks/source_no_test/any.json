@@ -1,0 +1,9 @@
+{
+  "files": [
+    {
+      "path": "src/add.js",
+      "base": "export const add = (a, b) => a + b;\n",
+      "head": "export const add = (a, b) => a + b + 1;\n"
+    }
+  ]
+}
