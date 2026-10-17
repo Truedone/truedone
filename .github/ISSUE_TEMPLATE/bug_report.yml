@@ -11,7 +11,7 @@ body:
     attributes:
       label: Where it happened
       options:
-        - truedone.dev
+        - truedone.pages.dev
         - the CLI (npx truedone)
         - the plugin
         - the GitHub App
