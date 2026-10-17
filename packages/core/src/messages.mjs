@@ -1,0 +1,9 @@
+export const tampered = 'A test that existed at base was disabled, focused or weakened.';
+export const review = 'A test change in {name} needs a look.';
+export const unrun = 'Tests in {name} changed and have not been run.';
+export const no_evidence = 'No red-green evidence for {name}.';
+export const not_applicable = 'Not applicable for {name}.';
+export const language = 'language not supported in version 1';
+export const skip_focus = 'A skip or focus marker is in {name}.';
+export const partial = 'Only part of the change was analysed.';
+export const bot = 'A listed bot opened {name}.';
