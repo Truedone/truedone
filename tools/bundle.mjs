@@ -304,3 +304,108 @@ if (opt.copy) {
   fs.mkdirSync(path.dirname(opt.copy), { recursive: true });
   fs.writeFileSync(opt.copy, text);
 }
+
+// Entry bundles (CLI-01, PLG-01): the published CLI file and the plugin's hook file, each one ES module with no import
+// but node: built-ins. The run with no arguments builds them after core.mjs. Each module the entry reaches through a
+// relative import becomes one function scope that returns its exports; an importer takes the names it imports from
+// that object, so two modules may export the same name. node: imports are hoisted once to the top; two modules may
+// not bind one local name to different built-ins. core.mjs, already one file, is taken as it is. A shebang on the entry
+// stays the first line. The entry's own lines stay at the top level, so a line such as const REDGREEN_ENABLED = false;
+// keeps its exact text (PLG-03 sets it from docs/gates/redgreen.json, D17).
+const ENTRIES = [
+  { entry: 'packages/cli/src/bin.mjs', out: 'packages/cli/truedone.mjs' },
+  { entry: 'packages/cli/src/plugin/entry.mjs', out: 'packages/cli/plugin/hooks/stop.mjs', redgreen: 'docs/gates/redgreen.json' },
+  { entry: 'packages/action/src/index.mjs', out: 'packages/action/dist/index.mjs' }, // the action entry (ACT-01)
+];
+
+function entryBundle(entryRel, { redgreen } = {}) {
+  const entry = path.join(repo, entryRel);
+  const builtins = new Map();   // local name -> import statement
+  const order = [];
+  const seen = new Map();       // file -> module id
+  const bodies = new Map();
+  let shebang = '';
+  const builtin = (stmt, file) => {
+    const m = /^import\s+(.+?)\s+from\s+(['"])(node:[a-z_/]+)\2\s*;?\s*$/.exec(stmt.replace(/\s+/g, ' ').trim());
+    if (!m) return false;
+    const clause = m[1];
+    const def = /^([A-Za-z_$][\w$]*)\s*(,|$)/.exec(clause);
+    const ns = /\*\s+as\s+([A-Za-z_$][\w$]*)/.exec(clause);
+    const braces = /\{([^}]*)\}/.exec(clause);
+    // one import statement per local name, so the same name imported in two modules is declared once
+    const specs = [];
+    if (def) specs.push([def[1], `import ${def[1]} from '${m[3]}';`]);
+    if (ns) specs.push([ns[1], `import * as ${ns[1]} from '${m[3]}';`]);
+    if (braces) for (const part of braces[1].split(',')) { const b2 = part.trim(); if (b2) specs.push([(b2.split(/\s+as\s+/)[1] || b2).trim(), `import { ${b2} } from '${m[3]}';`]); }
+    for (const [n, one] of specs) {
+      const prev = builtins.get(n);
+      if (prev && prev !== one) { console.error(`${path.relative(repo, file)}: ${n} is bound to two built-ins (${prev} / ${one})`); process.exit(1); }
+      builtins.set(n, one);
+    }
+    return true;
+  };
+  const visit = (file) => {
+    if (seen.has(file)) return seen.get(file);
+    const id = `__m${seen.size}`;
+    seen.set(file, id);
+    let text = fs.readFileSync(file, 'utf8');
+    if (file === entry && text.startsWith('#!')) { shebang = text.slice(0, text.indexOf('\n') + 1); text = text.slice(shebang.length); }
+    const { imports, body } = splitImports(text);
+    const takes = [];
+    for (const stmt of imports) {
+      if (builtin(stmt, file)) continue;
+      const m = /^import\s*\{([^}]*)\}\s*from\s*(['"])(\.[^'"]+\.mjs)\2\s*;?\s*$/.exec(stmt.replace(/\s+/g, ' ').trim());
+      if (!m) refuse(stmt);
+      const target = path.resolve(path.dirname(file), m[3]);
+      if (!target.startsWith(repo + path.sep) || !fs.existsSync(target)) refuse(stmt);
+      const dep = visit(target);
+      const binds = m[1].split(',').map((s) => s.trim()).filter(Boolean).map((b) => { const mm = /^([A-Za-z_$][\w$]*)(?:\s+as\s+([A-Za-z_$][\w$]*))?$/.exec(b); if (!mm) refuse(stmt); return mm[2] ? `${mm[1]}: ${mm[2]}` : mm[1]; });
+      takes.push(`const { ${binds.join(', ')} } = ${dep};`);
+    }
+    const exp = [];
+    const lines = body.split('\n').map((line) => {
+      const mm = /^(\s*)export\s+((?:async\s+)?function\*?|class|const|let|var)\s+([A-Za-z_$][\w$]*)/.exec(line);
+      if (mm) { exp.push(mm[3]); return line.replace(/^(\s*)export\s+/, '$1'); }
+      // a one-line export { a, b as c }; of names already in scope is returned too; export { } from is not taken
+      const ml = /^\s*export\s*\{([^}]*)\}\s*;?\s*$/.exec(line);
+      if (ml) {
+        for (const part of ml[1].split(',').map((s) => s.trim()).filter(Boolean)) {
+          const m2 = /^([A-Za-z_$][\w$]*)(?:\s+as\s+([A-Za-z_$][\w$]*))?$/.exec(part);
+          if (!m2) refuse(line);
+          exp.push(m2[2] ? `${m2[2]}: ${m2[1]}` : m2[1]);
+        }
+        return '';
+      }
+      if (/^\s*export\b/.test(line)) refuse(line);
+      return line;
+    });
+    bodies.set(file, { id, takes, body: lines.join('\n'), exp });
+    order.push(file);
+    return id;
+  };
+  visit(entry);
+  let out = shebang + [...builtins.values()].join('\n') + '\n';
+  for (const file of order) {
+    const { id, takes, body, exp } = bodies.get(file);
+    const inner = strip(`${takes.join('\n')}\n${body}`).replace(/^\n+/, '');
+    if (file === entry) out += `${inner}\n`;
+    else out += `const ${id}=(()=>{\n${inner}\nreturn {${exp.join(',')}};\n})();\n`;
+  }
+  if (redgreen) {
+    let on = false;
+    try { on = JSON.parse(fs.readFileSync(path.join(repo, redgreen), 'utf8')).pass === true; } catch { /* no gate record yet: off */ }
+    const line = /^const REDGREEN_ENABLED = (true|false);$/m;
+    if (!line.test(out)) { console.error(`${entryRel}: no line const REDGREEN_ENABLED = false; to set`); process.exit(1); }
+    out = out.replace(line, `const REDGREEN_ENABLED = ${on};`);
+  }
+  return `${out.replace(/\n{3,}/g, '\n\n').trim()}\n`;
+}
+
+if (!process.argv.slice(2).length) {
+  for (const e of ENTRIES) {
+    if (!fs.existsSync(path.join(repo, e.entry))) continue;
+    const text = entryBundle(e.entry, e);
+    fs.mkdirSync(path.dirname(path.join(repo, e.out)), { recursive: true });
+    fs.writeFileSync(path.join(repo, e.out), text);
+  }
+}

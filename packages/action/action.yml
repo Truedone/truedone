@@ -1,0 +1,17 @@
+# The truedone action (ACT-01, PV-X01): one uses: line in the repository's own test job,
+# after its setup. It runs on the runner's Node and installs nothing.
+name: 'truedone'
+description: >-
+  Runs the pull request's added or changed tests against base and head and reports
+  whether a test fails without the change and passes with it. Installs nothing.
+inputs:
+  config:
+    description: 'Path to a truedone.yml-style config; defaults to .github/truedone.yml'
+    required: false
+  timeout:
+    description: 'Whole-step timeout in seconds; default 1200'
+    required: false
+    default: '1200'
+runs:
+  using: 'node24'
+  main: 'dist/index.mjs'
