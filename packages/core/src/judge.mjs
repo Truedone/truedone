@@ -63,14 +63,78 @@ function pick(reports) {
   return same[0] || null;
 }
 
+const LABELS = {
+  tampered: 'truedone:tampered',
+  review: 'truedone:review',
+  could_not_run: 'truedone:could-not-run',
+  proven: 'truedone:yes',
+  proven_new: 'truedone:yes',
+  proven_weak: 'truedone:weak',
+  no_evidence: 'truedone:no-evidence',
+  pending: 'truedone:pending',
+  unrun: 'truedone:unrun',
+  not_applicable: null,
+};
+
+const NEXT = {
+  tampered: 'Restore an equivalent test, or pin the step to a published release.',
+  review: 'Confirm the test change is intended.',
+  could_not_run: 'Fix the named reason and run again.',
+  proven: 'Review the rest of the change as usual.',
+  proven_new: 'Review the rest of the change as usual.',
+  proven_weak: 'Make the test run the changed lines and assert on them.',
+  no_evidence: 'Add a test that fails before the change and passes after it.',
+  pending: 'Approve the run on GitHub.',
+  unrun: 'Run the changed tests: the next rung.',
+  not_applicable: 'Nothing.',
+};
+
+function result(verdict, reasons, partial) {
+  const lines = (reasons || []).filter((r) => r && r.check !== 'partial').slice(0, 10);
+  return {
+    schema: 'truedone.verdict/1',
+    verdict,
+    label: LABELS[verdict] ?? null,
+    partial: Boolean(partial),
+    reasons: lines,
+    next: NEXT[verdict] || '',
+  };
+}
+
+function redGreen(test) {
+  const id = rowId(test);
+  const name = test.name || 'a test';
+  const cond = test.condition || 'none';
+  const head = (test.head || []).join(',');
+  return {
+    check: 'red_green',
+    file: test.file || '',
+    message: `Test ${name} is ${id} on head ${head} with coverage ${cond}.`,
+  };
+}
+
 export function judge(staticResult, reports) {
   const standing = staticResult && staticResult.verdict;
-  if (STAND.has(standing)) {
-    return { schema: 'truedone.verdict/1', verdict: standing };
-  }
+  const partial = Boolean(staticResult && staticResult.partial);
+  const staticReasons = Array.isArray(staticResult?.reasons) ? staticResult.reasons.map((r) => ({ ...r })) : [];
+  if (STAND.has(standing)) return result(standing, staticReasons, partial);
   const report = pick(reports);
   if (!report) {
-    return { schema: 'truedone.verdict/1', verdict: standing || 'no_evidence' };
+    const fallback = standing || 'no_evidence';
+    const lines = staticReasons.length ? staticReasons : [{ check: 'no_test', file: '', message: 'No report reached a result.' }];
+    return result(fallback, lines, partial);
   }
-  return { schema: 'truedone.verdict/1', verdict: best(report.tests.map(rowId)) };
+  if (report.could_not_run && report.tests.length === 0) {
+    const why = report.could_not_run.reason || 'unknown';
+    const detail = report.could_not_run.detail || '';
+    const message = detail ? `${why}: ${detail}` : String(why);
+    return result('could_not_run', [{ check: 'could_not_run', file: '', message }], partial);
+  }
+  const lines = report.tests.map(redGreen);
+  const attempt = report.attempt ?? 0;
+  const same = (Array.isArray(reports) ? reports : []).filter((r) => (r.attempt ?? 0) === attempt && r !== report);
+  for (const other of same) {
+    lines.push({ check: 'report', file: '', message: `Report ${other.job || 'a job'} is on the same attempt.` });
+  }
+  return result(best(report.tests.map(rowId)), lines, partial);
 }
