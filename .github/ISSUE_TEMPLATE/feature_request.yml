@@ -1,0 +1,30 @@
+name: Feature request
+description: Propose a change to what truedone checks or reports.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you were trying to do, and what truedone does today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: The change you propose
+    validations:
+      required: true
+  - type: textarea
+    id: test
+    attributes:
+      label: How a test would show it
+      description: A test that fails today and would pass with the change, or a pull request that truedone would judge differently.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Other approaches you considered
+    validations:
+      required: false
