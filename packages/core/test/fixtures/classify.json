@@ -1,5 +1,5 @@
 [
-  { "path": ".github/proved.yml", "class": "proved_config" },
+  { "path": ".github/truedone.yml", "class": "truedone_config" },
   { "path": ".github/workflows/ci.yml", "class": "workflow" },
   { "path": ".github/workflows/release.yaml", "class": "workflow" },
   { "path": "jest.config.js", "class": "runner_config" },

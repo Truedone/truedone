@@ -199,7 +199,7 @@ export function classify(filePath, context = {}) {
   const base = baseName(path);
   const keys = Array.isArray(context.keys) ? context.keys.filter((k) => typeof k === 'string') : [];
   const found = patternsFrom(Array.isArray(context.configs) ? context.configs : []);
-  if (path === '.github/proved.yml') return 'proved_config';
+  if (path === '.github/truedone.yml') return 'truedone_config';
   if (/^\.github\/workflows\/[^/]+\.ya?ml$/.test(path)) return 'workflow';
   if (isRunner(path, base, keys)) return 'runner_config';
   if (isSetup(path, base, found.setup)) return 'setup';
