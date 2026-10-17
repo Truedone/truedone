@@ -8,7 +8,7 @@
     "No silent scope cuts: never lower targets, caps, limits, run counts or test sizes without owner approval.",
     "Never bypass guards: no --no-verify, no bypass env vars, no skip flags.",
     "Honest reporting: TASK-ID | status | commit | tests | measured vs target | missing.",
-    "docs/spec.md is the specification. Decisions D1 to D31 are settled; a question it does not answer is BLOCKED, never chosen by a lane.",
+    "docs/spec.md is the specification. Decisions D1 to D32 are settled; a question it does not answer is BLOCKED, never chosen by a lane.",
     "Zero dependencies (D23): no package.json declares dependencies or devDependencies. Tests use node:test; single files come from tools/bundle.mjs.",
     "Test inputs that contain skip, focus, timeout or assertion text go in test/fixtures/, never inline in a *.test.mjs file.",
     "truedone's app and website never execute repository code. pull_request_target is never used.",
@@ -248,7 +248,8 @@
         "REL-W2-AC05",
         "REL-W2-AC06",
         "REL-W2-AC07",
-        "REL-W2-AC09"
+        "REL-W2-AC09",
+        "REL-W2-AC12"
       ],
       "REL-W3": [
         "REL-W3-AC04",
@@ -265,10 +266,44 @@
       ],
       "REL-W6": [
         "REL-W6-AC04",
-        "REL-W6-AC07"
+        "REL-W6-AC07",
+        "REL-W6-AC10",
+        "REL-W6-AC11"
       ],
       "SEC-02": [
         "SEC-02-AC05"
+      ],
+      "WEB-04": [
+        "WEB-04-AC08"
+      ],
+      "CORE-06": [
+        "CORE-06-AC11"
+      ],
+      "CORE-07": [
+        "CORE-07-AC11"
+      ],
+      "RUN-06": [
+        "RUN-06-AC09"
+      ],
+      "REPO-02": [
+        "REPO-02-AC06"
+      ],
+      "SEC-03": [
+        "SEC-03-AC07"
+      ],
+      "README-02": [
+        "README-02-AC06"
+      ],
+      "RUN-05": [
+        "RUN-05-AC09"
+      ],
+      "DEMO-01": [
+        "DEMO-01-AC01",
+        "DEMO-01-AC04",
+        "DEMO-01-AC08"
+      ],
+      "PROS-01": [
+        "PROS-01-AC08"
       ]
     }
   },
@@ -724,7 +759,7 @@
         "PV-A02",
         "PV-A09"
       ],
-      "description": "Register the GitHub App truedone from packages/app/app-manifest.json, whose webhook and callbacks are on the production Worker https://truedone.ledgerguard-global.workers.dev, and truedone-dev from the same manifest with those URLs on https://truedone-dev.ledgerguard-global.workers.dev, installed only on mgillr/truedone-sandbox. Put each private key, webhook secret and OAuth client secret into Worker secrets (wrangler secret put) and delete the downloaded key files; no lane sees them (S5). The repository environments dev and production exist; production requires your approval and deploys from main only. Put a Cloudflare API token scoped to Workers and Pages, on the account whose workers.dev subdomain is ledgerguard-global, into both as CLOUDFLARE_API_TOKEN (D26); there is no DNS zone and no route. Record app ids, not secrets, in docs/ops/apps.md.",
+      "description": "Register the GitHub App truedone from packages/app/app-manifest.json, whose webhook, redirect and setup URLs and first callback are on the production Worker https://truedone.ledgerguard-global.workers.dev and whose second callback is the site's sign-in, https://truedone.pages.dev/signin/callback (D26, WEB-02), and truedone-dev from the same manifest with the Worker URLs on https://truedone-dev.ledgerguard-global.workers.dev, installed only on mgillr/truedone-sandbox. Put each private key, webhook secret and OAuth client secret into Worker secrets (wrangler secret put) and delete the downloaded key files; no lane sees them (S5). The repository environments dev and production exist; production requires your approval and deploys from main only. Put a Cloudflare API token scoped to Workers and Pages, on the account whose workers.dev subdomain is ledgerguard-global, into both as CLOUDFLARE_API_TOKEN (D26); there is no DNS zone and no route. Record app ids, not secrets, in docs/ops/apps.md.",
       "scope": {
         "allow": [
           "docs/ops/apps.md",
@@ -854,7 +889,7 @@
       "requirements": [
         "PV-B01"
       ],
-      "description": "Ruleset on main: require a pull request (no required approval: the lead runner opens every pull request with Ryan login, and GitHub does not let an author approve their own), require the status check truedone-gate, block force pushes and deletions. Repository settings: merge commits only, so a task commit stays on main and proofline's pushed check passes (D25). Record it in docs/ops/ruleset.md.",
+      "description": "Ruleset on main: require a pull request (no required approval: the lead runner opens every pull request with Ryan login, and GitHub does not let an author approve their own), require the status check truedone-gate, block force pushes and deletions. Repository settings: merge commits only, so a task commit stays on main and proofline's pushed check passes (D25). Record it in docs/ops/ruleset.md. Live since 2026-10-17 (docs/ops/ruleset.md, signed at 2290da9): the ruleset main-history blocks force pushes and deletion of main (non_fast_forward and deletion, no bypass), and main-review requires a pull request and the status check \"truedone-gate (lead runner, docker)\", with admin bypass for Ryan's signed contract and ops commits. While GitHub Actions are locked on the account (D22, v2i) the required check is that commit status from the lead runner's container; when Actions run again it becomes truedone-gate.",
       "scope": {
         "allow": [
           "docs/ops/ruleset.md",
@@ -968,15 +1003,17 @@
       "phase": "plan",
       "owner": "ryan",
       "depends_on": [
-        "OPS-04"
+        "OPS-04",
+        "PROS-01"
       ],
       "requirements": [
         "PV-G06"
       ],
-      "description": "Ten projects whose maintainers have described AI-PR load in public (Godot, matplotlib, OpenClaw and others the corpus surfaces), one owner/repo per line, in docs/gates/gate5-repos.txt. You contact them yourself (GATE-05R).",
+      "description": "Pick the ten from docs/gates/gate5-candidates.tsv (PROS-01): projects whose maintainers have described AI-PR load in public, one owner/repo per line, in docs/gates/gate5-repos.txt, and for each pick the link to that public statement in docs/gates/gate5-statements.tsv, one line per repository: owner/repo, a tab, the https link. You contact them yourself (GATE-05R).",
       "scope": {
         "allow": [
           "docs/gates/gate5-repos.txt",
+          "docs/gates/gate5-statements.tsv",
           "docs/DEPENDENCY-MAP.md"
         ]
       },
@@ -1021,6 +1058,39 @@
           "verifier": {
             "type": "command",
             "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "OPS-06-AC07",
+          "mandatory": true,
+          "statement": "each of the ten picks is a row of docs/gates/gate5-candidates.tsv",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e 'const fs=require(\"fs\");const r=fs.readFileSync(\"docs/gates/gate5-repos.txt\",\"utf8\").trim().split(\"\\n\").map(x=>x.trim());const c=new Set(fs.readFileSync(\"docs/gates/gate5-candidates.tsv\",\"utf8\").replace(/\\r/g,\"\").trim().split(\"\\n\").slice(1).map(l=>l.split(\"\\t\")[0]));process.exit(r.length===10&&r.every(x=>c.has(x))?0:1)'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "OPS-06-AC08",
+          "mandatory": true,
+          "statement": "each pick has the link to its maintainers' public statement on AI-PR load",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e 'const fs=require(\"fs\");const r=fs.readFileSync(\"docs/gates/gate5-repos.txt\",\"utf8\").trim().split(\"\\n\").map(x=>x.trim());const s=new Map(fs.readFileSync(\"docs/gates/gate5-statements.tsv\",\"utf8\").replace(/\\r/g,\"\").trim().split(\"\\n\").map(l=>l.split(\"\\t\")));process.exit(r.length===10&&r.every(x=>/^https:\\/\\/\\S+$/.test(s.get(x)||\"\"))?0:1)'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "OPS-06-AC09",
+          "mandatory": true,
+          "statement": "Ryan signed the statement links",
+          "verifier": {
+            "type": "command",
+            "cmd": "git -c gpg.ssh.allowedSignersFile=.github/allowed_signers verify-commit \"$(git log -1 --format=%H -- docs/gates/gate5-statements.tsv)\"",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -1869,6 +1939,373 @@
       ]
     },
     {
+      "id": "CORE-06",
+      "title": "[W1] analyse() and judge() return the whole Result: reason lines, label, partial and next",
+      "phase": "implement",
+      "owner": "lane-c",
+      "depends_on": [
+        "CORE-03",
+        "CORE-05",
+        "JUDGE-01"
+      ],
+      "requirements": [
+        "PV-C02",
+        "PV-C04",
+        "PV-C15"
+      ],
+      "description": "packages/core/src: analyse() and judge() return the whole truedone.verdict/1 Result, with the reason lines that docs/spec.md sets out under \"Reason lines\" and \"Red-green reason lines\" in its checks section, and next from the What to do next column of its verdicts table. On main analyse() returns reasons: [] for every checks-table fixture, because staticVerdict() in src/checks.mjs returns a verdict alone and stops at the first Tampered finding; the PR body's claim that tests were added gives No red-green evidence on its own, so a docs-only PR with that claim is No red-green evidence where the spec says Not applicable; and next for Tests changed: not run and Not applicable is not the table's text. judge() on main returns {schema, verdict} only, with no label, partial, reasons or next, and a report whose could_not_run is set and that ran no test gives No red-green evidence instead of Could not run. When several rows match, the highest verdict by precedence wins and every finding keeps its line; on main a snapshot update with the truedone step removed is Test changes: review, because staticVerdict() returns review for the snapshot before it looks at the step. Message templates stay in src/messages.mjs as plain strings with {name} placeholders and pass CORE-03-AC04, and every checks-table fixture keeps the verdict CORE-03-AC01 fixes. The bundles are rebuilt with tools/bundle.mjs (the core node's update edge to bundles).",
+      "scope": {
+        "allow": [
+          "packages/core/src/**",
+          "packages/core/test/**",
+          "packages/core/package.json",
+          "tools/bundle.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/action/dist/index.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "CORE-06-AC01",
+          "mandatory": true,
+          "statement": "every checks-table fixture gives its row's reason line, a docs-only PR that claims tests is Not applicable, and at most 10 lines come back with the partial line kept last",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/core/test/reasons.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CORE-06-AC02",
+          "mandatory": true,
+          "statement": "judge() returns label, partial, next and the red-green lines, and a report that ran no test gives Could not run with its reason",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/core/test/judge-result.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CORE-06-AC03",
+          "mandatory": true,
+          "statement": "every checks-table row keeps its verdict and gives a line with its key and file; the claim is a line on No red-green evidence only; 12 findings give 10 lines; the partial line is the last of 10; a snapshot update with the truedone step removed is Tampered with both lines; no banned wording",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --input-type=module -e 'import fs from \"node:fs\";import {analyse} from \"./packages/core/src/analyse.mjs\";const d=\"packages/core/test/fixtures/checks/\";const want={skip_added:[\"tampered\",\"skip\"],focus_added:[\"tampered\",\"focus\"],assertion_weakened:[\"tampered\",\"weakened\"],test_deleted_source_kept:[\"tampered\",\"deleted\"],test_deleted_source_deleted:[\"review\",\"deleted\"],test_moved:[\"unrun\",\"unrun\"],snapshot_updated:[\"review\",\"snapshot\"],param_case_removed:[\"review\",\"parametrised\"],timeout_raised:[\"review\",\"timeout\"],runner_config_changed:[\"review\",\"runner_config\"],step_repinned_release:[\"review\",\"step_release\"],step_changed:[\"tampered\",\"step\"],claims_adds_tests:[\"no_evidence\",\"claim\"],source_no_test:[\"no_evidence\",\"no_test\"],tests_changed_no_report:[\"unrun\",\"unrun\"],docs_only:[\"not_applicable\",\"not_applicable\"]};const per=[\"skip_added\",\"focus_added\",\"assertion_weakened\",\"test_deleted_source_kept\",\"test_moved\",\"timeout_raised\"];const pr={title:\"\",body:\"\",author:{login:\"a\",type:\"User\"}};const bad=[];const line=x=>x&&typeof x.check===\"string\"&&typeof x.file===\"string\"&&typeof x.message===\"string\"&&x.message.length>0&&!x.message.includes(\"\\n\");const words=o=>/\\b(safe|correct|you|your)\\b/i.test(JSON.stringify([o.reasons,o.next]));for(const [r,[v,k]] of Object.entries(want))for(const l of (per.includes(r)?[\"js\",\"ts\",\"py\"]:[\"any\"])){const p=d+r+\"/\"+l+\".json\";const f=JSON.parse(fs.readFileSync(p,\"utf8\"));const o=analyse({files:f.files,pr:f.pr??pr,releases:f.releases??[]});const ok=o.verdict===v&&Array.isArray(o.reasons)&&o.reasons.length>=1&&o.reasons.length<=10&&o.reasons.every(line)&&o.reasons.some(x=>x.check===k&&(k===\"claim\"?x.file===\"\":f.files.some(y=>y.path===x.file)))&&!words(o);if(!ok)bad.push(p+\" \"+JSON.stringify(o))}const cf=JSON.parse(fs.readFileSync(d+\"claims_adds_tests/any.json\",\"utf8\"));if(!analyse({files:cf.files,pr:cf.pr,releases:[]}).reasons.some(x=>x.check===\"no_test\"))bad.push(\"the claim fixture has no no_test line\");const od=analyse({files:[{path:\"README.md\",status:\"modified\",base:\"a\\n\",head:\"b\\n\"}],pr:{title:\"\",body:\"adds tests\",author:{login:\"a\",type:\"User\"}},releases:[]});if(od.verdict!==\"not_applicable\"||od.reasons.some(x=>x.check===\"claim\"))bad.push(\"docs only with the claim: \"+JSON.stringify(od));const src=n=>Array.from({length:n},(_,i)=>({path:\"src/m\"+String(i).padStart(3,\"0\")+\".js\",status:\"modified\",patch:\"@@ -1 +1 @@\\n-a\\n+b\"}));const om=analyse({files:src(12),pr,releases:[]});if(om.reasons.length!==10||!om.reasons.every(x=>x.check===\"no_test\"))bad.push(\"twelve files: \"+om.reasons.length);const ob=analyse({files:src(301),pr,releases:[]});if(!ob.partial||ob.reasons.length!==10||ob.reasons[9].check!==\"partial\")bad.push(\"partial line not last of 10\");const pq=analyse({files:[{path:\"a.test.js.snap\",status:\"modified\",base:\"x\\n\",head:\"y\\n\"},{path:\".github/workflows/ci.yml\",status:\"modified\",base:\"steps:\\n  - uses: mgillr/truedone-action@abc\\n\",head:\"steps: []\\n\"}],pr,releases:[]});if(pq.verdict!==\"tampered\"||!pq.reasons.some(x=>x.check===\"step\")||!pq.reasons.some(x=>x.check===\"snapshot\"))bad.push(\"a snapshot update with the truedone step removed: \"+JSON.stringify(pq));if(bad.length){console.error(bad.join(\"\\n\"));process.exit(1)}'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "CORE-06-AC04",
+          "mandatory": true,
+          "statement": "next is the What to do next text of the spec's verdicts table for analyse() and judge(); judge() returns the label, partial and its red-green lines, keeps a standing verdict's lines, and gives Could not run for a report that ran no test",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --input-type=module -e 'import fs from \"node:fs\";import {analyse} from \"./packages/core/src/analyse.mjs\";import {judge} from \"./packages/core/src/judge.mjs\";const NAME={tampered:\"Tampered\",review:\"Test changes: review\",could_not_run:\"Could not run\",proven:\"Proven\",proven_new:\"Proven (new behaviour)\",proven_weak:\"Proven (weak)\",no_evidence:\"No red-green evidence\",pending:\"Waiting for approval\",unrun:\"Tests changed: not run\",not_applicable:\"Not applicable\"};const next={},label={};for(const l of fs.readFileSync(\"docs/spec.md\",\"utf8\").split(\"\\n\")){if(!/^\\| \\*\\*/.test(l))continue;const r=l.split(\"|\").map(s=>s.trim());const id=Object.keys(NAME).find(k=>NAME[k]===r[1].replace(/\\*\\*/g,\"\"));if(id){next[id]=r[r.length-2];label[id]=r[2]===\"none\"?null:r[2].replace(/`/g,\"\")}}const bad=[];if(Object.keys(next).length!==10)bad.push(\"the verdicts table gave \"+Object.keys(next).length+\" rows\");const pr={title:\"\",body:\"\",author:{login:\"a\",type:\"User\"}};const d=\"packages/core/test/fixtures/checks/\";for(const r of [\"skip_added/js\",\"test_deleted_source_deleted/any\",\"source_no_test/any\",\"tests_changed_no_report/any\",\"docs_only/any\"]){const f=JSON.parse(fs.readFileSync(d+r+\".json\",\"utf8\"));const o=analyse({files:f.files,pr:f.pr??pr,releases:f.releases??[]});if(o.next!==next[o.verdict]||o.label!==label[o.verdict])bad.push(r+\": \"+o.verdict+\" next \"+o.next)}const want=[\"proven\",\"proven_new\",\"proven_weak\",\"no_evidence\",\"could_not_run\",\"could_not_run\",\"no_evidence\",\"could_not_run\",\"could_not_run\"];for(let i=1;i<=9;i++){const f=JSON.parse(fs.readFileSync(\"packages/core/test/fixtures/outcomes/row\"+i+\".json\",\"utf8\"));const o=judge(f.static,f.reports);const ok=o.schema===\"truedone.verdict/1\"&&o.verdict===want[i-1]&&o.label===label[o.verdict]&&typeof o.partial===\"boolean\"&&o.next===next[o.verdict]&&Array.isArray(o.reasons)&&o.reasons.length>=1&&o.reasons.length<=10&&o.reasons.some(x=>x.check===\"red_green\"&&typeof x.file===\"string\"&&typeof x.message===\"string\"&&!x.message.includes(\"\\n\"));if(!ok)bad.push(\"row\"+i+\": \"+JSON.stringify(o))}const st=analyse({files:[{path:\"a.test.js\",status:\"modified\",base:\"x\\n\",head:\"y\\n\"}],pr,releases:[]});const cn=judge(st,[{schema:\"truedone.report/1\",tests:[],could_not_run:{reason:\"runner\",detail:\"no runner found\"},truncated:false}]);if(cn.verdict!==\"could_not_run\"||!cn.reasons.some(x=>x.check===\"could_not_run\"&&/runner/.test(x.message)))bad.push(\"a report that ran no test: \"+JSON.stringify(cn));const pv={schema:\"truedone.report/1\",tests:[{file:\"a.test.js\",name:\"t\",base:[\"fail:assertion\",\"fail:assertion\"],head:[\"pass\",\"pass\",\"pass\"],condition:\"lines\",asserts_new_symbol:false,duration_ms:1}],could_not_run:null,truncated:false};if(judge({...st,partial:true},[pv]).partial!==true)bad.push(\"partial is not carried from the static result\");const tf=JSON.parse(fs.readFileSync(d+\"skip_added/js.json\",\"utf8\"));const ts=analyse({files:tf.files,pr,releases:[]});const tj=judge(ts,[pv]);if(tj.verdict!==\"tampered\"||tj.label!==\"truedone:tampered\"||tj.next!==next.tampered||JSON.stringify(tj.reasons)!==JSON.stringify(ts.reasons))bad.push(\"a standing Tampered loses its lines: \"+JSON.stringify(tj));if(bad.length){console.error(bad.join(\"\\n\"));process.exit(1)}'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "CORE-06-AC05",
+          "mandatory": true,
+          "statement": "no message template says safe or correct, or addresses the author",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --input-type=module -e 'const m=await import(\"./packages/core/src/messages.mjs\");const v=Object.values(m);if(v.some(x=>typeof x!==\"string\"))process.exit(1);process.exit(/\\b(safe|correct|you|your)\\b/i.test(v.join(\" \"))?1:0)'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "CORE-06-AC06",
+          "mandatory": true,
+          "statement": "the committed bundles match their sources",
+          "verifier": {
+            "type": "docs",
+            "cmd": "node tools/bundle.mjs",
+            "paths": [
+              "packages/core/core.mjs",
+              "packages/web/core.mjs",
+              "packages/cli/truedone.mjs",
+              "packages/cli/plugin/hooks/stop.mjs",
+              "packages/action/dist/index.mjs"
+            ]
+          }
+        },
+        {
+          "id": "CORE-06-AC07",
+          "mandatory": true,
+          "statement": "core.mjs stays under 60 KB with the reason lines",
+          "verifier": {
+            "type": "metric",
+            "cmd": "node tools/bundle.mjs >/dev/null && node -e 'console.log(JSON.stringify({bytes:require(\"fs\").statSync(\"packages/core/core.mjs\").size}))'",
+            "key": "bytes",
+            "op": "<",
+            "value": 61440,
+            "timeout_s": 3600,
+            "name": "core_bytes"
+          }
+        },
+        {
+          "id": "CORE-06-AC08",
+          "mandatory": true,
+          "statement": "core source does no I/O and uses no Node, Deno or Workers API",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|process\\.|Buffer\\.|fetch\\(|Deno\\.|XMLHttpRequest|localStorage\" packages/core/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-06-AC09",
+          "mandatory": true,
+          "statement": "core suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/core/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 235,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "CORE-06-AC10",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-06-AC11",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-06-AC12",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "CORE-06-AC13",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "CORE-07",
+      "title": "[W2] Static hollowing checks, and one red-green table for judge() and the runner",
+      "phase": "implement",
+      "owner": "lane-c",
+      "depends_on": [
+        "CORE-02",
+        "JUDGE-01",
+        "CORE-06"
+      ],
+      "requirements": [
+        "PV-C04",
+        "PV-C05",
+        "PV-C08"
+      ],
+      "description": "Measured on main 2290da9 with packages/core/core.mjs analyse() on a source change plus one test change: test.skip, toBe to toBeDefined, { skip: !process.env.X } and a describe.skip wrapper are Tampered, but these give Tests changed: not run: (a) an expect(...) commented out, because the assertion count does not ignore comments, against the spec's \"assertion removed\" row; (b) pytest.skip() called in a test body, against the \"skip or disable added\" row; (c) expect(true).toBe(true), or any assertion whose subject and expected value are both literals; (d) node's assert.equal(add(1,2),3) changed to assert.ok(true); (e) an assertion after an unconditional return in the test body; (f) an assertion inside if (false) or if (0); (g) an assertion inside a try whose catch does not rethrow. Mocha's this.skip() and node's t.skip() in a body count as a skip, as (b) does. docs/spec.md's checks section now names these: (a), (b) and the two skips in its rows, and (c) to (g) and the node assert family (equal, strictEqual, deepEqual and deepStrictEqual down to ok or a bare assert) in the weakening list. A test hollowed this way passes on base, so red-green gives it No red-green evidence and never Proven; the gap is the Tampered label only. packages/core/test/fixtures/hollow/<case>.json holds one fixture per case, each a source change plus one test change: commented_out, pytest_skip_call, constant_assertion, node_assert_ok, after_return, dead_branch, swallowed_catch, mocha_this_skip, node_t_skip, and the controls control_skip, control_weakened, control_skip_option, control_describe_skip, which stay Tampered; a moved or renamed test stays No finding. Second, packages/core/src/judge.mjs rowId() (lines 8 to 30) re-implements the red-green table of packages/core/run/outcome.mjs outcome() row for row. The table moves to packages/core/src/outcome.mjs, a pure module that run/outcome.mjs imports, and judge() takes each test's result from outcome(), so there is one table; a test runs every combination of base tokens, head tokens, condition and named symbol through both. The bundles are rebuilt with tools/bundle.mjs.",
+      "scope": {
+        "allow": [
+          "packages/core/src/**",
+          "docs/DEPENDENCY-MAP.md",
+          "packages/action/dist/index.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/core/core.mjs",
+          "packages/core/package.json",
+          "packages/core/run/**",
+          "packages/core/test/**",
+          "packages/web/core.mjs",
+          "tools/bundle.mjs"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "CORE-07-AC01",
+          "mandatory": true,
+          "statement": "each hollowing case (a) to (g), and mocha this.skip() and node t.skip() in a test body, gives Tampered on its fixture",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/core/test/hollow.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CORE-07-AC02",
+          "mandatory": true,
+          "statement": "every hollowing fixture and every control is a source change with a test change and gives Tampered, and a moved or renamed test stays No finding (Tests changed: not run)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --input-type=module -e 'import fs from \"node:fs\";import {analyse} from \"./packages/core/src/analyse.mjs\";const d=\"packages/core/test/fixtures/hollow/\";const pr={title:\"\",body:\"\",author:{login:\"a\",type:\"User\"}};const bad=[];const run=f=>analyse({files:f.files,pr:f.pr??pr,releases:f.releases??[]}).verdict;for(const c of [\"commented_out\",\"pytest_skip_call\",\"constant_assertion\",\"node_assert_ok\",\"after_return\",\"dead_branch\",\"swallowed_catch\",\"mocha_this_skip\",\"node_t_skip\",\"control_skip\",\"control_weakened\",\"control_skip_option\",\"control_describe_skip\"]){const p=d+c+\".json\";if(!fs.existsSync(p)){bad.push(\"missing \"+p);continue}const f=JSON.parse(fs.readFileSync(p,\"utf8\"));if(!f.files.some(x=>/^src\\//.test(x.path)))bad.push(c+\": no source change\");const v=run(f);if(v!==\"tampered\")bad.push(c+\": \"+v)}for(const l of [\"js\",\"ts\",\"py\"]){const v=run(JSON.parse(fs.readFileSync(\"packages/core/test/fixtures/checks/test_moved/\"+l+\".json\",\"utf8\")));if(v!==\"unrun\")bad.push(\"test_moved/\"+l+\": \"+v)}if(bad.length){console.error(bad.join(\"\\n\"));process.exit(1)}'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "CORE-07-AC03",
+          "mandatory": true,
+          "statement": "every checks-table row keeps its verdict, in each language",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --input-type=module -e 'import fs from \"node:fs\";import {analyse} from \"./packages/core/src/analyse.mjs\";const d=\"packages/core/test/fixtures/checks/\";const want={\"skip_added\":\"tampered\",\"focus_added\":\"tampered\",\"assertion_weakened\":\"tampered\",\"test_deleted_source_kept\":\"tampered\",\"test_deleted_source_deleted\":\"review\",\"test_moved\":\"unrun\",\"snapshot_updated\":\"review\",\"param_case_removed\":\"review\",\"timeout_raised\":\"review\",\"runner_config_changed\":\"review\",\"step_repinned_release\":\"review\",\"step_changed\":\"tampered\",\"claims_adds_tests\":\"no_evidence\",\"source_no_test\":\"no_evidence\",\"tests_changed_no_report\":\"unrun\",\"docs_only\":\"not_applicable\"};const per=[\"skip_added\",\"focus_added\",\"assertion_weakened\",\"test_deleted_source_kept\",\"test_moved\",\"timeout_raised\"];for(const [r,v] of Object.entries(want))for(const l of (per.includes(r)?[\"js\",\"ts\",\"py\"]:[\"any\"])){const p=d+r+\"/\"+l+\".json\";if(!fs.existsSync(p)){console.error(\"missing\",p);process.exit(1)}const f=JSON.parse(fs.readFileSync(p,\"utf8\"));const o=analyse({files:f.files,pr:f.pr??{title:\"\",body:\"\",author:{login:\"a\",type:\"User\"}},releases:f.releases??[]});if(o.verdict!==v){console.error(p,o.verdict,\"!=\",v);process.exit(1)}if(/\\b(safe|correct|you|your)\\b/i.test(JSON.stringify([o.reasons,o.next]))){console.error(\"wording\",p);process.exit(1)}}'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "CORE-07-AC04",
+          "mandatory": true,
+          "statement": "over every combination of base tokens, head tokens, condition and named symbol, judge() on one test gives the verdict of outcome()",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/core/test/outcome-table.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CORE-07-AC05",
+          "mandatory": true,
+          "statement": "there is one red-green table: judge.mjs takes outcome() from src/outcome.mjs and holds no table of its own, and run/outcome.mjs imports it",
+          "verifier": {
+            "type": "command",
+            "cmd": "test -f packages/core/src/outcome.mjs && grep -qE \"from ['\\\"]\\./outcome\\.mjs['\\\"]\" packages/core/src/judge.mjs && ! grep -nE \"function rowId|fail:assertion\" packages/core/src/judge.mjs && grep -qE \"from ['\\\"]\\.\\./src/outcome\\.mjs['\\\"]\" packages/core/run/outcome.mjs",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "CORE-07-AC06",
+          "mandatory": true,
+          "statement": "the committed bundles match their sources",
+          "verifier": {
+            "type": "docs",
+            "cmd": "node tools/bundle.mjs",
+            "paths": [
+              "packages/core/core.mjs",
+              "packages/web/core.mjs",
+              "packages/cli/truedone.mjs",
+              "packages/cli/plugin/hooks/stop.mjs",
+              "packages/action/dist/index.mjs"
+            ]
+          }
+        },
+        {
+          "id": "CORE-07-AC07",
+          "mandatory": true,
+          "statement": "core.mjs stays under 60 KB with the hollowing checks",
+          "verifier": {
+            "type": "metric",
+            "cmd": "node tools/bundle.mjs >/dev/null && node -e 'console.log(JSON.stringify({bytes:require(\"fs\").statSync(\"packages/core/core.mjs\").size}))'",
+            "key": "bytes",
+            "op": "<",
+            "value": 61440,
+            "timeout_s": 3600,
+            "name": "core_bytes"
+          }
+        },
+        {
+          "id": "CORE-07-AC08",
+          "mandatory": true,
+          "statement": "core source does no I/O and uses no Node, Deno or Workers API",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|process\\.|Buffer\\.|fetch\\(|Deno\\.|XMLHttpRequest|localStorage\" packages/core/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-07-AC09",
+          "mandatory": true,
+          "statement": "core suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/core/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 235,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "CORE-07-AC10",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-07-AC11",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-07-AC12",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "CORE-07-AC13",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
       "id": "RUN-01",
       "title": "[W1] Runner detection: vitest, jest, mocha, node --test, pytest",
       "phase": "implement",
@@ -2303,6 +2740,163 @@
       ]
     },
     {
+      "id": "RUN-06",
+      "title": "[W3] Runner rows keyed by the real test file and name; a test with incomplete runs is Could not run (issue #30)",
+      "phase": "implement",
+      "owner": "lane-c",
+      "depends_on": [
+        "RUN-03",
+        "JUDGE-01",
+        "CORE-07"
+      ],
+      "requirements": [
+        "PV-C08",
+        "PV-C09",
+        "PV-X02"
+      ],
+      "description": "Measured by lane-b and confirmed in main's code (truedone issue #30): packages/core/run/parse.mjs:130 keys a parsed row by meta.file || meta.classname, and node --test's JUnit report has no file attribute, so every node --test row gets the file \"test\"; run/run.mjs:89 blankRun() keys timeout rows by the test file's path; and redGreen pairs base and head rows on file and name. So (1) a test that hangs on base and passes on head never pairs, and judge() ranks the head-only row No red-green evidence instead of Could not run: timed out; and (2) two test files with a same-named test merge into one row, a false-Proven route. Rows are keyed by the real test file path and the test name for vitest, jest, mocha, node --test and pytest; a base timeout pairs with that file's head rows; two files with a same-named test stay two rows; and, as docs/spec.md now says, a test without two base runs and three head runs is Could not run with the reason \"incomplete runs\", never No red-green evidence, a row of the one table in packages/core/src/outcome.mjs. judge.mjs is shared with CORE-06 and CORE-07: lane-c lands CORE-06, then CORE-07, which moves the table to src/outcome.mjs, then RUN-06. The bundles are rebuilt with tools/bundle.mjs.",
+      "scope": {
+        "allow": [
+          "packages/core/run/**",
+          "packages/core/src/judge.mjs",
+          "packages/core/src/outcome.mjs",
+          "packages/core/test/**",
+          "tools/bundle.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/action/dist/index.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "RUN-06-AC01",
+          "mandatory": true,
+          "statement": "rows are keyed by the real test file path and the test name, from vitest, jest, mocha, node --test and pytest reports",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/core/test/run-keys.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "RUN-06-AC02",
+          "mandatory": true,
+          "statement": "a base timeout pairs with that file's head rows and gives Could not run: timed out",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/core/test/run-timeout-pair.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "RUN-06-AC03",
+          "mandatory": true,
+          "statement": "two files with a same-named test stay two rows, and neither is Proven unless its own base failed",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/core/test/run-same-name.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "RUN-06-AC04",
+          "mandatory": true,
+          "statement": "a test without two base runs and three head runs is Could not run, reason incomplete runs",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/core/test/judge-incomplete.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "RUN-06-AC05",
+          "mandatory": true,
+          "statement": "one base run, no base run (a head-only row) or two head runs give Could not run, never No red-green evidence",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --input-type=module -e 'import {judge} from \"./packages/core/src/judge.mjs\";const r=t=>({schema:\"truedone.report/1\",tests:[t],could_not_run:null,truncated:false});const cases=[[\"one base run\",{file:\"a.test.js\",name:\"t\",base:[\"pass\"],head:[\"pass\",\"pass\",\"pass\"],condition:\"lines\"}],[\"no base run (a head-only row)\",{file:\"a.test.js\",name:\"t\",base:[],head:[\"pass\",\"pass\",\"pass\"],condition:\"lines\"}],[\"two head runs\",{file:\"a.test.js\",name:\"t\",base:[\"pass\",\"pass\"],head:[\"pass\",\"pass\"],condition:\"lines\"}]];const bad=cases.filter(([,t])=>judge({verdict:\"unrun\"},[r(t)]).verdict!==\"could_not_run\").map(([n])=>n);if(bad.length){console.error(\"not Could not run: \"+bad.join(\", \"));process.exit(1)}'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "RUN-06-AC06",
+          "mandatory": true,
+          "statement": "the committed bundles match their sources",
+          "verifier": {
+            "type": "docs",
+            "cmd": "node tools/bundle.mjs",
+            "paths": [
+              "packages/core/core.mjs",
+              "packages/web/core.mjs",
+              "packages/cli/truedone.mjs",
+              "packages/cli/plugin/hooks/stop.mjs",
+              "packages/action/dist/index.mjs"
+            ]
+          }
+        },
+        {
+          "id": "RUN-06-AC07",
+          "mandatory": true,
+          "statement": "core suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/core/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 237,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "RUN-06-AC08",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "RUN-06-AC09",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "RUN-06-AC10",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "RUN-06-AC11",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
       "id": "RUN-04",
       "title": "[W3-4] Coverage condition: spike, decision and implementation (D8)",
       "phase": "implement",
@@ -2431,6 +3025,154 @@
         },
         {
           "id": "RUN-04-AC10",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "RUN-05",
+      "title": "[W5] Mutation probe on the changed lines: spike and decision",
+      "phase": "implement",
+      "owner": "lane-c",
+      "depends_on": [
+        "GATE-04"
+      ],
+      "requirements": [
+        "PV-G04"
+      ],
+      "description": "A test that fails on base and passes on head can still pin one value: return 4 passes f(2) == 4, and that is Proven today; docs/spec.md has no mutation check. tools/spikes/mutate.mjs applies a few mutants to a PR's changed non-test lines, one at a time (a constant return, a negated condition, an off-by-one, a deleted statement), and runs the PR's tests on each. It runs only in the gate harness, .github/workflows/mutate.yml on GitHub-hosted runners in mgillr/truedone with permissions: {}, no secrets and no cache shared with releases (S3), over every Proven result of the GATE-04 sample (docs/gates/redgreen-data.jsonl). docs/spikes/mutation-data.jsonl holds one line per Proven result, {source: its GATE-04 run_url, file, test, run_url: the mutate run, mutants: [{kind, line, failed}], extra_runs, extra_seconds}, and nothing in it is typed by hand. docs/spikes/mutation.md records \"Proven results probed: <n>\", \"No mutant failed a PR test: <k> of <n> (<p>%)\" with <p> to one decimal, \"Extra runs per PR: <r>\", \"Extra seconds per PR: p50 <a>, p95 <b>\", and one of \"Decision: in Proven\", \"Decision: opt-in\" or \"Decision: harness only (a gate 3 false-Proven estimate)\". Ryan approves the decision by adding \"Approved: Ryan Gillespie on <date>\" in a commit he signs. No verdict change ships in this task: a decision that changes a verdict comes back as a spec change and a task of its own.",
+      "scope": {
+        "allow": [
+          "tools/spikes/mutate.mjs",
+          "tools/test/mutate.test.mjs",
+          "tools/test/fixtures/mutate/**",
+          ".github/workflows/mutate.yml",
+          "docs/spikes/mutation.md",
+          "docs/spikes/mutation-data.jsonl",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "RUN-05-AC01",
+          "mandatory": true,
+          "statement": "each of the four mutants applies to a changed non-test line only, and a test that pins one value survives the constant-return mutant",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/mutate.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "RUN-05-AC02",
+          "mandatory": true,
+          "statement": "the data covers every Proven result of the GATE-04 sample, each probed in a mutate run of mgillr/truedone",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e 'const fs=require(\"fs\");const rd=f=>fs.readFileSync(f,\"utf8\").trim().split(\"\\n\").map(JSON.parse);const G=rd(\"docs/gates/redgreen-data.jsonl\"),M=rd(\"docs/spikes/mutation-data.jsonl\");const want=new Set();for(const x of G)for(const t of x.tests||[])if(String(t.result).startsWith(\"proven\"))want.add(x.run_url+\"|\"+t.file+\"|\"+t.test);const got=new Set(M.map(m=>m.source+\"|\"+m.file+\"|\"+m.test));process.exit(want.size>0&&[...want].every(k=>got.has(k))&&M.every(m=>/^https:\\/\\/github\\.com\\/mgillr\\/truedone\\/actions\\/runs\\/\\d+/.test(m.run_url)&&Array.isArray(m.mutants)&&m.mutants.length>0)?0:1)'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "RUN-05-AC03",
+          "mandatory": true,
+          "statement": "the record's counts recompute from the data, and it carries the extra runs and seconds",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e 'const fs=require(\"fs\");const M=fs.readFileSync(\"docs/spikes/mutation-data.jsonl\",\"utf8\").trim().split(\"\\n\").map(JSON.parse);const t=fs.readFileSync(\"docs/spikes/mutation.md\",\"utf8\");const n=M.length,s=M.filter(m=>m.mutants.every(u=>u.failed!==true)).length;const ok=n>0&&t.includes(\"Proven results probed: \"+n+\"\\n\")&&t.includes(\"No mutant failed a PR test: \"+s+\" of \"+n+\" (\"+(100*s/n).toFixed(1)+\"%)\\n\")&&/^Extra runs per PR: \\d+(\\.\\d+)?$/m.test(t)&&/^Extra seconds per PR: p50 \\d+(\\.\\d+)?, p95 \\d+(\\.\\d+)?$/m.test(t);process.exit(ok?0:1)'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "RUN-05-AC04",
+          "mandatory": true,
+          "statement": "the spike is written up with one of the three decisions",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/spikes/mutation.md",
+            "pattern": "^Decision: (in Proven|opt-in|harness only \\(a gate 3 false-Proven estimate\\))$",
+            "must": "present",
+            "flags": "m"
+          }
+        },
+        {
+          "id": "RUN-05-AC05",
+          "mandatory": true,
+          "statement": "Ryan approved the decision in a commit he signed",
+          "verifier": {
+            "type": "command",
+            "cmd": "grep -qE \"^Approved: Ryan Gillespie on 20[0-9]{2}-[0-9]{2}-[0-9]{2}$\" docs/spikes/mutation.md && git -c gpg.ssh.allowedSignersFile=.github/allowed_signers verify-commit \"$(git log -1 --format=%H -- docs/spikes/mutation.md)\"",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "RUN-05-AC06",
+          "mandatory": true,
+          "statement": "the mutate workflow runs with no permissions and no secrets, never on pull_request_target (S3)",
+          "verifier": {
+            "type": "command",
+            "cmd": "grep -qx \"permissions: {}\" .github/workflows/mutate.yml && ! grep -nE \"secrets\\.|pull_request_target\" .github/workflows/mutate.yml",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "RUN-05-AC07",
+          "mandatory": true,
+          "statement": "mutation probe suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test tools/test/mutate.test.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 4,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "RUN-05-AC08",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "RUN-05-AC09",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "RUN-05-AC10",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "RUN-05-AC11",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
@@ -2730,6 +3472,144 @@
       ],
       "stop_rules": [
         "This task measures a release gate. If a gate number misses its threshold: STOP and report the number. Never change the sample, the agent signals, the classification or any script to move the number. Ryan decides what happens next, in writing (D14).",
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "PROS-01",
+      "title": "[W1] Gate 5 candidates: the sample's repositories ranked by agent PRs that prove nothing",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "GATE-01"
+      ],
+      "requirements": [
+        "PV-G06"
+      ],
+      "description": "tools/corpus/prospects.mjs reads only the committed sample in tools/corpus/data (GATE-01), with no network, and --write docs/gates/gate5-candidates.tsv writes one row per repository of the agent and baseline groups, with the header repo, agent_prs, no_test_share, latest_pr, runner, supported, statement_url: the number of agent PRs; the share of them that change source and no test, by the sample's own file classes, to four decimals; the date of the latest PR in the window; the runner that detectFromManifests finds from the repository's manifests in the sample, as gates.mjs does for gate 4, or none; yes when the repository's language is JavaScript, TypeScript or Python, else no; and an empty statement_url column, since the link to a maintainer's public statement on AI-PR load is Ryan's, in docs/gates/gate5-statements.tsv (OPS-06). Rows are sorted by agent PRs times the no-test share, highest first, ties broken by the later latest PR, then by repo. Nothing in the sheet is typed by hand.",
+      "scope": {
+        "allow": [
+          "tools/corpus/prospects.mjs",
+          "tools/test/prospects.test.mjs",
+          "tools/test/fixtures/prospects-sample.jsonl",
+          "docs/gates/gate5-candidates.tsv",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "PROS-01-AC01",
+          "mandatory": true,
+          "statement": "on a fixture sample, a planted repository with the most agent PRs that change source and no test ranks first, and a tie goes to the more recent one",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/prospects.test.mjs",
+            "cmd": "node --test {test}",
+            "support_files": [
+              "tools/test/fixtures/prospects-sample.jsonl"
+            ]
+          }
+        },
+        {
+          "id": "PROS-01-AC02",
+          "mandatory": true,
+          "statement": "the candidate sheet is what the script writes from the committed sample",
+          "verifier": {
+            "type": "docs",
+            "cmd": "node tools/corpus/prospects.mjs --write docs/gates/gate5-candidates.tsv",
+            "paths": [
+              "docs/gates/gate5-candidates.tsv"
+            ]
+          }
+        },
+        {
+          "id": "PROS-01-AC03",
+          "mandatory": true,
+          "statement": "every row's agent PRs, no-test share and latest date recompute from the sample, every repository has one row, and the order holds",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e 'const fs=require(\"fs\"),z=require(\"zlib\");const L=fs.readdirSync(\"tools/corpus/data\").filter(f=>/^sample-\\d+\\.jsonl\\.gz$/.test(f)).flatMap(f=>z.gunzipSync(fs.readFileSync(\"tools/corpus/data/\"+f)).toString(\"utf8\").trim().split(\"\\n\")).map(JSON.parse);const by=new Map();for(const x of L){if(x.group!==\"agent\"&&x.group!==\"baseline\")continue;const r=by.get(x.repo)||{agent:0,nt:0,latest:\"\"};if(x.group===\"agent\"){r.agent++;if(x.files.some(f=>f.class===\"source\")&&!x.files.some(f=>f.class===\"test\"))r.nt++}const d=String(x.created_at).slice(0,10);if(d>r.latest)r.latest=d;by.set(x.repo,r)}const T=require(\"fs\").readFileSync(\"docs/gates/gate5-candidates.tsv\",\"utf8\").replace(/\\r/g,\"\").split(\"\\n\").filter(Boolean);if(T[0]!==\"repo\\tagent_prs\\tno_test_share\\tlatest_pr\\trunner\\tsupported\\tstatement_url\")process.exit(1);const R=T.slice(1).map(l=>l.split(\"\\t\"));if(R.length!==by.size)process.exit(1);let prev=null;for(const r of R){const e=by.get(r[0]);if(!e)process.exit(1);const sh=e.agent?e.nt/e.agent:0;if(r.length!==7||Number(r[1])!==e.agent||r[2]!==sh.toFixed(4)||r[3]!==e.latest||!r[4]||!/^(yes|no)$/.test(r[5])||r[6]!==\"\")process.exit(1);const k=[e.nt,e.latest];if(prev&&(k[0]>prev[0]||k[0]===prev[0]&&k[1]>prev[1]))process.exit(1);prev=k}'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PROS-01-AC04",
+          "mandatory": true,
+          "statement": "the script reads only the committed sample: no network",
+          "verifier": {
+            "type": "command",
+            "cmd": "test -f tools/corpus/prospects.mjs && ! grep -nE \"fetch\\(|https?://|child_process|node:https?['\\\"]\" tools/corpus/prospects.mjs",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "PROS-01-AC05",
+          "mandatory": true,
+          "statement": "the corpus sample matches its recorded hashes",
+          "verifier": {
+            "type": "command",
+            "cmd": "cd tools/corpus/data && shasum -a 256 -c sample.sha256",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PROS-01-AC06",
+          "mandatory": true,
+          "statement": "prospects suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test tools/test/prospects.test.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 2,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "PROS-01-AC07",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PROS-01-AC08",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PROS-01-AC09",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "PROS-01-AC10",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
         "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
@@ -3476,7 +4356,7 @@
           "statement": "there are results for 200 PRs, each from a redgreen run of mgillr/truedone",
           "verifier": {
             "type": "command",
-            "cmd": "node -e 'const fs=require(\"fs\");const D=fs.readFileSync(\"docs/gates/redgreen-data.jsonl\",\"utf8\").trim().split(\"\\n\").map(JSON.parse);process.exit(D.length===200&&D.every(x=>/^https:\\/\\/github\\.com\\/truedone\\/truedone\\/actions\\/runs\\/\\d+/.test(x.run_url))?0:1)'",
+            "cmd": "node -e 'const fs=require(\"fs\");const D=fs.readFileSync(\"docs/gates/redgreen-data.jsonl\",\"utf8\").trim().split(\"\\n\").map(JSON.parse);process.exit(D.length===200&&D.every(x=>/^https:\\/\\/github\\.com\\/mgillr\\/truedone\\/actions\\/runs\\/\\d+/.test(x.run_url))?0:1)'",
             "expect_exit": 0,
             "timeout_s": 300
           }
@@ -3688,7 +4568,7 @@
         "ENG-01"
       ],
       "requirements": [],
-      "description": "tools/gate6.mjs <release> fetches the GitHub changelog feed, the CodeRabbit changelog and the Copilot code review release notes since the last check, lists entries matching red-green, fail on base, test tamper, weakened test or skipped test, and writes docs/gates/gate6-<release>-research.md with links. Ryan reads it and writes the Window line himself (REL-W*).",
+      "description": "tools/gate6.mjs <release> reads, since the last check, the watch list Ryan checks before each release: the GitHub changelog, Copilot code review, CodeRabbit, Test Ratchet, Skylos, tamperguard, checkwash and donegate, and any GitHub guidance that recommends a test failing on the pre-change behaviour; it lists entries matching red-green, fail on base, test tamper, weakened test or skipped test, and writes docs/gates/gate6-<release>-research.md with links. Ryan reads it and writes the Window line himself (REL-W*). The question stays whether any of them ships a red-green or test-tamper check first.",
       "scope": {
         "allow": [
           "tools/gate6.mjs",
@@ -3766,7 +4646,7 @@
         "PV-A08",
         "PV-N02"
       ],
-      "description": ".github/workflows/ci.yml: on pull_request only (never pull_request_target), job truedone-gate on ubuntu-latest with no job-level if:, so it runs on every pull request (a skipped job reports success to a required check). Its first step, with if: github.event.pull_request.head.repo.full_name != github.repository, fails the job on a pull request from a forked repository with the message that such pull requests are gated by the lead runner. fetch-depth 0. It runs the copy of tools/ci-gate.mjs from origin/main (git show), never the PR's. ci-gate.mjs: take the task id from the PR title prefix (\"CORE-01: ...\"); refuse a PR that touches .proofline/; restore proofline.json, proofline.json.sig and guard/ from origin/main; require proofline contract verify-sig; write a CI copy of that contract without exactly the criterion ids under ci.env_bound, and print them; remove guard/owner.pub from the CI checkout only after the signature check; run the pinned proofline (exact version) gate <task> --skip-pushed --fresh --base \"$(git merge-base HEAD origin/main)\" and exit with its code. Never --ci: proofline gates ci.tasks with it, not the named task. The job sets CHROMIUM_BIN to the runner's Chrome and installs pytest with pip for the Python fixtures. Also .github/CODEOWNERS naming @mgillr for every path only Ryan changes (D25). The first run has no ci-gate.mjs on main: Ryan merges this task as an administrator.",
+      "description": ".github/workflows/ci.yml: on pull_request only (never pull_request_target), job truedone-gate on ubuntu-latest with no job-level if:, so it runs on every pull request (a skipped job reports success to a required check). Its first step, with if: github.event.pull_request.head.repo.full_name != github.repository, fails the job on a pull request from a forked repository with the message that such pull requests are gated by the lead runner. fetch-depth 0. It runs the copy of tools/ci-gate.mjs from origin/main (git show), never the PR's. ci-gate.mjs: take the task id from the PR title prefix (\"CORE-01: ...\"); refuse a PR that touches .proofline/; restore proofline.json, proofline.json.sig and guard/ from origin/main; require proofline contract verify-sig; write a CI copy of that contract without exactly the criterion ids under ci.env_bound, and print them; remove guard/owner.pub from the CI checkout only after the signature check; run the pinned proofline (exact version) gate <task> --skip-pushed --fresh --base \"$(git merge-base HEAD origin/main)\" and exit with its code. Never --ci: proofline gates ci.tasks with it, not the named task. The job sets CHROMIUM_BIN to the runner's Chrome and installs pytest with pip for the Python fixtures. Also .github/CODEOWNERS naming @mgillr for every path only Ryan changes (D25). The first run has no ci-gate.mjs on main: Ryan merges this task as an administrator. Superseded by SEC-03 (v2j): the gate no longer writes a copy of the contract without the env-bound criteria or removes guard/owner.pub; it restores the contract, its signature and guard/ byte for byte from main and judges the env-bound criteria from proofline's result.",
       "scope": {
         "allow": [
           ".github/workflows/ci.yml",
@@ -3985,6 +4865,126 @@
         },
         {
           "id": "SEC-02-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "SEC-03",
+      "title": "[W1] CI gate: restore the contract byte for byte, never edit it, judge the env-bound criteria from proofline's result (D22, D27)",
+      "phase": "implement",
+      "owner": "lane-d",
+      "depends_on": [
+        "SEC-02"
+      ],
+      "requirements": [
+        "PV-B01"
+      ],
+      "description": "tools/ci-gate.mjs on main writes a CI copy of proofline.json without the task's ci.env_bound ids (line 71) and deletes guard/owner.pub (line 70). proofline's weakenings() (src/contract.mjs:233 in the pinned 0.2.0-next.1) compares that copy with the base contract and refuses it, which is right, so every task with an env-bound criterion is BLOCKED. Measured on 2026-10-17 at 21:49Z: the container ran SEC-02 head 7b55ea4b's own ci-gate.mjs on its merge with main dffabc0, and proofline returned \"contract weakened vs base (needs owner approval): SEC-02/SEC-02-AC05 criterion removed\", with a scope FAIL on guard/owner.pub, proofline.json and proofline.json.sig. Also sh() (line 80) trims git's output and readMain uses it, so the restored proofline.json.sig loses its trailing newline and differs from main. The gate instead restores proofline.json, proofline.json.sig and guard/ byte for byte from origin/main with git checkout origin/main -- <those paths>, never through a string; requires proofline contract verify-sig; deletes nothing and writes nothing in the contract; runs the pinned proofline gate <task> --skip-pushed --fresh --base <merge-base> --json; and exits 0 only when (i) contract_change shows no change against the base, (ii) forbidden is empty, (iii) every result whose id is not in the signed ci.env_bound[task] has status pass, and (iv) every blocked entry names only an env-bound id. It prints the env-bound ids and their statuses. proofline's ownerGate (bin/proofline.mjs:28, \"if (!r.armed || r.ok) return true\") lets a gate run with no owner key, because verifyContractSignature (src/signature.mjs:47) returns armed: false when guard/owner.pub is missing; so the gate requires guard/owner.pub to exist at origin/main and verify-sig to print \"owner signature matches\", not its exit code alone. An explicit --base outranks a Proofline-Base trailer (engine.mjs baseFor), so --base <merge-base> keeps a trailer on the head from moving the base, and a test keeps that so. D27 stands as written. SEC-01's tests that check the copy and the key removal are rewritten for this mechanism with no net loss of assertions in tools/test/ci-gate.test.mjs (forbidden.assertion_removal). Every pull request's gate runs main's copy of ci-gate.mjs, which cannot pass this fix, so SEC-03 lands with SEC-02 by Ryan's signed merge after the lead runner's verify (D22), as v2i states for SEC-02.",
+      "scope": {
+        "allow": [
+          "tools/ci-gate.mjs",
+          "tools/test/ci-gate*.test.mjs",
+          "tools/test/fixtures/ci/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "SEC-03-AC01",
+          "mandatory": true,
+          "statement": "with a fixture contract, an env-bound failure passes the gate, while a failure of a criterion that is not env-bound, a forbidden finding and a weakened contract each fail it",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/ci-gate-envbound.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "SEC-03-AC02",
+          "mandatory": true,
+          "statement": "on a temporary repository with the real git, the restored proofline.json, proofline.json.sig and guard/ are byte-equal to origin/main, the signature's trailing newline included",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/ci-gate-restore.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "SEC-03-AC03",
+          "mandatory": true,
+          "statement": "with no guard/owner.pub at origin/main, or verify-sig output without \"owner signature matches\", the gate fails; a head carrying a Proofline-Base trailer is still gated against the merge-base",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/ci-gate-key.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "SEC-03-AC04",
+          "mandatory": true,
+          "statement": "the gate writes no proofline.json and removes nothing under guard/",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -nE \"write(FileSync)?\\([[:space:]]*['\\\"](proofline\\.json|guard/)|(rmSync|unlinkSync|remove)\\([[:space:]]*['\\\"]guard/\" tools/ci-gate.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "SEC-03-AC05",
+          "mandatory": true,
+          "statement": "the gate suites are green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test tools/test/ci-gate.test.mjs tools/test/ci-gate-main.test.mjs tools/test/ci-gate-envbound.test.mjs tools/test/ci-gate-restore.test.mjs tools/test/ci-gate-key.test.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 16,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "SEC-03-AC06",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "SEC-03-AC07",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "SEC-03-AC08",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "SEC-03-AC09",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
@@ -4616,7 +5616,7 @@
         "PV-W01",
         "PV-N01"
       ],
-      "description": "Ryan decided on 2026-10-17 to register no domain (D26): Cloudflare Pages serves the truedone site at https://truedone.pages.dev, and the apps are the Workers truedone and truedone-dev on ledgerguard-global.workers.dev. This task changes the code already on main to match. In packages/web, app.mjs, lib/page.mjs, lib/route.mjs and lib/view.mjs name truedone.pages.dev where they named truedone.dev, and parseTarget accepts a github.com or truedone.pages.dev pull request link, or owner/repo#n; test/route.test.mjs pastes a truedone.pages.dev link. The routes stay as they are. packages/app/app-manifest.json: url https://truedone.pages.dev, and the webhook, redirect, callback and setup URLs on the production Worker https://truedone.ledgerguard-global.workers.dev under the same /api/github/ paths. README.md: the GitHub Action row and the \"Not built yet\" line say what ACT-01, merged on 2026-10-17, put on main. No file in the scope names truedone.dev. The repository homepage, its record and the bug report form are Ryan's paths (D25) and change in OPS-01.",
+      "description": "Ryan decided on 2026-10-17 to register no domain (D26): Cloudflare Pages serves the truedone site at https://truedone.pages.dev, and the apps are the Workers truedone and truedone-dev on ledgerguard-global.workers.dev. This task changes the code already on main to match. In packages/web, app.mjs, lib/page.mjs, lib/route.mjs and lib/view.mjs name truedone.pages.dev where they named truedone.dev, and parseTarget accepts a github.com or truedone.pages.dev pull request link, or owner/repo#n; test/route.test.mjs pastes a truedone.pages.dev link. The routes stay as they are. packages/app/app-manifest.json: url https://truedone.pages.dev, and the webhook, redirect and setup URLs on the production Worker https://truedone.ledgerguard-global.workers.dev under the same /api/github/ paths; callback_urls holds exactly two, in this order: https://truedone.ledgerguard-global.workers.dev/api/github/callback and the site's sign-in https://truedone.pages.dev/signin/callback, the redirect_uri that WEB-02's exchange sends, since GitHub refuses a redirect_uri the App does not list (D26). README.md: the GitHub Action row and the \"Not built yet\" line say what ACT-01, merged on 2026-10-17, put on main. No file in the scope names truedone.dev. The repository homepage, its record and the bug report form are Ryan's paths (D25) and change in OPS-01.",
       "scope": {
         "allow": [
           "packages/app/app-manifest.json",
@@ -4654,10 +5654,10 @@
         {
           "id": "DOM-01-AC03",
           "mandatory": true,
-          "statement": "the manifest's homepage is truedone.pages.dev and its app URLs are on the production Worker",
+          "statement": "the manifest's homepage is truedone.pages.dev, its webhook, redirect and setup URLs are on the production Worker, and its callbacks are exactly the Worker's and the site's sign-in",
           "verifier": {
             "type": "command",
-            "cmd": "node -e 'const m=require(\"./packages/app/app-manifest.json\");const w=\"https://truedone.ledgerguard-global.workers.dev/api/github/\";process.exit(m.url===\"https://truedone.pages.dev\"&&m.hook_attributes.url===w+\"webhook\"&&m.redirect_url===w+\"manifest\"&&JSON.stringify(m.callback_urls)===JSON.stringify([w+\"callback\"])&&m.setup_url===w+\"setup\"?0:1)'",
+            "cmd": "node -e 'const m=require(\"./packages/app/app-manifest.json\");const w=\"https://truedone.ledgerguard-global.workers.dev/api/github/\";process.exit(m.url===\"https://truedone.pages.dev\"&&m.hook_attributes.url===w+\"webhook\"&&m.redirect_url===w+\"manifest\"&&JSON.stringify(m.callback_urls)===JSON.stringify([w+\"callback\",\"https://truedone.pages.dev/signin/callback\"])&&m.setup_url===w+\"setup\"?0:1)'",
             "expect_exit": 0,
             "timeout_s": 300
           }
@@ -5543,6 +6543,144 @@
       ]
     },
     {
+      "id": "DEMO-01",
+      "title": "[W5] Public demonstration on mgillr/truedone-sandbox, from the published release",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "ACT-03",
+        "APP-04",
+        "OPS-07"
+      ],
+      "requirements": [
+        "PV-C04",
+        "PV-C08"
+      ],
+      "description": "A public, reproducible demonstration on mgillr/truedone-sandbox, run on the published release and not on main, so it also proves the installed product end to end: the sandbox workflow .github/workflows/truedone.yml pins mgillr/truedone-action at its published tag's SHA (R3), and the checker also runs npx truedone@<published version> on each case whose verdict comes from the diff alone. One sandbox pull request per case: proven, proven_new, proven_weak and no_evidence; flaky_base, flaky_head, errored and timed_out (Could not run); assertion_weakened, skip_added, focus_added and test_deleted (Tampered); setup_changed (a conftest or setup file) and runner_config_changed (Test changes: review); step_removed and step_repinned_other, to a SHA that is no release (Tampered), and step_repinned_release (Test changes: review); and, so that every verdict of the precedence list appears, pending (a pull request from a forked repository by an account with no earlier contribution, which GitHub holds for approval; Ryan provides that account, since no lane holds a credential), unrun (tests changed on a pull request whose base branch has no truedone step) and not_applicable (docs only). docs/demo/expected.json: {npm_version, action_tag, action_sha, cases: [{case, pr, verdict, label}]}. tools/demo/check.mjs reads each pull request's truedone check run and label from GitHub, compares them with the expected ones, exits 1 on any difference, and writes docs/demo.md: one line per case with its link as [#n](https://github.com/mgillr/truedone-sandbox/pull/n), the expected and the observed verdict. REL-W6 reads docs/demo.md. ACT-04's 20 seeded pull requests and APP-06's smoke can reuse these cases.",
+      "scope": {
+        "allow": [
+          "tools/demo/check.mjs",
+          "tools/test/demo-check.test.mjs",
+          "tools/test/fixtures/demo/**",
+          "docs/demo/expected.json",
+          "docs/demo.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "DEMO-01-AC01",
+          "mandatory": true,
+          "statement": "every case's truedone check run and label on its sandbox pull request match docs/demo/expected.json",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/demo/check.mjs --expected docs/demo/expected.json",
+            "expect_exit": 0,
+            "timeout_s": 1800
+          }
+        },
+        {
+          "id": "DEMO-01-AC02",
+          "mandatory": true,
+          "statement": "on recorded GitHub responses, the checker passes when every case matches and fails on a planted mismatch of a verdict and of a label",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/demo-check.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "DEMO-01-AC03",
+          "mandatory": true,
+          "statement": "the expected file names the twenty cases with their fixed verdicts and labels, so every verdict of the precedence list appears",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e 'const e=require(\"./docs/demo/expected.json\");const want={\"proven\":\"proven\",\"proven_new\":\"proven_new\",\"proven_weak\":\"proven_weak\",\"no_evidence\":\"no_evidence\",\"flaky_base\":\"could_not_run\",\"flaky_head\":\"could_not_run\",\"errored\":\"could_not_run\",\"timed_out\":\"could_not_run\",\"assertion_weakened\":\"tampered\",\"skip_added\":\"tampered\",\"focus_added\":\"tampered\",\"test_deleted\":\"tampered\",\"setup_changed\":\"review\",\"runner_config_changed\":\"review\",\"step_removed\":\"tampered\",\"step_repinned_other\":\"tampered\",\"step_repinned_release\":\"review\",\"pending\":\"pending\",\"unrun\":\"unrun\",\"not_applicable\":\"not_applicable\"};const L={\"tampered\":\"truedone:tampered\",\"review\":\"truedone:review\",\"could_not_run\":\"truedone:could-not-run\",\"proven\":\"truedone:yes\",\"proven_new\":\"truedone:yes\",\"proven_weak\":\"truedone:weak\",\"no_evidence\":\"truedone:no-evidence\",\"pending\":\"truedone:pending\",\"unrun\":\"truedone:unrun\",\"not_applicable\":null};const by=new Map(e.cases.map(c=>[c.case,c]));const ok=/^\\d+\\.\\d+\\.\\d+/.test(e.npm_version)&&/^[0-9a-f]{40}$/.test(e.action_sha)&&e.cases.length===Object.keys(want).length&&Object.entries(want).every(([k,v])=>{const c=by.get(k);return c&&Number.isInteger(c.pr)&&c.pr>0&&c.verdict===v&&c.label===L[v]});process.exit(ok?0:1)'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "DEMO-01-AC04",
+          "mandatory": true,
+          "statement": "the demonstration ran the published npm version and the action's published tag, which the sandbox workflow pins",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e 'const cp=require(\"child_process\");const e=require(\"./docs/demo/expected.json\");const v=cp.execSync(\"npm view truedone@\"+e.npm_version+\" version\").toString().trim();const t=cp.execSync(\"git ls-remote --tags https://github.com/mgillr/truedone-action\").toString().split(\"\\n\");const y=Buffer.from(cp.execSync(\"gh api repos/mgillr/truedone-sandbox/contents/.github/workflows/truedone.yml --jq .content\").toString(),\"base64\").toString();process.exit(v===e.npm_version&&t.some(l=>l===e.action_sha+\"\\trefs/tags/\"+e.action_tag||l===e.action_sha+\"\\trefs/tags/\"+e.action_tag+\"^{}\")&&y.includes(\"mgillr/truedone-action@\"+e.action_sha)?0:1)'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "DEMO-01-AC05",
+          "mandatory": true,
+          "statement": "docs/demo.md lists every case with its pull request link and verdict",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e 'const t=require(\"fs\").readFileSync(\"docs/demo.md\",\"utf8\").split(\"\\n\");const e=require(\"./docs/demo/expected.json\");process.exit(e.cases.every(c=>t.some(l=>l.includes(\"(https://github.com/mgillr/truedone-sandbox/pull/\"+c.pr+\")\")&&l.includes(c.case)&&l.includes(c.verdict)))?0:1)'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "DEMO-01-AC06",
+          "mandatory": true,
+          "statement": "demonstration checker suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test tools/test/demo-check.test.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 2,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "DEMO-01-AC07",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "DEMO-01-AC08",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "DEMO-01-AC09",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "DEMO-01-AC10",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
       "id": "REL-01",
       "title": "[W2] Release pipeline: trusted publishing, Ryan's approval, the action mirror",
       "phase": "implement",
@@ -5656,7 +6794,7 @@
         "PV-R02",
         "PV-R03"
       ],
-      "description": "Create mgillr/truedone-action. Create the environment release with yourself as required reviewer and put MIRROR_TOKEN (a fine-grained token for mgillr/truedone-action contents only) in it. Publish the first build of the static CLI to npm by hand, then configure npm trusted publishing for mgillr/truedone, workflow release.yml, environment release; every later version goes through the workflow with provenance. Record it in docs/ops/release.md.",
+      "description": "Create mgillr/truedone-action. Create the environment release with yourself as required reviewer and put MIRROR_TOKEN (a fine-grained token for mgillr/truedone-action contents only) in it. Ryan reserved the npm name truedone on 2026-10-17 with the placeholder truedone@0.0.1, published by hand: it points at github.com/mgillr/truedone, and its bin says \"not released yet\" and exits 1. Publish the first build of the static CLI to npm by hand as the next version, then configure npm trusted publishing for mgillr/truedone, workflow release.yml, environment release; every later version goes through the workflow with provenance. Record it in docs/ops/release.md.",
       "scope": {
         "allow": [
           "docs/ops/release.md",
@@ -5836,11 +6974,11 @@
         {
           "id": "WEB-01-AC05",
           "mandatory": true,
-          "statement": "the content security policy limits scripts and connections",
+          "statement": "the content security policy limits scripts, and connections to the list in S7 and nothing more",
           "verifier": {
             "type": "grep",
             "file": "packages/web/_headers",
-            "pattern": "Content-Security-Policy:.*script-src 'self';.*connect-src 'self' https://api\\.github\\.com https://raw\\.githubusercontent\\.com",
+            "pattern": "Content-Security-Policy:.*script-src 'self';.*connect-src 'self' https://api\\.github\\.com https://raw\\.githubusercontent\\.com( https://truedone-exchange\\.ledgerguard-global\\.workers\\.dev)?;",
             "must": "present"
           }
         },
@@ -5948,7 +7086,7 @@
       "requirements": [
         "PV-W02"
       ],
-      "description": "packages/web/exchange/worker.mjs: the only server code of the site, deployed as the Worker truedone-exchange at https://truedone-exchange.ledgerguard-global.workers.dev (D26). It exchanges a GitHub App user-authorization code for a token and returns it; it has no storage binding. The page keeps the token in sessionStorage and sends it only to api.github.com. The client secret is a Worker secret set by Ryan.",
+      "description": "packages/web/exchange/worker.mjs: the only server code of the site, deployed as the Worker truedone-exchange at https://truedone-exchange.ledgerguard-global.workers.dev (D26). It exchanges a GitHub App user-authorization code for a token and returns it; it has no storage binding. The page keeps the token in sessionStorage and sends it only to api.github.com. The client secret is a Worker secret set by Ryan. The site's content security policy (packages/web/_headers, S7) lets the page connect to the exchange at https://truedone-exchange.ledgerguard-global.workers.dev and to nothing beyond it, itself, api.github.com and raw.githubusercontent.com; GitHub returns a visitor who signs in to https://truedone.pages.dev/signin/callback, the App's second callback URL (D26, DOM-01).",
       "scope": {
         "allow": [
           "packages/web/**",
@@ -6043,6 +7181,17 @@
             "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
             "expect_exit": 0,
             "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-02-AC11",
+          "mandatory": true,
+          "statement": "the content security policy connects to itself, api.github.com, raw.githubusercontent.com and the token exchange, and to nothing else (S7)",
+          "verifier": {
+            "type": "grep",
+            "file": "packages/web/_headers",
+            "pattern": "Content-Security-Policy:.*connect-src 'self' https://api\\.github\\.com https://raw\\.githubusercontent\\.com https://truedone-exchange\\.ledgerguard-global\\.workers\\.dev;",
+            "must": "present"
           }
         },
         {
@@ -6164,6 +7313,140 @@
         },
         {
           "id": "WEB-03-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "WEB-04",
+      "title": "[W2] truedone.pages.dev/why: the eight labels, their verdicts and what to do next",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "WEB-01"
+      ],
+      "requirements": [
+        "PV-W04",
+        "PV-W05"
+      ],
+      "description": "packages/web/why.html: a static page, served at https://truedone.pages.dev/why, which every truedone:* label description links to (APP-03-AC06). Cloudflare Pages serves a file why.html at the site root at /why, and a _redirects rule always wins over a file, so no rule in packages/web/_redirects takes /why; on main /why falls to the single-page fallback and shows the not-found view. For each of the eight labels, in the order of the verdicts table in docs/spec.md, the page shows the label, its verdict, when it is given and what to do next, in the table's words; Proven and Proven (new behaviour) share truedone:yes and both appear under it. The page has no script, no inline style and no event attribute and links /style.css, so it works under the site's content security policy as it is (_headers, S7), and like every page it ends with the next rung, which says that red-green on someone else's PR executes that PR's code (PV-W05). packages/web/test/why.test.mjs reads the verdicts table from docs/spec.md and the page from packages/web/why.html.",
+      "scope": {
+        "allow": [
+          "packages/web/why.html",
+          "packages/web/test/why.test.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "WEB-04-AC01",
+          "mandatory": true,
+          "statement": "the page carries every label row of the verdicts table in docs/spec.md: the label, its verdict, when it is given and what to do next, in the same words",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/why.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-04-AC02",
+          "mandatory": true,
+          "statement": "the page names all eight labels and their nine verdicts",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e 'const t=require(\"fs\").readFileSync(\"packages/web/why.html\",\"utf8\").replace(/<[^>]*>/g,\" \").replace(/&#39;|&#x27;|&apos;/g,\"\\u0027\").replace(/&quot;/g,\"\\u0022\").replace(/&amp;/g,\"&\").replace(/\\s+/g,\" \");const want=[\"truedone:tampered\",\"truedone:review\",\"truedone:could-not-run\",\"truedone:yes\",\"truedone:weak\",\"truedone:no-evidence\",\"truedone:pending\",\"truedone:unrun\",\"Tampered\",\"Test changes: review\",\"Could not run\",\"Proven (new behaviour)\",\"Proven (weak)\",\"No red-green evidence\",\"Waiting for approval\",\"Tests changed: not run\"];const miss=want.filter(w=>!t.includes(w));if(miss.length){console.error(miss.join(\", \"));process.exit(1)}'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "WEB-04-AC03",
+          "mandatory": true,
+          "statement": "the page runs no script and carries no inline style or event attribute, so the content security policy applies unchanged",
+          "verifier": {
+            "type": "grep",
+            "file": "packages/web/why.html",
+            "pattern": "<script|<style|\\sstyle\\s*=|\\son[a-z]+\\s*=|javascript:",
+            "must": "absent",
+            "flags": "i"
+          }
+        },
+        {
+          "id": "WEB-04-AC04",
+          "mandatory": true,
+          "statement": "the page ends with the next rung, which says that red-green on someone else's PR executes that PR's code",
+          "verifier": {
+            "type": "grep",
+            "file": "packages/web/why.html",
+            "pattern": "executes that PR(&#39;|&#x27;|&apos;|')s code",
+            "must": "present"
+          }
+        },
+        {
+          "id": "WEB-04-AC05",
+          "mandatory": true,
+          "statement": "Cloudflare Pages serves the page at /why: why.html is at the site root and no _redirects rule takes /why",
+          "verifier": {
+            "type": "command",
+            "cmd": "test -f packages/web/why.html && ! grep -nE \"^/(why|why/|why\\.html|\\*|:[A-Za-z]+)([[:space:]]|$)\" packages/web/_redirects",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "WEB-04-AC06",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 22,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "WEB-04-AC07",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-04-AC08",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-04-AC09",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "WEB-04-AC10",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
@@ -7603,6 +8886,116 @@
       ]
     },
     {
+      "id": "REPO-02",
+      "title": "[W1] CONTRIBUTING: every prerequisite the checks need, each named once",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "REPO-01"
+      ],
+      "requirements": [
+        "PV-D04"
+      ],
+      "description": "CONTRIBUTING.md's \"Running the checks\" section (REPO-01) says the checks need Node 22 or later and names nothing else. It lists every prerequisite, each once: Node 22 or later; git, which the runner and gate tests drive; curl, which the stand-in browser in packages/core/test/check-browser.test.mjs calls; Python 3 with pytest, which packages/core/test/run-live-pytest.test.mjs runs (pip install pytest); and Chrome or Chromium, found through CHROMIUM_BIN or chromium on PATH, for the browser checks node tools/check-browser.mjs runs (CORE-05-AC04, WEB-01-AC08). An empty package-lock.json (lockfileVersion 3, no package beyond the root) is committed so that npm ci works for a contributor; the zero-dependency rule (D23) stands. packages/core/test/run-live-pytest.test.mjs keeps failing when pytest is missing, so the gate stays fail-closed, and its message says \"pytest is required: python3 -m pip install pytest\". REPO-01's criteria keep passing.",
+      "scope": {
+        "allow": [
+          "CONTRIBUTING.md",
+          "package-lock.json",
+          "packages/core/test/run-live-pytest.test.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "REPO-02-AC01",
+          "mandatory": true,
+          "statement": "the \"Running the checks\" section names git, curl, Python 3 with pytest, Node 22, and Chrome or Chromium through CHROMIUM_BIN",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e 'const t=require(\"fs\").readFileSync(\"CONTRIBUTING.md\",\"utf8\");const m=t.match(/^## Running the checks\\n([\\s\\S]*?)(?=^## |(?![\\s\\S]))/m);if(!m){console.error(\"no Running the checks section\");process.exit(1)}const need={git:/\\bgit\\b/,curl:/\\bcurl\\b/,python:/\\bPython 3\\b/,pytest:/\\bpytest\\b/,node:/\\bNode 22\\b/,chromium:/\\bChrom(e|ium)\\b/,chromium_bin:/\\bCHROMIUM_BIN\\b/};const miss=Object.keys(need).filter(k=>!need[k].test(m[1]));if(miss.length){console.error(\"missing: \"+miss.join(\", \"));process.exit(1)}'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "REPO-02-AC02",
+          "mandatory": true,
+          "statement": "CONTRIBUTING still says how to run the checks",
+          "verifier": {
+            "type": "grep",
+            "file": "CONTRIBUTING.md",
+            "pattern": "npm test[\\s\\S]*tools/depmap-check\\.mjs|tools/depmap-check\\.mjs[\\s\\S]*npm test",
+            "must": "present"
+          }
+        },
+        {
+          "id": "REPO-02-AC03",
+          "mandatory": true,
+          "statement": "package-lock.json is empty (lockfileVersion 3, the root only, no dependency), and npm ci succeeds",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e 'const l=require(\"./package-lock.json\");const k=Object.keys(l.packages||{});process.exit(l.lockfileVersion===3&&k.length===1&&k[0]===\"\"&&!l.packages[\"\"].dependencies&&!l.packages[\"\"].devDependencies?0:1)' && npm ci --ignore-scripts --no-audit --no-fund",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REPO-02-AC04",
+          "mandatory": true,
+          "statement": "without pytest the live pytest test fails and says \"pytest is required: python3 -m pip install pytest\"",
+          "verifier": {
+            "type": "command",
+            "cmd": "D=$(mktemp -d) && printf '#!/bin/sh\\necho \"No module named pytest\" >&2\\nexit 1\\n' > \"$D/python3\" && chmod +x \"$D/python3\" && (PATH=\"$D:$PATH\" node --test packages/core/test/run-live-pytest.test.mjs > \"$D/out.txt\" 2>&1; test $? -ne 0) && grep -q \"pytest is required: python3 -m pip install pytest\" \"$D/out.txt\"",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "REPO-02-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REPO-02-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REPO-02-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "REPO-02-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
       "id": "DOC-00",
       "title": "[W1] Design documents: a flow and a schematic for each spec section, and the master schematic (D29)",
       "phase": "design",
@@ -7687,12 +9080,13 @@
         "ENG-01",
         "CLI-01",
         "WEB-01",
-        "DOC-00"
+        "DOC-00",
+        "DEP-01"
       ],
       "requirements": [
         "PV-D03"
       ],
-      "description": "README.md for a first-time visitor: what truedone does in at most 60 words, one Mermaid flowchart from a pull request to its verdict and the next rung, and a \"## Quick start\" of one to five numbered steps, each one command or one link, for what the week-2 release ships (https://truedone.pages.dev and npx truedone); each later release adds its rung there in the same shape. At most 150 lines, no \"safe\" or \"correct\", every relative link resolves (tools/readme-check.mjs from OPS-04). Then a second lane reviews it: from a clean directory it runs every quick-start step, and commits docs/reviews/README-01.md under its own lane name (git user.name truedone-lane-<x>) with \"Reviewer: <lane>\", \"Quick start run: pass on <date>\", one line per finding (\"- <finding>: fixed in <commit>\" or \"- <finding>: answered: <why>\") or \"Findings: none\", and \"Open findings: 0\".",
+      "description": "README.md for a first-time visitor: what truedone does in at most 60 words, one Mermaid flowchart from a pull request to its verdict and the next rung, and a \"## Quick start\" of one to five numbered steps, each one command or one link, for what the week-2 release ships (https://truedone.pages.dev and npx truedone); each later release adds its rung there in the same shape. The truedone.pages.dev row says the site is live, unannounced, since DEP-01 merged (D32), and \"Ways to use it\" no longer says that every surface ships only after its release's gates pass. At most 150 lines, no \"safe\" or \"correct\", every relative link resolves (tools/readme-check.mjs from OPS-04). Then a second lane reviews it: from a clean directory it runs every quick-start step, and commits docs/reviews/README-01.md under its own lane name (git user.name truedone-lane-<x>) with \"Reviewer: <lane>\", \"Quick start run: pass on <date>\", one line per finding (\"- <finding>: fixed in <commit>\" or \"- <finding>: answered: <why>\") or \"Findings: none\", and \"Open findings: 0\".",
       "scope": {
         "allow": [
           "README.md",
@@ -7757,6 +9151,17 @@
           }
         },
         {
+          "id": "README-01-AC08",
+          "mandatory": true,
+          "statement": "the README's truedone.pages.dev row says the site is live, not \"In development\" or \"Planned\" (D32)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e 'const t=require(\"fs\").readFileSync(\"README.md\",\"utf8\");const r=t.split(\"\\n\").find(l=>l.startsWith(\"| [truedone.pages.dev]\"));const s=r?r.split(\"|\").slice(-2,-1)[0].trim():\"\";process.exit(r&&s&&!/^(In development|Planned)/i.test(s)?0:1)'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
           "id": "README-01-AC06",
           "mandatory": true,
           "statement": "Changes stay in scope",
@@ -7766,6 +9171,115 @@
         },
         {
           "id": "README-01-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "README-02",
+      "title": "[W1] README: the Status section written from the contract and main's first-parent history",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "OPS-04"
+      ],
+      "requirements": [
+        "PV-D03"
+      ],
+      "description": "tools/readme-status.mjs writes README.md's Status section, between two marker lines, from two sources read at one main commit: the signed contract and main's first-parent history. A task has landed when, on that history, a merge commit reads \"Merge pull request #<n> from mgillr/<task id in lower case>\" (b7149f2 lands ENG-01) or a direct commit's subject starts \"<ID>: \" (a17d7c9 lands OPS-01). A contract commit (\"contract: truedone v2x ...\") or another commit (\"docs: ...\", \"ops: ...\") lands no task, so dfe421d \"docs: a README ...\" does not land README-01. At dffabc0 22 of the 65 tasks had landed, 19 by merge and 3 directly. The section says plainly that truedone is pre-release, with no published release of the npm package, the action, the plugin or the app and the release decisions open, until a docs/releases record says \"Decision: GO\"; it lists the landed tasks by surface and names the main commit it describes, and it replaces the hand-written list and its \"Not built yet\" line. --check writes nothing and exits 0 only when that commit is an ancestor of HEAD and the section is byte for byte what the script writes for it, so a hand edit fails and main moving on does not. A task's merge commit exists only after its pull request merges, so no pull request carries its own status: after each landing the lead regenerates the section in a signed commit \"docs: README status at <short sha>\" (D30). The script exports landed(subjects, ids) and readAt(rev, cwd), and needs no network and no dependency.",
+      "scope": {
+        "allow": [
+          "tools/readme-status.mjs",
+          "tools/test/readme-status.test.mjs",
+          "README.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "README-02-AC01",
+          "mandatory": true,
+          "statement": "on a temporary repository with the real git, a merge commit \"Merge pull request #n from mgillr/<id>\" and a direct \"<ID>: \" commit on the first-parent history land their tasks, a contract commit lands nothing, and --check passes on the written section and fails when one fact in it is changed",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/readme-status.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "README-02-AC02",
+          "mandatory": true,
+          "statement": "the landed rule recomputes the 22 tasks on main at dffabc0",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --input-type=module -e 'import {readAt,landed} from \"./tools/readme-status.mjs\";const r=readAt(\"dffabc0ffd0f3f896b8adf15e4ce3280fa1d1500\",process.cwd());const got=[...landed(r.subjects,r.contract.tasks.map(t=>t.id))].sort().join(\" \");if(got!==\"ACT-01 ACT-02 APP-02 CLI-02 CORE-01 CORE-02 CORE-03 CORE-04 CORE-05 DOC-00 ENG-01 JUDGE-01 OPS-01 OPS-03A OPS-04 PLG-00 REPO-01 RUN-01 RUN-02 RUN-03 SEC-01 WEB-01\"){console.error(got);process.exit(1)}'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "README-02-AC03",
+          "mandatory": true,
+          "statement": "the committed Status section names a main commit that is an ancestor of HEAD and is byte for byte what the script writes for it",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/readme-status.mjs --check",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "README-02-AC04",
+          "mandatory": true,
+          "statement": "the README keeps its shape (D30): a summary of at most 60 words, one flow diagram, a quick start of one to five steps, at most 150 lines, every link resolves",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/readme-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "README-02-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "README-02-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "README-02-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "README-02-AC08",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
@@ -7882,14 +9396,15 @@
         "OPS-07",
         "GATE-06",
         "README-01",
-        "REPO-01"
+        "REPO-01",
+        "WEB-04"
       ],
       "requirements": [
         "PV-G05",
         "PV-N01",
         "PV-W06"
       ],
-      "description": "Week 2. Read docs/gates/static.md, the gate 3 result and docs/gates/gate6-w2-research.md (GATE-06); write docs/gates/gate6-w2.md with \"Window: open\" or \"Window: closed\", and docs/releases/w2.md with the numbers and \"Decision: GO\" or \"Decision: STOP\". On GO approve the release and production deploy jobs; truedone.pages.dev goes live and index #1 is published; you post the launch yourself. These checks run on your machine.",
+      "description": "Week 2. Read docs/gates/static.md, the gate 3 result and docs/gates/gate6-w2-research.md (GATE-06); write docs/gates/gate6-w2.md with \"Window: open\" or \"Window: closed\", and docs/releases/w2.md with the numbers and \"Decision: GO\" or \"Decision: STOP\". On GO approve the release and production deploy jobs; index #1 is published on the index-data branch and you post the launch yourself. truedone.pages.dev has been live, unannounced, since DEP-01 merged (D32); the checks of the site run at the decision. These checks run on your machine.",
       "scope": {
         "allow": [
           "docs/releases/w2.md",
@@ -7947,10 +9462,10 @@
         {
           "id": "REL-W2-AC05",
           "mandatory": true,
-          "statement": "truedone.pages.dev serves the page with its content security policy (on GO)",
+          "statement": "truedone.pages.dev serves the page with its content security policy, connecting to exactly the list in S7 (on GO)",
           "verifier": {
             "type": "command",
-            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w2.md || (curl -sfI https://truedone.pages.dev/nodejs/node/pull/1 | grep -qi \"connect-src 'self' https://api.github.com\")",
+            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w2.md || (curl -sfI https://truedone.pages.dev/nodejs/node/pull/1 | grep -qiE \"connect-src 'self' https://api\\.github\\.com https://raw\\.githubusercontent\\.com https://truedone-exchange\\.ledgerguard-global\\.workers\\.dev;\")",
             "expect_exit": 0,
             "timeout_s": 1800
           }
@@ -7995,6 +9510,17 @@
           "verifier": {
             "type": "command",
             "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-W2-AC12",
+          "mandatory": true,
+          "statement": "truedone.pages.dev/why serves the why page, which names all eight labels (WEB-04)",
+          "verifier": {
+            "type": "command",
+            "cmd": "curl -sf https://truedone.pages.dev/why > /tmp/truedone-why.html && for l in tampered review could-not-run yes weak no-evidence pending unrun; do grep -qF \"truedone:$l\" /tmp/truedone-why.html || exit 1; done",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -8403,12 +9929,14 @@
         "PLG-03",
         "REL-W3",
         "REL-W4",
-        "DOC-01"
+        "DOC-01",
+        "DEMO-01"
       ],
       "requirements": [
-        "PV-G05"
+        "PV-G05",
+        "PV-C14"
       ],
-      "description": "Week 6. Red-green in the app, the action and the CLI, the red-green index columns, the second launch wave. Only after the red-green gates (GATE-04R), gate 5 (GATE-05R) and gate 6 pass; the README carries the measured numbers (DOC-01). On GO approve the release and deploy jobs; you post the second wave yourself.",
+      "description": "Week 6. Red-green in the app, the action and the CLI, the red-green index columns, the second launch wave. Only after the red-green gates (GATE-04R), gate 5 (GATE-05R) and gate 6 pass; the README carries the measured numbers (DOC-01). Read docs/demo.md (DEMO-01). proofline on main vendors this release's core.mjs and routes its forbidden checks through it (PV-C14, PL-PV01 in docs/contracts/proofline-fragment.json, which proofline's own contract carries). On GO approve the release and deploy jobs; you post the second wave yourself.",
       "scope": {
         "allow": [
           "docs/releases/w6.md",
@@ -8494,6 +10022,28 @@
             "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
             "expect_exit": 0,
             "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-W6-AC10",
+          "mandatory": true,
+          "statement": "proofline on main vendors the released core.mjs byte for byte, routes its forbidden checks through it, and its suite passes (PV-C14, on GO)",
+          "verifier": {
+            "type": "command",
+            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w6.md || (V=$(curl -sf https://raw.githubusercontent.com/mgillr/proofline/main/src/vendor/TRUEDONE_VERSION | head -1) && test -n \"$V\" && curl -sf \"https://raw.githubusercontent.com/mgillr/truedone/v$V/packages/core/core.mjs\" > /tmp/truedone-core-tag.mjs && curl -sf https://raw.githubusercontent.com/mgillr/proofline/main/src/vendor/truedone-core.mjs | cmp - /tmp/truedone-core-tag.mjs && curl -sf https://raw.githubusercontent.com/mgillr/proofline/main/src/forbidden.mjs | grep -q truedone-core && rm -rf /tmp/truedone-proofline && git clone -q --depth 1 https://github.com/mgillr/proofline /tmp/truedone-proofline && cd /tmp/truedone-proofline && npm ci --ignore-scripts && npm test)",
+            "expect_exit": 0,
+            "timeout_s": 1800
+          }
+        },
+        {
+          "id": "REL-W6-AC11",
+          "mandatory": true,
+          "statement": "the public demonstration matches every case on the published release (DEMO-01, on GO)",
+          "verifier": {
+            "type": "command",
+            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w6.md || node tools/demo/check.mjs --expected docs/demo/expected.json",
+            "expect_exit": 0,
+            "timeout_s": 1800
           }
         },
         {

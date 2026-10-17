@@ -10,6 +10,19 @@ Could not run applies only when no test reached a result. When several tests ran
 
 A verdict states what was observed about the change. It never says "safe" or "correct" and never addresses the author.
 
+What to do next, which is also the Result's `next`, and what truedone.pages.dev/why shows for each label:
+
+- Tampered: Restore an equivalent test, or pin the step to a published release.
+- Test changes: review: Confirm the test change is intended.
+- Could not run: Fix the named reason and run again.
+- Proven: Review the rest of the change as usual.
+- Proven (new behaviour): Review the rest of the change as usual.
+- Proven (weak): Make the test run the changed lines and assert on them.
+- No red-green evidence: Add a test that fails before the change and passes after it.
+- Waiting for approval: Approve the run on GitHub.
+- Tests changed: not run: Run the changed tests: the next rung.
+- Not applicable: Nothing.
+
 ## Flow
 
 ```mermaid

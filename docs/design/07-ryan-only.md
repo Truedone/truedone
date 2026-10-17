@@ -5,9 +5,9 @@ Source section: Ryan only
 These items are Ryan's alone, each with the week it falls in.
 
 - Week 1: register npm `truedone`, the repository mgillr/truedone and the Cloudflare Pages project truedone; no trademark search is run.
-- Week 1: the Cloudflare account, the GitHub App registration, the private key into Worker secrets, and the development app.
+- Week 1: the Cloudflare account, the GitHub App registration, the private key into Worker secrets, and the development app. The App lists two callback URLs: the production Worker's /api/github/callback and the site's sign-in, https://truedone.pages.dev/signin/callback (D26, WEB-02).
 - Week 1: no credential on the lanes: only the lead runner reaches GitHub, with his login (D25).
-- From 2026-10-17, while GitHub Actions do not run on his account (a billing lock), the lead runner runs the CI job in an isolated container and posts its result as a commit status, and deploys run the same way, production only after his yes (D22). This ends when Actions run again.
+- From 2026-10-17, while GitHub Actions do not run on his account (a billing lock), the lead runner runs the CI job in an isolated container and posts its result as a commit status, and deploys run the same way, production only after his yes (D22). This ends when Actions run again. The gate restores the contract, its signature and guard/ byte for byte from main and never edits them; a task whose only failures are its env-bound criteria passes; the owner key must exist on main and verify-sig must say the signature matches; and an explicit --base outranks a Proofline-Base trailer, so the merge-base it passes cannot be moved by a trailer on the head (SEC-03).
 - Week 1: confirm or change D1 to D31, then sign and commit the contracts.
 - Week 1: `.github/allowed_signers` with his SSH key (D25).
 - Weeks 1 and 2: the environments dev, production and release, the Cloudflare token, the mirror token, and the ruleset with the CI gate and merge commits only (D25, D26).
@@ -15,6 +15,7 @@ These items are Ryan's alone, each with the week it falls in.
 - Week 2: the first npm publish by hand, then trusted publishing for every later release.
 - Weeks 2 to 6: maintainer outreach, the launch posts and the recording, sent as himself.
 - Weeks 2 and 6: the gate 6 check, and the go or stop decision for each release.
+- From the merge of DEP-01: truedone.pages.dev is live, unannounced; the week-2 go or stop governs the npm release, index #1 and the launch post, which he posts himself (D32).
 - Week 4: the privacy note, the terms and the `SECURITY.md` contact.
 - Its own task: the paid pilot, with price, buyer and date.
 
