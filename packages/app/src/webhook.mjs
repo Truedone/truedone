@@ -6,28 +6,20 @@ const DELIVERY_HEADER = "x-github-delivery";
 const EVENT_HEADER = "x-github-event";
 const DEDUPE_TTL_S = 24 * 60 * 60; // a delivery id is handled once for 24 hours (S6)
 
-function timingSafeEqualHex(a, b) {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
-function hex(bytes) {
-  return [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 export async function verifySignature(secret, body, header) {
   if (typeof header !== "string" || !header.startsWith("sha256=")) return false;
+  const given = header.slice("sha256=".length);
+  if (!/^[0-9a-f]{64}$/.test(given)) return false;
+  const signature = new Uint8Array(given.length / 2);
+  for (let i = 0; i < signature.length; i++) signature[i] = parseInt(given.slice(i * 2, i * 2 + 2), 16);
   const key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
     { name: "HMAC", hash: "SHA-256" },
     false,
-    ["sign"],
+    ["verify"],
   );
-  const mac = await crypto.subtle.sign("HMAC", key, body);
-  return timingSafeEqualHex(header.slice("sha256=".length), hex(mac));
+  return crypto.subtle.verify("HMAC", key, signature, body);
 }
 
 // One worker environment: { WEBHOOK_SECRET, KV: {get,put}, QUEUE: {send} }.
