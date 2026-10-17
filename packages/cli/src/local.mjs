@@ -65,11 +65,12 @@ function addedPatch(body) {
   return [head, ...lines.map((l) => `+${l}`), ...(missingEol ? ['\\ No newline at end of file'] : [])].join('\n');
 }
 
-// -> { input, base, branch }: analyse's input, the merge-base sha, and the default branch ref it was taken against
-export function localInput(root, { classify, git = makeGit(root) }) {
+// -> { input, base, branch }: analyse's input, the merge-base sha, and the branch ref it was taken against: the
+// default branch, or the branch given (for a PR, the branch it targets, D6)
+export function localInput(root, { classify, git = makeGit(root), branch: against = null }) {
   if (git(['rev-parse', '--is-inside-work-tree'], { quiet: true }) !== 'true') throw new NoRepository(`${root} is not inside a git repository`);
   const top = git(['rev-parse', '--show-toplevel']);
-  const branch = defaultBranch(git);
+  const branch = against ?? defaultBranch(git);
   if (!branch) throw new NoRepository('no default branch: origin/HEAD, main and master are all missing');
   const base = git(['merge-base', 'HEAD', branch], { quiet: true });
   if (!base) throw new NoRepository(`HEAD has no merge-base with ${branch}`);
