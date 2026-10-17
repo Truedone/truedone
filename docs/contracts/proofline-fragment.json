@@ -1,0 +1,116 @@
+{
+  "ci": {
+    "env_bound": {
+      "PL-PV01": [
+        "PL-PV01-AC05"
+      ]
+    }
+  },
+  "tasks": [
+    {
+      "id": "PL-PV01",
+      "title": "[W6] proofline uses truedone core for its forbidden-pattern and weakening checks",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [],
+      "requirements": [
+        "PV-C14"
+      ],
+      "description": "In the proofline repository, after truedone tags its first release: vendor packages/core/core.mjs from that tag into src/vendor/truedone-core.mjs, with the version on the first line of src/vendor/TRUEDONE_VERSION, and route scanForbidden's skip, focus, timeout and assertion checks through core.analyse, replacing the net count per file. proofline keeps its contract, gate and evidence code. Its suite stays green.",
+      "scope": {
+        "allow": [
+          "src/**",
+          "test/**",
+          "CHANGELOG.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "PL-PV01-AC01",
+          "mandatory": true,
+          "statement": "forbidden checks run through the vendored truedone core",
+          "verifier": {
+            "type": "wiring",
+            "entry": "src/forbidden.mjs",
+            "symbol": "analyse"
+          }
+        },
+        {
+          "id": "PL-PV01-AC02",
+          "mandatory": true,
+          "statement": "the net count of assertion lines per file is gone",
+          "verifier": {
+            "type": "grep",
+            "file": "src/forbidden.mjs",
+            "pattern": "delA\\s*>\\s*addA",
+            "must": "absent"
+          }
+        },
+        {
+          "id": "PL-PV01-AC03",
+          "mandatory": true,
+          "statement": "an assertion moved between tests in one file is now caught by scanForbidden",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "test/truedone-core.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "PL-PV01-AC04",
+          "mandatory": true,
+          "statement": "the test drives scanForbidden itself",
+          "verifier": {
+            "type": "grep",
+            "file": "test/truedone-core.test.mjs",
+            "pattern": "scanForbidden\\(",
+            "must": "present"
+          }
+        },
+        {
+          "id": "PL-PV01-AC05",
+          "mandatory": true,
+          "statement": "the vendored file is byte-identical to the tagged truedone release",
+          "verifier": {
+            "type": "command",
+            "cmd": "V=$(head -1 src/vendor/TRUEDONE_VERSION) && curl -sf \"https://raw.githubusercontent.com/mgillr/truedone/v$V/packages/core/core.mjs\" | cmp - src/vendor/truedone-core.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PL-PV01-AC06",
+          "mandatory": true,
+          "statement": "suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "npm test",
+            "expect_exit": 0,
+            "timeout_s": 1800
+          }
+        },
+        {
+          "id": "PL-PV01-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "PL-PV01-AC08",
+          "mandatory": true,
+          "statement": "Committed and pushed to main",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    }
+  ]
+}

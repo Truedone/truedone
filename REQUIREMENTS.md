@@ -1,0 +1,71 @@
+- PV-C01: core is one ES module with no runtime dependencies, under 60 KB minified (not gzipped), and the same file loads in Node 22, Chrome and workerd
+- PV-C02: core exports analyse and judge as pure functions; they do no I/O and return truedone.verdict/1
+- PV-C03: Files are classified by the File classification table; each row has a fixture test
+- PV-C04: Every row of the checks table gives its verdict on a fixture PR, in JavaScript, TypeScript and Python
+- PV-C05: Assertion weakening is judged per test by the equivalence rule, never by a net count of lines per file
+- PV-C06: A moved or renamed test with the same normalised body gives no finding
+- PV-C07: Verdict precedence and the mixed-results rule (D11) hold on fixtures with several tests
+- PV-C08: The red-green outcomes table maps every row to its result on fixture reports from each v1 runner
+- PV-C09: Only assertion failures and missing new symbols count as red; import, collection and setup errors never do
+- PV-C10: Partial limits apply as specified and a partial PR is never Not applicable
+- PV-C11: Listed dependency bots are Not applicable; agent bots on the agent list are always checked
+- PV-C12: A language outside version 1 gives Not applicable with its reason, and its skip and focus markers are still flagged
+- PV-C13: The truedone.yml reader accepts the five keys, ignores and names unknown keys, and needs no YAML library
+- PV-C14: proofline imports core for its forbidden-pattern and weakening checks, and its own tests still pass
+- PV-C15: No verdict, reason or summary template contains the words safe or correct, or addresses the PR's author
+- PV-W01: truedone.dev/owner/repo/pull/n renders the static verdict in the browser, using only api.github.com
+- PV-W02: The site has no server-side code except the token exchange, which stores nothing
+- PV-W03: On GitHub's rate-limit response the page offers sign-in instead of failing, and a page uses at most 10 API calls for a PR under the static limits
+- PV-W04: PR content is rendered as text only and the content security policy is set (S7)
+- PV-W05: Every page shows the next rung, and says that red-green on someone else's PR executes that PR's code
+- PV-W06: Static verdict p50 under 2 s and p95 under 5 s, measured on 100 corpus PRs
+- PV-L01: npx truedone runs from a single published file with no dependencies
+- PV-L02: The CLI implements the command table and exit codes
+- PV-L03: On someone else's PR, --run executes nothing without a typed yes or --yes
+- PV-L04: Static CLI p50 under 2 s and p95 under 4 s, measured
+- PV-L05: The CLI and plugin restore the working tree exactly after a base swap, including after a killed run (S1)
+- PV-L06: Someone else's PR runs with the filtered environment (S4)
+- PV-L07: init writes the snippet by the stated rule and never edits existing lines
+- PV-P01: The plugin is one Stop hook file with core bundled and no network calls
+- PV-P02: The plugin blocks in exactly the three blocking cases of the plugin table and in no other
+- PV-P03: A refactor with no test is never blocked and is shown once to the user
+- PV-P04: /plugin install truedone --marketplace mgillr/truedone installs the plugin on Claude Code 2.1.275 or later
+- PV-P05: The plugin never blocks more than three times in a row
+- PV-A01: The app verifies webhook signatures in constant time and handles each delivery once
+- PV-A02: The app requests exactly checks write, pull requests write, contents read, actions read and metadata read
+- PV-A03: The app labels a PR from its static result with p50 under 3 s and p95 under 15 s, measured
+- PV-A04: Exactly one truedone label is on a PR at any time, and the check run is updated in place
+- PV-A05: The app matches a workflow run to its PR by head SHA and head repository, so fork PRs work
+- PV-A06: The app accepts a report only for the PR's current head SHA, a truedone step matching the default branch or a published release, and the truedone.report/1 shape within its caps
+- PV-A07: No report can override the app's own Tampered or Test changes: review
+- PV-A08: The app never executes repository code and never uses pull_request_target
+- PV-A09: Secrets exist only as Worker secrets; the repository and the lanes' machines hold none (S5)
+- PV-A10: Logs hold no diff content, file contents or PR text (S8)
+- PV-A11: The posting switch stops all posting within one minute, and enabled: false stops it per repository
+- PV-X01: The action is one uses: line, runs on the runner's Node and installs nothing
+- PV-X02: The action runs base twice and head three times, only for changed tests, with the swap in place and an exact restore (D7, S2)
+- PV-X03: The action writes one truedone.report/1 artifact per job without a write token
+- PV-X04: Red-green adds p50 under 60 s and p95 under 4 min inside an existing job, measured
+- PV-X05: Coverage uses the D8 mechanism and the report names the condition used
+- PV-X06: Runner detection finds vitest, jest, mocha, node --test and pytest from the nearest manifest with no config line, from files or from manifests passed as data, and the truedone.yml test key overrides it
+- PV-G01: The corpus job samples PRs by D12 and publishes its sample list and code
+- PV-G02: Gates 1, 2 and 4 are computed by a script in tools/corpus that anyone can re-run
+- PV-G03: Gate 3 review sheets exist for 200 flags with at least 50 Tampered, and the human verdicts are recorded
+- PV-G04: The red-green gates run on 200 PRs and record missed red and false Proven
+- PV-G05: Each release has a recorded go or stop from Ryan, against its gates
+- PV-G06: Gate 5 outreach to ten maintainers is sent by Ryan in week 2 and their installs are recorded by the end of week 6
+- PV-I01: The index is produced weekly by a scheduled job from the corpus, never from visitors' pages
+- PV-I02: Index #1 is static only, and red-green columns appear only after the red-green gates pass
+- PV-I03: The index has a published method, data and corrections log
+- PV-R01: LICENSE, SECURITY.md, the privacy note and the terms exist before the app is offered
+- PV-R02: Releases use npm trusted publishing with provenance and need Ryan's approval
+- PV-R03: The action is mirrored to mgillr/truedone-action on release with a single root action.yml
+- PV-R04: Monitoring and alerts cover webhook errors, queue age and label latency
+- PV-R05: The load test at 1,000 installs' volume ran and its cost is published
+- PV-R06: Uninstall deletes the installation's stored data within 24 hours
+- PV-B01: truedone's CI re-runs every task's criteria from the default-branch contract, and branch protection requires it (D22)
+- PV-N01: The npm name, the repository mgillr/truedone and the domain are registered, and the EUIPO and USPTO search results are recorded
+- PV-N02: The lanes hold no GitHub credential; only the lead runner pushes branches and opens pull requests, with Ryan's login, and every pull request passes the CI gate
+- PV-D01: Every section of docs/spec.md, the decisions and the requirements list excepted, has a design document with a Mermaid flow diagram and a Mermaid schematic, joined in one master schematic (D29)
+- PV-D02: docs/DEPENDENCY-MAP.md puts every file in a node, and a change to a node includes every node it must update; every task checks it (D28)
+- PV-D03: README.md has a summary of at most 60 words, one flow diagram and a quick start of one to five steps, and a second lane ran the quick start and reviewed it (D30)
