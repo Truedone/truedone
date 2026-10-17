@@ -1,4 +1,10 @@
 {
-  "private": true,
-  "type": "module"
+  "name": "truedone",
+  "version": "0.1.0",
+  "description": "What a pull request's diff and its own tests show: one file, no dependencies.",
+  "type": "module",
+  "bin": { "truedone": "truedone.mjs" },
+  "files": ["truedone.mjs"],
+  "engines": { "node": ">=22" },
+  "license": "Apache-2.0"
 }
