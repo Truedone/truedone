@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { judge } from '../src/checks.mjs';
+import { staticVerdict as judge } from '../src/checks.mjs';
 
 test('an assertion moved between two tests in one file is tampered', () => {
   const base = [

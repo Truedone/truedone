@@ -1,4 +1,4 @@
-import { judge } from './checks.mjs';
+import { staticVerdict } from './checks.mjs';
 import { isListedBot } from './bots.mjs';
 import { isAgent } from './agents.mjs';
 import { FILES, LINES, FETCHED } from './limits.mjs';
@@ -110,7 +110,7 @@ export function analyse(input = {}) {
     if (!reasons.length) reasons.push({ check: 'language', file: unsupported[0].path, message: language });
     return pack('not_applicable', reasons, false);
   }
-  let verdict = judge({
+  let verdict = staticVerdict({
     files: supported,
     pr: prBody(input.pr),
     releases: input.releases || [],
