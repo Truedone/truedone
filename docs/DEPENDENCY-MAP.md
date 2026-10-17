@@ -332,7 +332,6 @@ flowchart LR
       ]
     },
     "ops": {
-      "planned": true,
       "paths": [
         "docs/ops/**"
       ],
