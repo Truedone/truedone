@@ -24,6 +24,15 @@ for (const [k, n] of Object.entries(map)) {
   if (n.planned && has) problems.push(`node ${k} is marked planned but has files: drop "planned"`);
   for (const e of [...(n.update || []), ...(n.review || [])]) if (!map[e]) problems.push(`node ${k} names unknown node ${e}`);
 }
+// the reader view above the json block (v2e): every node has a row in the Nodes table and every edge is drawn in the diagram
+const view = text.split('```json depmap')[0];
+const mer = (view.match(/```mermaid\n([\s\S]*?)```/) || [])[1] || '';
+const mid = (k) => k.replace(/-/g, '_');
+for (const [k, n] of Object.entries(map)) {
+  if (!view.split('\n').some((l) => l.startsWith('| \x60' + k + '\x60 |'))) problems.push(`the Nodes table has no row for ${k}`);
+  for (const u of n.update || []) if (!mer.split('\n').some((l) => l.trim() === `${mid(k)} ==>|update| ${mid(u)}`)) problems.push(`the diagram does not draw the update edge ${k} -> ${u}`);
+  for (const r of n.review || []) if (!mer.split('\n').some((l) => l.trim() === `${mid(k)} -.->|review| ${mid(r)}`)) problems.push(`the diagram does not draw the review edge ${k} -> ${r}`);
+}
 const at = process.argv.indexOf('--base');
 const base = at > 0 ? process.argv[at + 1] : git('merge-base', 'HEAD', 'origin/main');
 const lines = (s) => (s || '').split('\n').filter(Boolean);

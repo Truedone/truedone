@@ -8,7 +8,7 @@
     "No silent scope cuts: never lower targets, caps, limits, run counts or test sizes without owner approval.",
     "Never bypass guards: no --no-verify, no bypass env vars, no skip flags.",
     "Honest reporting: TASK-ID | status | commit | tests | measured vs target | missing.",
-    "docs/spec.md is the specification. Decisions D1 to D30 are settled; a question it does not answer is BLOCKED, never chosen by a lane.",
+    "docs/spec.md is the specification. Decisions D1 to D31 are settled; a question it does not answer is BLOCKED, never chosen by a lane.",
     "Zero dependencies (D23): no package.json declares dependencies or devDependencies. Tests use node:test; single files come from tools/bundle.mjs.",
     "Test inputs that contain skip, focus, timeout or assertion text go in test/fixtures/, never inline in a *.test.mjs file.",
     "truedone's app and website never execute repository code. pull_request_target is never used.",
@@ -227,6 +227,10 @@
       "DOC-01": [
         "DOC-01-AC05"
       ],
+      "REPO-01": [
+        "REPO-01-AC09",
+        "REPO-01-AC12"
+      ],
       "DOC-00": [
         "DOC-00-AC03"
       ],
@@ -384,7 +388,7 @@
       "requirements": [
         "PV-D02"
       ],
-      "description": "Before any lane starts (README step 1 created the public repository mgillr/truedone). In docs/spec.md confirm or change D1 to D30 and add \"Confirmed by Ryan Gillespie on <date>\" under the Decisions heading. Commit, signed with your SSH key, docs/spec.md, REQUIREMENTS.md, proofline.json, AGENTS.md, docs/contracts/proofline-fragment.json, docs/DEPENDENCY-MAP.md, the three checks gen-truedone.py writes (tools/depmap-check.mjs, tools/docs-check.mjs, tools/readme-check.mjs), a .gitignore listing .proofline/ and node_modules/, and .github/allowed_signers (your public key, principal mgillr). Run proofline setup to create guard/owner.pub, then proofline contract sign. Push directly: the ruleset does not exist yet (OPS-03B).",
+      "description": "Before any lane starts (README step 1 created the public repository mgillr/truedone). In docs/spec.md confirm or change D1 to D31 and add \"Confirmed by Ryan Gillespie on <date>\" under the Decisions heading. Commit, signed with your SSH key, docs/spec.md, REQUIREMENTS.md, proofline.json, AGENTS.md, docs/contracts/proofline-fragment.json, docs/DEPENDENCY-MAP.md, the three checks gen-truedone.py writes (tools/depmap-check.mjs, tools/docs-check.mjs, tools/readme-check.mjs), a .gitignore listing .proofline/ and node_modules/, and .github/allowed_signers (your public key, principal mgillr). Run proofline setup to create guard/owner.pub, then proofline contract sign. Push directly: the ruleset does not exist yet (OPS-03B).",
       "scope": {
         "allow": [
           "docs/spec.md",
@@ -418,10 +422,10 @@
         {
           "id": "OPS-04-AC02",
           "mandatory": true,
-          "statement": "every decision D1 to D30 is present",
+          "statement": "every decision D1 to D31 is present",
           "verifier": {
             "type": "command",
-            "cmd": "node -e 'const t=require(\"fs\").readFileSync(\"docs/spec.md\",\"utf8\");for(let i=1;i<=30;i++)if(!new RegExp(\"\\\\| D\"+i+\" \\\\|\").test(t))process.exit(1)'",
+            "cmd": "node -e 'const t=require(\"fs\").readFileSync(\"docs/spec.md\",\"utf8\");for(let i=1;i<=31;i++)if(!new RegExp(\"\\\\| D\"+i+\" \\\\|\").test(t))process.exit(1)'",
             "expect_exit": 0,
             "timeout_s": 300
           }
@@ -2673,7 +2677,7 @@
           "statement": "the corpus sample matches its recorded hashes",
           "verifier": {
             "type": "command",
-            "cmd": "cd tools/corpus/data && sha256sum -c sample.sha256",
+            "cmd": "cd tools/corpus/data && shasum -a 256 -c sample.sha256",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -2778,7 +2782,7 @@
           "statement": "the corpus sample matches its recorded hashes",
           "verifier": {
             "type": "command",
-            "cmd": "cd tools/corpus/data && sha256sum -c sample.sha256",
+            "cmd": "cd tools/corpus/data && shasum -a 256 -c sample.sha256",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -2931,7 +2935,7 @@
           "statement": "the corpus sample matches its recorded hashes",
           "verifier": {
             "type": "command",
-            "cmd": "cd tools/corpus/data && sha256sum -c sample.sha256",
+            "cmd": "cd tools/corpus/data && shasum -a 256 -c sample.sha256",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -7155,6 +7159,191 @@
       ]
     },
     {
+      "id": "REPO-01",
+      "title": "[W1] The repository is a well-kept public project: community files, settings and a readable map (D31)",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "OPS-04"
+      ],
+      "requirements": [
+        "PV-D04"
+      ],
+      "description": "The owner asked on 2026-10-17 for a gold-standard repository. CONTRIBUTING.md: how work lands (one task per pull request, its title starting with the task id, a test that fails before the change and passes after, the CI gate, the Developer Certificate of Origin sign-off on every commit, no contributor licence agreement), how an outside contributor opens an issue or a pull request, and how to run the checks (npm test, node tools/depmap-check.mjs). CODE_OF_CONDUCT.md: the Contributor Covenant 2.1, with the maintainer contact rgillespie83@icloud.com. NOTICE: copyright Ryan Gillespie / Optitransfer; the Apache License grants no trademark rights to the name truedone. CHANGELOG.md with an Unreleased section. .github/ISSUE_TEMPLATE/bug_report.yml, feature_request.yml and config.yml (blank issues off, the security contact linked), and .github/PULL_REQUEST_TEMPLATE.md (the task id, the failing-then-passing test, the checks run). The repository settings: a one-line description, the homepage https://truedone.dev and at least three topics, set by the lead runner with the owner login and recorded in docs/ops/repository.md. docs/DEPENDENCY-MAP.md keeps its reader view (the explanation, the labelled diagram, the Nodes table) in step with its json block, and the community node drops planned.",
+      "scope": {
+        "allow": [
+          "CONTRIBUTING.md",
+          "CODE_OF_CONDUCT.md",
+          "NOTICE",
+          "CHANGELOG.md",
+          ".github/ISSUE_TEMPLATE/**",
+          ".github/PULL_REQUEST_TEMPLATE.md",
+          "docs/ops/repository.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "REPO-01-AC01",
+          "mandatory": true,
+          "statement": "the community files exist",
+          "verifier": {
+            "type": "command",
+            "cmd": "test -f CONTRIBUTING.md && test -f CODE_OF_CONDUCT.md && test -f NOTICE && test -f CHANGELOG.md && test -f .github/PULL_REQUEST_TEMPLATE.md && test -f .github/ISSUE_TEMPLATE/bug_report.yml && test -f .github/ISSUE_TEMPLATE/feature_request.yml && test -f .github/ISSUE_TEMPLATE/config.yml",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REPO-01-AC02",
+          "mandatory": true,
+          "statement": "CONTRIBUTING asks for the Developer Certificate of Origin sign-off",
+          "verifier": {
+            "type": "grep",
+            "file": "CONTRIBUTING.md",
+            "pattern": "Developer Certificate of Origin[\\s\\S]*Signed-off-by",
+            "must": "present"
+          }
+        },
+        {
+          "id": "REPO-01-AC03",
+          "mandatory": true,
+          "statement": "CONTRIBUTING says how to run the checks",
+          "verifier": {
+            "type": "grep",
+            "file": "CONTRIBUTING.md",
+            "pattern": "npm test[\\s\\S]*tools/depmap-check\\.mjs|tools/depmap-check\\.mjs[\\s\\S]*npm test",
+            "must": "present"
+          }
+        },
+        {
+          "id": "REPO-01-AC04",
+          "mandatory": true,
+          "statement": "the code of conduct is the Contributor Covenant with a contact",
+          "verifier": {
+            "type": "grep",
+            "file": "CODE_OF_CONDUCT.md",
+            "pattern": "Contributor Covenant[\\s\\S]*rgillespie83@icloud\\.com",
+            "must": "present"
+          }
+        },
+        {
+          "id": "REPO-01-AC05",
+          "mandatory": true,
+          "statement": "NOTICE names the holder and grants no trademark rights",
+          "verifier": {
+            "type": "grep",
+            "file": "NOTICE",
+            "pattern": "Ryan Gillespie[\\s\\S]*trademark",
+            "must": "present",
+            "flags": "i"
+          }
+        },
+        {
+          "id": "REPO-01-AC06",
+          "mandatory": true,
+          "statement": "the changelog has an Unreleased section",
+          "verifier": {
+            "type": "grep",
+            "file": "CHANGELOG.md",
+            "pattern": "^## Unreleased$",
+            "must": "present",
+            "flags": "m"
+          }
+        },
+        {
+          "id": "REPO-01-AC07",
+          "mandatory": true,
+          "statement": "the pull request template asks for the task id and the failing test",
+          "verifier": {
+            "type": "grep",
+            "file": ".github/PULL_REQUEST_TEMPLATE.md",
+            "pattern": "task id[\\s\\S]*fail",
+            "must": "present",
+            "flags": "i"
+          }
+        },
+        {
+          "id": "REPO-01-AC08",
+          "mandatory": true,
+          "statement": "blank issues are off",
+          "verifier": {
+            "type": "grep",
+            "file": ".github/ISSUE_TEMPLATE/config.yml",
+            "pattern": "^blank_issues_enabled: false$",
+            "must": "present",
+            "flags": "m"
+          }
+        },
+        {
+          "id": "REPO-01-AC09",
+          "mandatory": true,
+          "statement": "the repository settings carry the description, the homepage and three topics",
+          "verifier": {
+            "type": "command",
+            "cmd": "test -n \"$(gh api repos/mgillr/truedone --jq .description)\" && test \"$(gh api repos/mgillr/truedone --jq .homepage)\" = https://truedone.dev && test \"$(gh api repos/mgillr/truedone --jq .topics[] | wc -l)\" -ge 3",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REPO-01-AC10",
+          "mandatory": true,
+          "statement": "the settings are recorded",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/ops/repository.md",
+            "pattern": "^Homepage: https://truedone\\.dev$",
+            "must": "present",
+            "flags": "m"
+          }
+        },
+        {
+          "id": "REPO-01-AC11",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REPO-01-AC12",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REPO-01-AC13",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "REPO-01-AC14",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
       "id": "DOC-00",
       "title": "[W1] Design documents: a flow and a schematic for each spec section, and the master schematic (D29)",
       "phase": "design",
@@ -7432,7 +7621,8 @@
         "DEP-01",
         "OPS-07",
         "GATE-06",
-        "README-01"
+        "README-01",
+        "REPO-01"
       ],
       "requirements": [
         "PV-G05",

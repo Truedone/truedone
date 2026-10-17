@@ -68,4 +68,5 @@
 - PV-N02: The lanes hold no GitHub credential; only the lead runner pushes branches and opens pull requests, with Ryan's login, and every pull request passes the CI gate
 - PV-D01: Every section of docs/spec.md, the decisions and the requirements list excepted, has a design document with a Mermaid flow diagram and a Mermaid schematic, joined in one master schematic (D29)
 - PV-D02: docs/DEPENDENCY-MAP.md puts every file in a node, and a change to a node includes every node it must update; every task checks it (D28)
+- PV-D04: The repository carries contributing, conduct, notice, changelog and issue and pull request templates, its settings name the homepage and topics, and its dependency map is readable as well as checked (D31)
 - PV-D03: README.md has a summary of at most 60 words, one flow diagram and a quick start of one to five steps, and a second lane ran the quick start and reviewed it (D30)

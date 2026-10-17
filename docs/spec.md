@@ -42,6 +42,7 @@ Each default stands unless Ryan changes it before signing the contracts.
 | D28 | Dependency map | docs/DEPENDENCY-MAP.md puts every file in a node. tools/depmap-check.mjs fails a change that leaves a file unmapped or changes a node without the nodes it must update, and prints the nodes to review upstream and downstream. Every task checks it | A change to the spec, the contract or the code reaches every document and file that depends on it |
 | D29 | Design documents | Each section of this spec, the decisions and the requirements list excepted, has a document under docs/design/ with a Mermaid flow diagram and a Mermaid schematic; docs/design/00-master.md joins them in one master schematic, checked by tools/docs-check.mjs. A change to this spec changes the documents of its sections (D28) | One picture per part and one of the whole |
 | D30 | README | README.md stays short: a summary of at most 60 words, one Mermaid flowchart, a quick start of one to five steps and at most 150 lines, checked by tools/readme-check.mjs. A second lane runs the quick start from a clean directory and records its review | A first-time visitor gets from the page to a verdict in a few steps |
+| D31 | Repository standard | The repository carries CONTRIBUTING.md with the Developer Certificate of Origin, CODE_OF_CONDUCT.md (Contributor Covenant 2.1), NOTICE, CHANGELOG.md, issue and pull request templates, a description, the homepage and topics, and a dependency map a person can read: an explanation, a labelled diagram and a table of every node, kept in step with the json block the check reads | The owner asked for a gold-standard repository, and an outside contributor finds how to take part in the files GitHub shows first |
 
 ## core
 
@@ -235,7 +236,7 @@ All are met before the app is offered at the end of week 4, and still met at the
 | Register npm `truedone`, the repository mgillr/truedone and the domain; run the EUIPO and USPTO searches in classes 9 and 42; choose the fallback name if one fails | 1 |
 | Cloudflare account, GitHub App registration, the private key into Worker secrets, and the development app | 1 |
 | No credential on the lanes: only the lead runner reaches GitHub, with your login (D25) | 1 |
-| Confirm or change D1 to D30, then sign and commit the contracts | 1 |
+| Confirm or change D1 to D31, then sign and commit the contracts | 1 |
 | Gate 3 and false-Proven reviews, or name the reviewer | 1 and 5 |
 | Maintainer outreach, the launch posts and the recording, sent as himself | 2 to 6 |
 | Privacy note, terms and the `SECURITY.md` contact | 4 |
@@ -360,4 +361,5 @@ Copy this list into `REQUIREMENTS.md`. Every task names the ids it serves in its
 - PV-N02: The lanes hold no GitHub credential; only the lead runner pushes branches and opens pull requests, with Ryan's login, and every pull request passes the CI gate
 - PV-D01: Every section of docs/spec.md, the decisions and the requirements list excepted, has a design document with a Mermaid flow diagram and a Mermaid schematic, joined in one master schematic (D29)
 - PV-D02: docs/DEPENDENCY-MAP.md puts every file in a node, and a change to a node includes every node it must update; every task checks it (D28)
+- PV-D04: The repository carries contributing, conduct, notice, changelog and issue and pull request templates, its settings name the homepage and topics, and its dependency map is readable as well as checked (D31)
 - PV-D03: README.md has a summary of at most 60 words, one flow diagram and a quick start of one to five steps, and a second lane ran the quick start and reviewed it (D30)
