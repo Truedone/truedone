@@ -180,8 +180,8 @@ function weakened(baseTests, headTests) {
   return false;
 }
 
-function provedPins(text) {
-  return stringsOf(String(text), /uses:\s*[^\s@]*proved[^\s@]*@([^\s]+)/g);
+function truedonePins(text) {
+  return stringsOf(String(text), /uses:\s*[^\s@]*truedone[^\s@]*@([^\s]+)/g);
 }
 
 function fileMap(files) {
@@ -246,8 +246,8 @@ export function judge(input = {}) {
     if (path.endsWith('.snap') && diff) snapshotChanged = true;
     if (kind === 'workflow') {
       sawWorkflow = true;
-      const basePins = provedPins(entry.base);
-      const headPins = provedPins(entry.head);
+      const basePins = truedonePins(entry.base);
+      const headPins = truedonePins(entry.head);
       if (basePins.join() !== headPins.join()) stepSame = false;
       if (basePins.length && !headPins.length) stepGone = true;
       else if (!stepSame) {

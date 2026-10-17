@@ -6,8 +6,8 @@
   "files": [
     {
       "path": ".github/workflows/ci.yml",
-      "base": "jobs:\n  t:\n    steps:\n      - uses: proved/proved@v1.2.0\n",
-      "head": "jobs:\n  t:\n    steps:\n      - uses: proved/proved@v1.2.3\n"
+      "base": "jobs:\n  t:\n    steps:\n      - uses: truedone/truedone@v1.2.0\n",
+      "head": "jobs:\n  t:\n    steps:\n      - uses: truedone/truedone@v1.2.3\n"
     }
   ]
 }
