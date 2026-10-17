@@ -1,11 +1,110 @@
 # truedone
 
-Checks whether a pull request's tests prove its change.
+truedone checks whether a pull request's tests prove its change: red without the change, green with it. It also flags tests that were skipped, focused or weakened. Each pull request gets one verdict, so a reviewer sees what the tests show before reading the diff. This matters most when a coding agent opened the pull request.
 
-truedone judges whether a change's tests went from red to green, from one shared core. The five packages are core, web, cli, app and action.
+## Why it exists
 
-- packages/core holds the shared checks.
-- packages/web holds the browser build.
-- packages/cli holds the command line.
-- packages/app holds the application.
-- packages/action holds the GitHub Action.
+- A green CI run says the tests pass. It does not say they fail without the change. A test that passes on the base branch and on the pull request proves nothing about the change.
+- A failing test can be silenced by skipping it (`it.skip`, `@pytest.mark.skip`), by focusing another test (`.only`), or by weakening its assertion (`toBe(3)` changed to `toBeDefined()`). In a large diff these lines are easy to miss.
+- Maintainers describe a flood of pull requests from coding agents. truedone gives each one a verdict and a label (none for Not applicable), so a maintainer can filter the pull request list without reading anything.
+
+## How it works
+
+truedone sorts each changed file into a class, then runs its checks on each test, matched by name. These static checks run no code. The next rung is the red-green run: each changed test runs twice on the base, without the change, and three times on the head, with it.
+
+```mermaid
+flowchart TD
+  PR["Pull request"] --> CL["Classify each changed file<br/>test, setup, runner config, workflow, docs, source, ..."]
+  CL --> ST["Static checks, per test, matched by name"]
+  ST --> Q1{"A test that existed at base disabled,<br/>focused or weakened, or the truedone step edited?"}
+  Q1 -->|yes| TA["Tampered"]
+  Q1 -->|no| Q2{"Snapshot, parametrised case, timeout,<br/>runner config, setup file or workflow changed?"}
+  Q2 -->|yes| RV["Test changes: review"]
+  Q2 -->|no| Q3{"What changed?"}
+  Q3 -->|"source, no test"| NE["No red-green evidence"]
+  Q3 -->|"docs, lockfile, listed bot, rename"| NA["Not applicable"]
+  Q3 -->|tests| UN["Tests changed: not run"]
+  UN --> RG["Next rung: red-green run<br/>base twice, head three times"]
+  RG -->|"red on base, green on head"| PV["Proven, Proven (new behaviour)<br/>or Proven (weak)"]
+  RG -->|"green on base, or red on head"| NE
+  RG -->|"flaky, errored or timed out"| CN["Could not run, with the reason"]
+```
+
+Every pull request gets exactly one verdict. The first that applies in this table wins. When several tests ran, the best result of any test stands and the others are listed. A verdict states what was observed about the change.
+
+| Verdict | Label | What it means | What to do next |
+|---|---|---|---|
+| Tampered | `truedone:tampered` | A test that existed at base is disabled, focused or weakened with nothing equivalent added, or the truedone step was removed, edited or re-pinned other than to a published release. | Restore an equivalent test, or pin the step to a published release. |
+| Test changes: review | `truedone:review` | Tests moved, removed or rewritten in a way that may be legitimate, a raised timeout, or a change to the runner config, a setup file, the test script or the truedone workflow. | Confirm the test change is intended. |
+| Could not run | `truedone:could-not-run` | No test reached a result. The reason is named: a missing runner, service or setup step, flaky results, an error or a timeout. | Fix the named reason and run again. |
+| Proven | `truedone:yes` | A test fails on base by assertion twice, passes on head three times out of three, and runs lines the pull request changed. | Review the rest of the change as usual. |
+| Proven (new behaviour) | `truedone:yes` | A test fails on base only because a function or module the pull request adds does not exist yet, passes on head three times out of three, asserts on the new code's result, and runs lines the pull request changed. | Review the rest of the change as usual. |
+| Proven (weak) | `truedone:weak` | Red-green holds, but the test runs none of the changed non-test lines or asserts nothing about them. | Make the test run the changed lines and assert on them. |
+| No red-green evidence | `truedone:no-evidence` | Source changed, and no test in the pull request fails without the change. | Add a test that fails before the change and passes after it. |
+| Waiting for approval | `truedone:pending` | Tests changed and the repository has the truedone step, but GitHub is holding the run for a first-time contributor. The static findings are shown meanwhile. | Approve the run on GitHub. |
+| Tests changed: not run | `truedone:unrun` | Tests were added or changed with nothing weakened, and no red-green run has happened. | Run the changed tests: the next rung. |
+| Not applicable | none | Docs only, a lockfile or dependency change, a dependency or release bot, a CI-only change that touches no test and not the truedone step, a pure rename, or a language version 1 does not support. | Nothing. |
+
+A large pull request that was only partly analysed gets "(partial)" after its verdict. The check conclusion is neutral by default, so truedone never blocks a merge unless the repository sets `conclusion: fail-on-tampered` in `.github/truedone.yml`.
+
+**Threat model.** truedone catches careless agents and lazy shortcuts. Whoever controls a pull request also controls the test code that runs in it. The static checks flag changes to runner config and setup files, but nothing on the pull request side is a security boundary.
+
+## Ways to use it
+
+Nothing is released yet. Each surface ships with a release planned in [docs/spec.md](docs/spec.md), and only after that release's gates pass.
+
+| Surface | Who it is for | Status |
+|---|---|---|
+| [truedone.pages.dev](https://truedone.pages.dev) | Anyone reading a public pull request: open `truedone.pages.dev/owner/repo/pull/n` for the static verdict in the browser, with nothing to install. | In development, planned for week 2 |
+| `npx truedone` | Developers, from the terminal: the current branch, or a pull request link. `--run` adds red-green, `--json` prints `truedone.verdict/1`, and `init` adds three lines to `AGENTS.md` or `CLAUDE.md` that ask a coding agent to run it. | In development: static in week 2, `--run` in week 6 |
+| Claude Code plugin | People working with Claude Code: a Stop hook keeps the agent from finishing when a test it changed fails, a test was weakened or disabled, or it says tests pass but has not run them since its last edit. | Planned for week 3, red-green in week 6 |
+| GitHub App | Maintainers: one check run named `truedone` and at most one `truedone:*` label per pull request. It never runs the pull request's code. | Planned for the end of week 4 |
+| GitHub Action | Repositories that want red-green in CI: one `uses:` line in an existing job, nothing installed. It writes a report the GitHub App reads. | Planned for week 6 |
+
+## Quick start
+
+You need git, curl, Node 22 or later, and Python 3 with pytest, which one live runner test uses. There are no packages to install: the repository has no dependencies.
+
+1. Clone the repository.
+
+   ```sh
+   git clone https://github.com/mgillr/truedone && cd truedone
+   ```
+
+2. Run the tests, which use `node:test`.
+
+   ```sh
+   npm test
+   ```
+
+3. Look at a fixture: a pull request that changes `toBe(1)` to `toBeDefined()` in a test that already exists.
+
+   ```sh
+   cat packages/core/test/fixtures/checks/assertion_weakened/js.json
+   ```
+
+4. Run the static checks from the single-file core on it, then on a change to source with no test. The first prints `verdict: 'tampered'`, the second `verdict: 'no_evidence'`.
+
+   ```sh
+   for f in assertion_weakened/js.json source_no_test/any.json; do
+     node --input-type=module -e "import { analyse } from './packages/core/core.mjs'; import { readFileSync } from 'node:fs'; console.log(analyse(JSON.parse(readFileSync(process.argv[1], 'utf8'))))" "packages/core/test/fixtures/checks/$f"
+   done
+   ```
+
+When the first release ships, this quick start becomes `npx truedone` on your own branch.
+
+## Status
+
+On main today:
+
+- `packages/core`: file classification, the per-test checks for JavaScript, TypeScript and Python, `analyse()` with one static verdict for a whole change, and the `.github/truedone.yml` reader, built into one file, `packages/core/core.mjs`.
+- `packages/core/run`: runner detection for vitest, jest, mocha, `node --test` and pytest, the in-place base swap with a hash-checked restore, and the runs, base twice and head three times, that produce a `truedone.report/1`.
+- `packages/web`: the site for truedone.pages.dev, which shows the static verdict for a pull request link. It is not deployed yet.
+- `packages/cli`: the `init` step, not yet behind a command. `packages/app`: the app manifest.
+- [docs/design](docs/design/00-master.md): a design document for each section of the spec. [docs/plugin-hooks.md](docs/plugin-hooks.md): the Stop hook interface the plugin builds on.
+
+Not built yet: the step that turns run reports into a red-green verdict, the `npx truedone` command, the plugin, the app's webhook and labels, and the action.
+
+## Contributing
+
+Every change lands as one task from the signed contract in `proofline.json`, with a test that fails without the change and passes with it. Start with [CONTRIBUTING.md](CONTRIBUTING.md). The full specification is [docs/spec.md](docs/spec.md), and [docs/DEPENDENCY-MAP.md](docs/DEPENDENCY-MAP.md) shows how the files depend on each other. truedone is licensed under [Apache-2.0](LICENSE), and everyone taking part follows the [code of conduct](CODE_OF_CONDUCT.md).
