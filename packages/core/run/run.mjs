@@ -7,6 +7,7 @@ import path from 'node:path';
 import { BASE_RUNS, HEAD_RUNS, MAX_TESTS, RUN_TIMEOUT_MS, STEP_TIMEOUT_MS } from './limits.mjs';
 import { baseToken, headToken, outcome } from './outcome.mjs';
 import { parseReport, symbolsAdded } from './parse.mjs';
+import { conditionForEntry, conditionsFor, coverageEnv } from './coverage.mjs';
 import { restore, swapToBase } from './swap.mjs';
 
 const SCHEMA = 'truedone.report/1';
@@ -170,7 +171,7 @@ export async function runSide({ root, tests, side, times, timeoutMs, env, exec, 
   return { tests: zipRuns(passes, repeats), problem, runner: groups[0]?.runner ?? null };
 }
 
-function reportTest(baseItem, headItem) {
+function reportTest(baseItem, headItem, condition) {
   const baseRuns = baseItem?.runs || [];
   const headRuns = headItem?.runs || [];
   const errorType = [...baseRuns, ...headRuns].find((run) => run.failure === 'error' && run.errorType)?.errorType || null;
@@ -179,7 +180,7 @@ function reportTest(baseItem, headItem) {
     name: (headItem || baseItem).name,
     base: baseRuns.map(baseToken),
     head: headRuns.map(headToken),
-    condition: 'none',
+    condition: condition || 'none',
     asserts_new_symbol: false,
     duration_ms: [...baseRuns, ...headRuns].reduce((sum, run) => sum + (run.duration_ms || 0), 0),
   };
@@ -210,19 +211,31 @@ export async function redGreen({ root, tests, files, base, head, env, exec }) {
   } finally {
     restore(root);
   }
-  const headSide = await runSide({ ...shared, tests: chosen, side: 'head', times: HEAD_RUNS });
+  const cov = coverageEnv(files);
+  const headEnv = cov ? { ...(env ?? process.env), ...cov.env } : env;
+  let headSide;
+  try {
+    headSide = await runSide({ ...shared, env: headEnv, tests: chosen, side: 'head', times: HEAD_RUNS });
+  } finally {
+    if (!cov) {
+      /* coverage dir stays until the report is built */
+    }
+  }
+  const info = cov ? conditionsFor({ root, cov, files, tests: chosen }) : null;
+  cov?.cleanup();
   const headBy = new Map(headSide.tests.map((item) => [`${item.file}\0${item.name}`, item]));
   const seen = new Set();
   const items = [];
   for (const baseItem of baseSide.tests) {
     const key = `${baseItem.file}\0${baseItem.name}`;
     seen.add(key);
-    items.push(reportTest(baseItem, headBy.get(key)));
+    const entry = headBy.get(key);
+    items.push(reportTest(baseItem, entry, conditionForEntry(info, entry || baseItem, chosen)));
   }
   for (const headItem of headSide.tests) {
     const key = `${headItem.file}\0${headItem.name}`;
     if (seen.has(key)) continue;
-    items.push(reportTest(null, headItem));
+    items.push(reportTest(null, headItem, conditionForEntry(info, headItem, chosen)));
   }
   return {
     schema: SCHEMA,
