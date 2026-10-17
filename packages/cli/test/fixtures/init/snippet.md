@@ -1,0 +1,3 @@
+- Before reporting a task done, run `npx truedone` on the branch.
+- Never weaken, disable or delete a test to make it pass.
+- Report the verdict `npx truedone` printed, word for word.
