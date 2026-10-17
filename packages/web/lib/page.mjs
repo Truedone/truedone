@@ -1,4 +1,4 @@
-// One truedone.dev page load (WEB-01): the route decides the view; a PR route loads the PR through lib/github.mjs and
+// One truedone.pages.dev page load (WEB-01): the route decides the view; a PR route loads the PR through lib/github.mjs and
 // renders core.analyse's result. core's analyse and classify are passed in, so the tests run this with recorded
 // GitHub responses and app.mjs runs it with ./core.mjs.
 import { route, parseTarget } from './route.mjs';
