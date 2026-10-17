@@ -18,6 +18,7 @@
 // override on top of this.
 import fs from 'node:fs';
 import path from 'node:path';
+import { readConfig } from '../src/config.mjs';
 
 const JS_MANIFESTS = ['package.json'];
 const PY_MANIFESTS = ['pyproject.toml', 'pytest.ini', 'setup.cfg'];
@@ -93,7 +94,23 @@ function fromPython(name, text) {
   return { why: 'pyproject.toml has no [tool.pytest.ini_options] table and lists no pytest dependency' };
 }
 
-export function detectFromManifests(manifests, testPath) {
+function withOverride(result, override) {
+  if (typeof override !== 'string' || !override.trim()) return result;
+  return { ...result, command: override };
+}
+
+function overrideFrom(root, override) {
+  if (typeof override === 'string') return override.trim() ? override : null;
+  try {
+    const text = fs.readFileSync(path.join(root, '.github', 'truedone.yml'), 'utf8');
+    const { config } = readConfig(text);
+    return typeof config.test === 'string' && config.test ? config.test : null;
+  } catch {
+    return null;
+  }
+}
+
+export function detectFromManifests(manifests, testPath, override) {
   const names = isPython(testPath) ? PY_MANIFESTS : JS_MANIFESTS;
   const seen = [];
   for (const dir of dirsUp(testPath)) {
@@ -103,17 +120,18 @@ export function detectFromManifests(manifests, testPath) {
       const r = name === 'package.json' ? fromPackageJson(manifests[key]) : fromPython(name, manifests[key]);
       if (r.runner) {
         const cwd = dir;
-        return { test: testPath, runner: r.runner, cwd, file: cwd === '.' ? testPath : path.posix.relative(cwd, testPath), manifest: key, command: r.command, reporter: REPORTERS[r.runner] };
+        return withOverride({ test: testPath, runner: r.runner, cwd, file: cwd === '.' ? testPath : path.posix.relative(cwd, testPath), manifest: key, command: r.command, reporter: REPORTERS[r.runner] }, override);
       }
       seen.push(`${key}: ${r.why}`);
     }
   }
-  if (!seen.length) return { test: testPath, runner: null, reason: `no ${names.join(', ')} above ${testPath}` };
-  return { test: testPath, runner: null, reason: seen.join('; ') };
+  if (!seen.length) return withOverride({ test: testPath, runner: null, reason: `no ${names.join(', ')} above ${testPath}` }, override);
+  return withOverride({ test: testPath, runner: null, reason: seen.join('; ') }, override);
 }
 
 // Reads every candidate manifest on the way up from each test file, then decides from that data
-export function detect(root, testPaths) {
+export function detect(root, testPaths, override) {
+  const command = overrideFrom(root, override);
   return testPaths.map((t) => {
     const manifests = {};
     for (const dir of dirsUp(t)) {
@@ -122,6 +140,6 @@ export function detect(root, testPaths) {
         try { manifests[key] = fs.readFileSync(path.join(root, key), 'utf8'); } catch { /* absent */ }
       }
     }
-    return detectFromManifests(manifests, t);
+    return detectFromManifests(manifests, t, command);
   });
 }
