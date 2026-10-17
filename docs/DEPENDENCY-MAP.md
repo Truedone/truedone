@@ -107,7 +107,7 @@ flowchart TD
 | `repo-config` | ignore and editor settings | `.gitignore`, `.editorconfig` |   |   | live |
 | `tools` | build, CI gate and test tools | `tools/*.mjs`, `tools/test/**` |   | `github` | live |
 | `root` | manifests and licence | `package.json`, `LICENSE`, `packages/*/package.json`, `packages/*/README.md` |   | `readme` | live |
-| `community` | contributing, conduct, notice, changelog, templates | `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `NOTICE`, `CHANGELOG.md`, `.github/ISSUE_TEMPLATE/**`, `.github/PULL_REQUEST_TEMPLATE.md` |   | `readme` | planned |
+| `community` | contributing, conduct, notice, changelog, templates | `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `NOTICE`, `CHANGELOG.md`, `.github/ISSUE_TEMPLATE/**`, `.github/PULL_REQUEST_TEMPLATE.md` |   | `readme` | live |
 | `core` | analyse() and judge(), pure functions | `packages/core/src/**`, `packages/core/package.json`, `packages/core/README.md` | `bundles` | `core-test`, `spec` | live |
 | `core-run` | the red-green runner | `packages/core/run/**` | `bundles` | `core-test`, `spec` | planned |
 | `core-test` | core tests and fixtures | `packages/core/test/**` |   | `core` | live |
@@ -145,7 +145,7 @@ flowchart TD
     "repo-config": {"paths": [".gitignore", ".editorconfig"], "update": [], "review": []},
     "tools": {"paths": ["tools/*.mjs", "tools/test/**"], "update": [], "review": ["github"]},
     "root": {"paths": ["package.json", "LICENSE", "packages/*/package.json", "packages/*/README.md"], "update": [], "review": ["readme"]},
-    "community": {"planned": true, "paths": ["CONTRIBUTING.md", "CODE_OF_CONDUCT.md", "NOTICE", "CHANGELOG.md", ".github/ISSUE_TEMPLATE/**", ".github/PULL_REQUEST_TEMPLATE.md"], "update": [], "review": ["readme"]},
+    "community": {"paths": ["CONTRIBUTING.md", "CODE_OF_CONDUCT.md", "NOTICE", "CHANGELOG.md", ".github/ISSUE_TEMPLATE/**", ".github/PULL_REQUEST_TEMPLATE.md"], "update": [], "review": ["readme"]},
     "core": {"paths": ["packages/core/src/**", "packages/core/package.json", "packages/core/README.md"], "update": ["bundles"], "review": ["core-test", "spec"]},
     "core-run": {"planned": true, "paths": ["packages/core/run/**"], "update": ["bundles"], "review": ["core-test", "spec"]},
     "core-test": {"paths": ["packages/core/test/**"], "update": [], "review": ["core"]},

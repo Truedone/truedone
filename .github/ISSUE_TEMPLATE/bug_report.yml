@@ -1,0 +1,56 @@
+name: Bug report
+description: Something in truedone does not work as its documentation says.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not report a security vulnerability here. Follow the security policy instead: https://github.com/mgillr/truedone/security/policy
+  - type: dropdown
+    id: part
+    attributes:
+      label: Where it happened
+      options:
+        - truedone.dev
+        - the CLI (npx truedone)
+        - the plugin
+        - the GitHub App
+        - the action
+        - the core library
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The truedone version, or the commit if you ran it from this repository.
+    validations:
+      required: true
+  - type: textarea
+    id: ran
+    attributes:
+      label: What you ran
+      description: The command, the pull request link or the input, so we can run it again.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened
+      description: The output or the verdict you got. Paste text rather than a screenshot where you can.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, Node version (node --version) and browser, where they apply.
+    validations:
+      required: false
