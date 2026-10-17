@@ -1,0 +1,12 @@
+{
+  "name": "truedone",
+  "version": "0.1.0",
+  "description": "One Stop hook: blocks when a changed test fails, a test was weakened, or the agent says tests pass without running them",
+  "author": {
+    "name": "mgillr",
+    "url": "https://github.com/mgillr"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://truedone.dev",
+  "repository": "https://github.com/Truedone/truedone"
+}
