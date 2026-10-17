@@ -1,0 +1,8 @@
+:root { --fg: #1b1f24; --bg: #fff; --muted: #57606a; --warn: #9a6700; }
+@media (prefers-color-scheme: dark) { :root { --fg: #e6edf3; --bg: #0d1117; --muted: #8d96a0; --warn: #d29922; } }
+body { margin: 0 auto; max-width: 46rem; padding: 1.5rem 1rem; font: 16px/1.5 system-ui, sans-serif; color: var(--fg); background: var(--bg); }
+pre { overflow-x: auto; padding: .5rem; border: 1px solid var(--muted); }
+.verdict { font-size: 1.25rem; font-weight: 600; }
+.target, .label, .precomputed, footer { color: var(--muted); }
+.warning { color: var(--warn); }
+input { width: 70%; }
