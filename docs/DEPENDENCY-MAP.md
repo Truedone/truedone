@@ -118,7 +118,7 @@ flowchart TD
 | `action` | the CI step | `packages/action/**` |   | `readme`, `design` | live |
 | `corpus` | the sample and the gate scripts | `tools/corpus/**` |   | `gates`, `index` | planned |
 | `bench` | latency benches | `tools/bench/**`, `docs/bench/**` |   | `readme` | planned |
-| `github` | CI workflows and CODEOWNERS | `.github/workflows/**`, `.github/CODEOWNERS` |   | `contract` | planned |
+| `github` | CI workflows and CODEOWNERS | `.github/workflows/**`, `.github/CODEOWNERS` |   | `contract` | live |
 | `gates` | gate records and review sheets | `docs/gates/**` |   | `readme`, `releases` | planned |
 | `index` | the weekly index | `docs/index/**` |   | `readme` | planned |
 | `ops` | the owner ops records | `docs/ops/**` |   |   | live |
@@ -156,7 +156,7 @@ flowchart TD
     "action": {"paths": ["packages/action/**"], "update": [], "review": ["readme", "design"]},
     "corpus": {"planned": true, "paths": ["tools/corpus/**"], "update": [], "review": ["gates", "index"]},
     "bench": {"planned": true, "paths": ["tools/bench/**", "docs/bench/**"], "update": [], "review": ["readme"]},
-    "github": {"planned": true, "paths": [".github/workflows/**", ".github/CODEOWNERS"], "update": [], "review": ["contract"]},
+    "github": {"paths": [".github/workflows/**", ".github/CODEOWNERS"], "update": [], "review": ["contract"]},
     "gates": {"planned": true, "paths": ["docs/gates/**"], "update": [], "review": ["readme", "releases"]},
     "index": {"planned": true, "paths": ["docs/index/**"], "update": [], "review": ["readme"]},
     "ops": {"paths": ["docs/ops/**"], "update": [], "review": []},
