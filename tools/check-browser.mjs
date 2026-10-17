@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { mkdtempSync, rmSync, readFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -17,7 +17,9 @@ const o = analyse({files:[{path:"src/a.js",status:"modified",patch:"@@ -1 +1 @@\
 document.querySelector("#v").textContent = o.verdict;
 </script>`;
 
+let requests = 0;
 const server = createServer((req, res) => {
+  requests += 1;
   const u = (req.url || '/').split('?')[0];
   if (u === '/' || u === '/index.html') {
     res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
@@ -36,20 +38,71 @@ await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 const { port } = server.address();
 const bin = process.env.CHROMIUM_BIN || 'chromium';
 const profile = mkdtempSync(path.join(tmpdir(), 'td-browser-'));
+
+function launch(args, timeoutMs) {
+  return new Promise((resolve) => {
+    const child = spawn(bin, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    let stdout = '';
+    let stderr = '';
+    let settled = false;
+    let timedOut = false;
+    let dumped = false;
+    const finish = (status, error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve({ status, stdout, stderr, error });
+    };
+    const timer = setTimeout(() => {
+      if (settled) return;
+      timedOut = true;
+      child.kill('SIGKILL');
+    }, timeoutMs);
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk;
+      if (!dumped && stdout.includes('</html>')) {
+        dumped = true;
+        child.kill('SIGKILL');
+      }
+    });
+    child.stderr.on('data', (chunk) => { stderr += chunk; });
+    child.on('error', (error) => finish(null, error));
+    child.on('close', (status) => {
+      if (timedOut) {
+        const error = new Error(`chromium did not exit within ${timeoutMs} ms; requests ${requests}`);
+        error.code = 'ETIMEDOUT';
+        finish(status, error);
+        return;
+      }
+      finish(status, null);
+    });
+  });
+}
+
 let result;
 try {
-  result = spawnSync(bin, [
+  result = await launch([
     '--headless',
-    '--dump-dom',
+    '--disable-gpu',
+    '--no-first-run',
+    '--no-default-browser-check',
     `--user-data-dir=${profile}`,
+    '--virtual-time-budget=15000',
+    '--dump-dom',
     `http://127.0.0.1:${port}/`,
-  ], { encoding: 'utf8', timeout: 60000 });
+  ], 60000);
 } finally {
   server.close();
+  server.closeAllConnections?.();
   rmSync(profile, { recursive: true, force: true });
 }
 if (result.error && result.error.code === 'ENOENT') {
   console.error(process.env.CHROMIUM_BIN ? `CHROMIUM_BIN is not a file: ${bin}` : 'chromium is not on PATH and CHROMIUM_BIN is unset');
+  process.exit(1);
+}
+if (result.error && result.error.code === 'ETIMEDOUT') {
+  console.error(result.error.message);
+  if (result.stderr) console.error(result.stderr.slice(-1500));
   process.exit(1);
 }
 const dump = result.stdout || '';
