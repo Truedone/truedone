@@ -106,16 +106,16 @@ flowchart TD
 | `checks` | the map, design and README checks | `tools/depmap-check.mjs`, `tools/docs-check.mjs`, `tools/readme-check.mjs` |   | `contract`, `depmap` | live |
 | `repo-config` | ignore and editor settings | `.gitignore`, `.editorconfig` |   |   | live |
 | `tools` | build, CI gate and test tools | `tools/*.mjs`, `tools/test/**` |   | `github` | live |
-| `root` | manifests and licence | `package.json`, `LICENSE`, `packages/*/package.json`, `packages/*/README.md` |   | `readme` | planned |
+| `root` | manifests and licence | `package.json`, `LICENSE`, `packages/*/package.json`, `packages/*/README.md` |   | `readme` | live |
 | `community` | contributing, conduct, notice, changelog, templates | `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `NOTICE`, `CHANGELOG.md`, `.github/ISSUE_TEMPLATE/**`, `.github/PULL_REQUEST_TEMPLATE.md` |   | `readme` | planned |
-| `core` | analyse() and judge(), pure functions | `packages/core/src/**`, `packages/core/package.json`, `packages/core/README.md` | `bundles` | `core-test`, `spec` | planned |
+| `core` | analyse() and judge(), pure functions | `packages/core/src/**`, `packages/core/package.json`, `packages/core/README.md` | `bundles` | `core-test`, `spec` | live |
 | `core-run` | the red-green runner | `packages/core/run/**` | `bundles` | `core-test`, `spec` | planned |
 | `core-test` | core tests and fixtures | `packages/core/test/**` |   | `core` | planned |
 | `bundles` | the built single files | `packages/core/core.mjs`, `packages/web/core.mjs`, `packages/cli/truedone.mjs`, `packages/cli/plugin/hooks/stop.mjs`, `packages/action/dist/index.mjs` |   | `web`, `cli`, `app`, `action` | planned |
-| `web` | truedone.dev | `packages/web/**` |   | `readme`, `design` | planned |
-| `cli` | npx truedone and the plugin | `packages/cli/**`, `.claude-plugin/**` |   | `readme`, `design` | planned |
-| `app` | the GitHub App | `packages/app/**` |   | `readme`, `design` | planned |
-| `action` | the CI step | `packages/action/**` |   | `readme`, `design` | planned |
+| `web` | truedone.dev | `packages/web/**` |   | `readme`, `design` | live |
+| `cli` | npx truedone and the plugin | `packages/cli/**`, `.claude-plugin/**` |   | `readme`, `design` | live |
+| `app` | the GitHub App | `packages/app/**` |   | `readme`, `design` | live |
+| `action` | the CI step | `packages/action/**` |   | `readme`, `design` | live |
 | `corpus` | the sample and the gate scripts | `tools/corpus/**` |   | `gates`, `index` | planned |
 | `bench` | latency benches | `tools/bench/**`, `docs/bench/**` |   | `readme` | planned |
 | `github` | CI workflows and CODEOWNERS | `.github/workflows/**`, `.github/CODEOWNERS` |   | `contract` | planned |
@@ -144,16 +144,16 @@ flowchart TD
     "checks": {"paths": ["tools/depmap-check.mjs", "tools/docs-check.mjs", "tools/readme-check.mjs"], "update": [], "review": ["contract", "depmap"]},
     "repo-config": {"paths": [".gitignore", ".editorconfig"], "update": [], "review": []},
     "tools": {"paths": ["tools/*.mjs", "tools/test/**"], "update": [], "review": ["github"]},
-    "root": {"planned": true, "paths": ["package.json", "LICENSE", "packages/*/package.json", "packages/*/README.md"], "update": [], "review": ["readme"]},
+    "root": {"paths": ["package.json", "LICENSE", "packages/*/package.json", "packages/*/README.md"], "update": [], "review": ["readme"]},
     "community": {"planned": true, "paths": ["CONTRIBUTING.md", "CODE_OF_CONDUCT.md", "NOTICE", "CHANGELOG.md", ".github/ISSUE_TEMPLATE/**", ".github/PULL_REQUEST_TEMPLATE.md"], "update": [], "review": ["readme"]},
-    "core": {"planned": true, "paths": ["packages/core/src/**", "packages/core/package.json", "packages/core/README.md"], "update": ["bundles"], "review": ["core-test", "spec"]},
+    "core": {"paths": ["packages/core/src/**", "packages/core/package.json", "packages/core/README.md"], "update": ["bundles"], "review": ["core-test", "spec"]},
     "core-run": {"planned": true, "paths": ["packages/core/run/**"], "update": ["bundles"], "review": ["core-test", "spec"]},
     "core-test": {"planned": true, "paths": ["packages/core/test/**"], "update": [], "review": ["core"]},
     "bundles": {"planned": true, "paths": ["packages/core/core.mjs", "packages/web/core.mjs", "packages/cli/truedone.mjs", "packages/cli/plugin/hooks/stop.mjs", "packages/action/dist/index.mjs"], "update": [], "review": ["web", "cli", "app", "action"]},
-    "web": {"planned": true, "paths": ["packages/web/**"], "update": [], "review": ["readme", "design"]},
-    "cli": {"planned": true, "paths": ["packages/cli/**", ".claude-plugin/**"], "update": [], "review": ["readme", "design"]},
-    "app": {"planned": true, "paths": ["packages/app/**"], "update": [], "review": ["readme", "design"]},
-    "action": {"planned": true, "paths": ["packages/action/**"], "update": [], "review": ["readme", "design"]},
+    "web": {"paths": ["packages/web/**"], "update": [], "review": ["readme", "design"]},
+    "cli": {"paths": ["packages/cli/**", ".claude-plugin/**"], "update": [], "review": ["readme", "design"]},
+    "app": {"paths": ["packages/app/**"], "update": [], "review": ["readme", "design"]},
+    "action": {"paths": ["packages/action/**"], "update": [], "review": ["readme", "design"]},
     "corpus": {"planned": true, "paths": ["tools/corpus/**"], "update": [], "review": ["gates", "index"]},
     "bench": {"planned": true, "paths": ["tools/bench/**", "docs/bench/**"], "update": [], "review": ["readme"]},
     "github": {"planned": true, "paths": [".github/workflows/**", ".github/CODEOWNERS"], "update": [], "review": ["contract"]},
