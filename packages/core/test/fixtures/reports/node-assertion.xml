@@ -1,0 +1,1 @@
+<testsuite><testcase name="adds" classname="a.test.js" file="a.test.js" time="0.004"><failure type="AssertionError" message="AssertionError: values differ">AssertionError: values differ</failure></testcase></testsuite>
