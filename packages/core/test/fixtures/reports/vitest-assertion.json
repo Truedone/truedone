@@ -1,0 +1,1 @@
+{"testResults": [{"name": "a.test.js", "assertionResults": [{"fullName": "adds", "title": "adds", "status": "failed", "duration": 4, "failureMessages": ["Error: expect(received).toBe(expected)\nExpected: 1\nReceived: 2"]}]}]}

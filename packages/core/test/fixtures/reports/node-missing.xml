@@ -1,0 +1,1 @@
+<testsuite><testcase name="adds" classname="a.test.js" file="a.test.js" time="0.004"><failure type="ReferenceError" message="ReferenceError: added is not defined">ReferenceError: added is not defined</failure></testcase></testsuite>

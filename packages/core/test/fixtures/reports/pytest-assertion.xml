@@ -1,0 +1,1 @@
+<testsuite><testcase name="adds" classname="test_a.py" file="test_a.py" time="0.004"><failure type="AssertionError" message="AssertionError: values differ">AssertionError: values differ</failure></testcase></testsuite>

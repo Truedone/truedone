@@ -1,0 +1,1 @@
+<testsuite><testcase name="adds" classname="test_a.py" file="test_a.py" time="0.004"><error type="ImportError" message="ImportError: cannot import name 'added'">ImportError: cannot import name 'added'</error></testcase></testsuite>

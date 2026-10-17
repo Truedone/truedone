@@ -1,0 +1,184 @@
+{
+  "symbol": "added",
+  "runners": [
+    {
+      "runner": "jest",
+      "reporter": "jest-json",
+      "assertion": "jest-assertion.json",
+      "missing": "jest-missing.json",
+      "pass": "jest-pass.json",
+      "error": "jest-error.json"
+    },
+    {
+      "runner": "vitest",
+      "reporter": "vitest-json",
+      "assertion": "vitest-assertion.json",
+      "missing": "vitest-missing.json",
+      "pass": "vitest-pass.json",
+      "error": "vitest-error.json"
+    },
+    {
+      "runner": "mocha",
+      "reporter": "mocha-json",
+      "assertion": "mocha-assertion.json",
+      "missing": "mocha-missing.json",
+      "pass": "mocha-pass.json",
+      "error": "mocha-error.json"
+    },
+    {
+      "runner": "node",
+      "reporter": "junit",
+      "assertion": "node-assertion.xml",
+      "missing": "node-missing.xml",
+      "pass": "node-pass.xml",
+      "error": "node-error.xml"
+    },
+    {
+      "runner": "pytest",
+      "reporter": "junit",
+      "assertion": "pytest-assertion.xml",
+      "missing": "pytest-missing.xml",
+      "pass": "pytest-pass.xml",
+      "error": "pytest-error.xml"
+    }
+  ],
+  "rows": [
+    {
+      "name": "proven",
+      "base": [
+        "assertion",
+        "assertion"
+      ],
+      "head": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "condition": "lines",
+      "named": false,
+      "result": "Proven"
+    },
+    {
+      "name": "new behaviour",
+      "base": [
+        "missing",
+        "missing"
+      ],
+      "head": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "condition": "none",
+      "named": true,
+      "result": "Proven (new behaviour)"
+    },
+    {
+      "name": "weak assertion",
+      "base": [
+        "assertion",
+        "assertion"
+      ],
+      "head": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "condition": "none",
+      "named": false,
+      "result": "Proven (weak)"
+    },
+    {
+      "name": "weak missing",
+      "base": [
+        "missing",
+        "missing"
+      ],
+      "head": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "condition": "none",
+      "named": false,
+      "result": "Proven (weak)"
+    },
+    {
+      "name": "both pass",
+      "base": [
+        "pass",
+        "pass"
+      ],
+      "head": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "condition": "none",
+      "named": false,
+      "result": "No red-green evidence"
+    },
+    {
+      "name": "flaky on base",
+      "base": [
+        "assertion",
+        "pass"
+      ],
+      "head": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "condition": "none",
+      "named": false,
+      "result": "Could not run: flaky on base"
+    },
+    {
+      "name": "flaky on head",
+      "base": [
+        "pass",
+        "pass"
+      ],
+      "head": [
+        "pass",
+        "assertion",
+        "pass"
+      ],
+      "condition": "none",
+      "named": false,
+      "result": "Could not run: flaky on head"
+    },
+    {
+      "name": "fails on head",
+      "base": [
+        "pass",
+        "pass"
+      ],
+      "head": [
+        "assertion",
+        "assertion",
+        "assertion"
+      ],
+      "condition": "none",
+      "named": false,
+      "result": "No red-green evidence",
+      "reason": "fails on head"
+    },
+    {
+      "name": "errored",
+      "base": [
+        "error",
+        "error"
+      ],
+      "head": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "condition": "none",
+      "named": false,
+      "result": "Could not run: errored",
+      "reason": "error"
+    }
+  ]
+}
