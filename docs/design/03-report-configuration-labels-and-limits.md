@@ -4,7 +4,7 @@ Source section: Report, configuration, labels and limits
 
 **Report.** The action sends the app one artifact per job, named `truedone-report-<job id>`, of at most 256 KB, one file and 500 tests. The app refuses anything larger or of another shape. The report has the schema `truedone.report/1`: the head, checked-out and base SHAs, the truedone version, the runner and the job; per test, the file, the name, two base results, three head results, the coverage condition, whether it asserts on a new symbol, and the duration; a `could_not_run` reason with detail, or null; and a `truncated` flag.
 
-**Runners.** Version 1 detects vitest, jest, mocha, `node --test` and pytest. Each writes its result through its own built-in reporter. Detection reads the `package.json`, `pyproject.toml`, `pytest.ini` or `setup.cfg` nearest to each changed test file.
+**Runners.** Version 1 detects vitest, jest, mocha, `node --test` and pytest. Each writes its result through its own built-in reporter. Detection reads the `package.json`, `pyproject.toml`, `pytest.ini` and `setup.cfg` in each directory from a changed test file up to the repository root, and takes the nearest one that names a runner.
 
 **Configuration.** `.github/truedone.yml` is optional. It holds flat `key: value` lines only, read by a small reader in core with no YAML library. The keys are `test`, `comments`, `conclusion`, `ignore` and `enabled`. Unknown keys are ignored and named in a reason line.
 
@@ -20,7 +20,7 @@ flowchart TD
   RD --> UK["unknown keys: ignored and named in a reason line"]
   RD --> TK{"test key set?"}
   TK -->|yes| CMD["the configured command, with {files}"]
-  TK -->|no| DET["detect the runner from the package.json, pyproject.toml, pytest.ini or setup.cfg nearest to each changed test file"]
+  TK -->|no| DET["detect the runner from the nearest package.json, pyproject.toml, pytest.ini or setup.cfg that names one, walking up from each changed test file"]
   DET --> RUN["vitest, jest, mocha, node --test or pytest, each through its built-in reporter"]
   CMD --> ART
   RUN --> ART["action: one artifact per job, truedone-report-#lt;job id#gt;"]

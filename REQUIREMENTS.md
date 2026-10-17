@@ -47,7 +47,7 @@
 - PV-X03: The action writes one truedone.report/1 artifact per job without a write token
 - PV-X04: Red-green adds p50 under 60 s and p95 under 4 min inside an existing job, measured
 - PV-X05: Coverage uses the D8 mechanism and the report names the condition used
-- PV-X06: Runner detection finds vitest, jest, mocha, node --test and pytest from the nearest manifest with no config line, from files or from manifests passed as data, and the truedone.yml test key overrides it
+- PV-X06: Runner detection finds vitest, jest, mocha, node --test and pytest from the nearest manifest that names a runner, with no config line, from files or from manifests passed as data, and the truedone.yml test key overrides it
 - PV-G01: The corpus job samples PRs by D12 and publishes its sample list and code
 - PV-G02: Gates 1, 2 and 4 are computed by a script in tools/corpus that anyone can re-run
 - PV-G03: Gate 3 review sheets exist for 200 flags with at least 50 Tampered, and the human verdicts are recorded
