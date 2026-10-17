@@ -1,0 +1,21 @@
+{
+  "name": "truedone",
+  "url": "https://truedone.dev",
+  "hook_attributes": {
+    "url": "https://truedone.dev/api/github/webhook",
+    "active": true
+  },
+  "redirect_url": "https://truedone.dev/api/github/manifest",
+  "callback_urls": ["https://truedone.dev/api/github/callback"],
+  "setup_url": "https://truedone.dev/api/github/setup",
+  "setup_on_update": true,
+  "public": false,
+  "default_events": ["installation", "installation_repositories", "pull_request", "workflow_run"],
+  "default_permissions": {
+    "actions": "read",
+    "checks": "write",
+    "contents": "read",
+    "metadata": "read",
+    "pull_requests": "write"
+  }
+}
