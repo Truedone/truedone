@@ -1,0 +1,22 @@
+{
+ "number": 7,
+ "title": "Add retry <img src=x onerror=alert(1)> to the client",
+ "body": "Adds tests for retry.",
+ "user": {
+  "login": "helper-agent[bot]",
+  "type": "Bot"
+ },
+ "base": {
+  "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "repo": {
+   "full_name": "octo/demo"
+  }
+ },
+ "head": {
+  "sha": "cccccccccccccccccccccccccccccccccccccccc",
+  "repo": {
+   "full_name": "fork-owner/demo"
+  }
+ },
+ "changed_files": 300
+}
