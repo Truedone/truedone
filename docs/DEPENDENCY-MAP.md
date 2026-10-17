@@ -123,7 +123,7 @@ flowchart TD
 | `index` | the weekly index | `docs/index/**` |   | `readme` | planned |
 | `ops` | the owner ops records | `docs/ops/**` |   |   | live |
 | `releases` | release decisions | `docs/releases/**` |   | `readme` | planned |
-| `spikes` | spike records | `docs/spikes/**`, `docs/plugin-hooks.md` |   | `spec` | planned |
+| `spikes` | spike records | `docs/spikes/**`, `docs/plugin-hooks.md` |   | `spec` | live |
 | `policy` | security, privacy, terms | `SECURITY.md`, `docs/privacy.md`, `docs/terms.md` |   | `readme` | planned |
 | `design` | section documents and the master schematic | `docs/design/**` |   | `readme` | planned |
 | `reviews` | review records | `docs/reviews/**` |   | `readme` | planned |
@@ -161,7 +161,7 @@ flowchart TD
     "index": {"planned": true, "paths": ["docs/index/**"], "update": [], "review": ["readme"]},
     "ops": {"paths": ["docs/ops/**"], "update": [], "review": []},
     "releases": {"planned": true, "paths": ["docs/releases/**"], "update": [], "review": ["readme"]},
-    "spikes": {"planned": true, "paths": ["docs/spikes/**", "docs/plugin-hooks.md"], "update": [], "review": ["spec"]},
+    "spikes": {"paths": ["docs/spikes/**", "docs/plugin-hooks.md"], "update": [], "review": ["spec"]},
     "policy": {"planned": true, "paths": ["SECURITY.md", "docs/privacy.md", "docs/terms.md"], "update": [], "review": ["readme"]},
     "design": {"planned": true, "paths": ["docs/design/**"], "update": [], "review": ["readme"]},
     "reviews": {"planned": true, "paths": ["docs/reviews/**"], "update": [], "review": ["readme"]}

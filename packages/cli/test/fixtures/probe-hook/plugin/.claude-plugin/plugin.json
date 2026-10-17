@@ -1,0 +1,5 @@
+{
+  "name": "truedone-probe",
+  "version": "0.0.0",
+  "description": "Stop hook probe for docs/plugin-hooks.md (PLG-00). Not shipped."
+}
