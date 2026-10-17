@@ -59,7 +59,7 @@ Nothing is released yet. Each surface ships with a release planned in [docs/spec
 | `npx truedone` | Developers, from the terminal: the current branch, or a pull request link. `--run` adds red-green, `--json` prints `truedone.verdict/1`, and `init` adds three lines to `AGENTS.md` or `CLAUDE.md` that ask a coding agent to run it. | In development: static in week 2, `--run` in week 6 |
 | Claude Code plugin | People working with Claude Code: a Stop hook keeps the agent from finishing when a test it changed fails, a test was weakened or disabled, or it says tests pass but has not run them since its last edit. | Planned for week 3, red-green in week 6 |
 | GitHub App | Maintainers: one check run named `truedone` and at most one `truedone:*` label per pull request. It never runs the pull request's code. | Planned for the end of week 4 |
-| GitHub Action | Repositories that want red-green in CI: one `uses:` line in an existing job, nothing installed. It writes a report the GitHub App reads. | Planned for week 6 |
+| GitHub Action | Repositories that want red-green in CI: one `uses:` line in an existing job, nothing installed. It writes a report the GitHub App reads. | On main (packages/action) |
 
 ## Quick start
 
@@ -103,7 +103,7 @@ On main today:
 - `packages/cli`: the `init` step, not yet behind a command. `packages/app`: the app manifest.
 - [docs/design](docs/design/00-master.md): a design document for each section of the spec. [docs/plugin-hooks.md](docs/plugin-hooks.md): the Stop hook interface the plugin builds on.
 
-Not built yet: the step that turns run reports into a red-green verdict, the `npx truedone` command, the plugin, the app's webhook and labels, and the action.
+Not built yet: the step that turns run reports into a red-green verdict, the `npx truedone` command, the plugin, the app's webhook and labels.
 
 ## Contributing
 
