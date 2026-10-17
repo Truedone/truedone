@@ -205,7 +205,9 @@ function sourceStillThere(files, spec) {
   return true;
 }
 
-export function judge(input = {}) {
+// judge(staticResult, reports) is the public export in judge.mjs.
+// This name stays different so the single-file build can export both.
+export function staticVerdict(input = {}) {
   const files = fileMap(input.files);
   const releases = new Set(input.releases || []);
   const pr = String(input.pr || '');

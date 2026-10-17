@@ -1,0 +1,14 @@
+{
+  "static": { "verdict": "unrun" },
+  "reports": [{
+    "schema": "truedone.report/1",
+    "tests": [{
+      "file": "a.test.js",
+      "name": "adds",
+      "base": ["timeout", "fail:assertion"],
+      "head": ["pass", "pass", "pass"],
+      "condition": "lines",
+      "asserts_new_symbol": false
+    }]
+  }]
+}
