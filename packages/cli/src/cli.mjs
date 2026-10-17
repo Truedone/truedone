@@ -5,21 +5,24 @@
 //   --json                         print core's truedone.verdict/1 result
 //   --fail-on <verdicts>           exit 1 when the verdict is one of these comma-separated ids
 //   init                           add the agent snippet (src/init.mjs)
+//   --run [--docker] [--yes]        add red-green (src/run.mjs, CLI-03); on someone else's PR only after a typed yes or --yes
 //   --help, -h                     print the usage and exit 0, whatever else is given
-// deps: { analyse, classify, fetch, cwd, env, stdout, stderr, git? }. core's analyse and classify come in as deps, so
+// deps: { analyse, classify, fetch, cwd, env, stdout, stderr, git? }, and for --run { judge, detect, redGreen,
+// restorePending, stdin, makeGit?, spawn?, dockerOnPath?, cloneUrl?, tmpdir? }. core's analyse and classify come in as deps, so
 // the tests run main in-process; src/bin.mjs passes the bundled core. PR mode starts no process.
 import { init } from './init.mjs';
 import { parseTarget } from './target.mjs';
 import { loadPR, fetchReleases, RateLimited, GitHubError } from './github.mjs';
 import { localInput, makeGit, NoRepository } from './local.mjs';
 import { readable, SCHEMA, VERDICTS } from './output.mjs';
+import { runMode } from './run.mjs';
 
-const USAGE = 'usage: npx truedone [<PR link> | <owner/repo#n>] [--json] [--fail-on <verdict>[,<verdict>...]]\n       npx truedone init';
+const USAGE = 'usage: npx truedone [<PR link> | <owner/repo#n>] [--run [--docker] [--yes]] [--json] [--fail-on <verdict>[,<verdict>...]]\n       npx truedone init';
 class UsageError extends Error {}
 
 function parse(argv) {
   if (argv.includes('--help') || argv.includes('-h')) return { help: true };
-  const o = { json: false, failOn: null, init: false, target: null };
+  const o = { json: false, failOn: null, init: false, target: null, run: false, docker: false, yes: false };
   const rest = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -31,12 +34,16 @@ function parse(argv) {
       const bad = list.filter((x) => !(x in VERDICTS));
       if (bad.length || !list.length) throw new UsageError(`--fail-on: unknown verdict ${bad.join(', ') || v} (the verdicts are ${Object.keys(VERDICTS).join(', ')})`);
       o.failOn = new Set(list);
-    } else if (a === '--run' || a === '--docker') throw new UsageError(`${a} is not in this version of truedone: it comes with red-green`);
+    } else if (a === '--run') o.run = true;
+    else if (a === '--docker') o.docker = true;
+    else if (a === '--yes') o.yes = true;
     else if (a.startsWith('-')) throw new UsageError(`unknown option ${a}`);
     else rest.push(a);
   }
+  if (o.docker && !o.run) throw new UsageError('--docker runs red-green in a container, so it needs --run');
+  if (o.yes && !o.run) throw new UsageError('--yes answers --run\'s question, so it needs --run');
   if (rest[0] === 'init') {
-    if (rest.length > 1 || o.json || o.failOn) throw new UsageError('init takes no other arguments');
+    if (rest.length > 1 || o.json || o.failOn || o.run) throw new UsageError('init takes no other arguments');
     o.init = true;
   } else if (rest.length > 1) throw new UsageError(`one target at most; got ${rest.join(' ')}`);
   else if (rest.length === 1) {
@@ -65,6 +72,7 @@ export async function main(argv, deps) {
       init(cwd, { log: (s) => stdout.write(`${s}\n`) });
       return 0;
     }
+    if (o.run) return await runMode(o, deps);
     const token = env.GITHUB_TOKEN || null;
     let input, what;
     if (o.target) {

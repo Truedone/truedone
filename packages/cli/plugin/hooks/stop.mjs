@@ -2324,10 +2324,10 @@ const head = `@@ -0,0 +1${lines.length === 1 ? '' : `,${lines.length}`} @@`;
 return [head, ...lines.map((l) => `+${l}`), ...(missingEol ? ['\\ No newline at end of file'] : [])].join('\n');
 }
 
-function localInput(root, { classify, git = makeGit(root) }) {
+function localInput(root, { classify, git = makeGit(root), branch: against = null }) {
 if (git(['rev-parse', '--is-inside-work-tree'], { quiet: true }) !== 'true') throw new NoRepository(`${root} is not inside a git repository`);
 const top = git(['rev-parse', '--show-toplevel']);
-const branch = defaultBranch(git);
+const branch = against ?? defaultBranch(git);
 if (!branch) throw new NoRepository('no default branch: origin/HEAD, main and master are all missing');
 const base = git(['merge-base', 'HEAD', branch], { quiet: true });
 if (!base) throw new NoRepository(`HEAD has no merge-base with ${branch}`);
