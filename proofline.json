@@ -386,12 +386,14 @@
       ],
       "OPS-09": [
         "OPS-09-AC06",
-        "OPS-09-AC02"
+        "OPS-09-AC02",
+        "OPS-09-AC09"
       ],
       "REL-P5": [
         "REL-P5-AC05",
         "REL-P5-AC01",
-        "REL-P5-AC02"
+        "REL-P5-AC02",
+        "REL-P5-AC08"
       ],
       "REL-P4": [
         "REL-P4-AC06"
@@ -404,7 +406,14 @@
       ],
       "REL-P6": [
         "REL-P6-AC01",
-        "REL-P6-AC03"
+        "REL-P6-AC03",
+        "REL-P6-AC06"
+      ],
+      "WEB-13": [
+        "WEB-13-AC05"
+      ],
+      "APP-16": [
+        "APP-16-AC05"
       ]
     }
   },
@@ -6987,6 +6996,108 @@
       ]
     },
     {
+      "id": "APP-16",
+      "title": "[W2] The App analyses a pull request only when it opens, gets new commits or reopens",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "APP-15"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "#111, measured on 2026-10-18 from GitHub's records on mgillr/truedone-sandbox: the truedone check run of #190 was rewritten 81 s after it opened, after the pull request closed, and across 12 bench pull requests open to started_at was 77 to 199 s. packages/app/src/webhook.mjs:58 queues every delivery, and the static stage's onPullRequest checks no action, so the App posts on closed pull requests, and its own label write sends a pull_request.labeled delivery that runs a second analysis, as do edited, assigned and review_requested. Change: a pull_request delivery starts an analysis only for opened, synchronize and reopened; any other action is acknowledged and dropped before the queue, with no GitHub call; installation events keep their handling.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-16-AC01",
+          "mandatory": true,
+          "statement": "closed, labeled, edited, assigned and review_requested deliveries make no GitHub call and send nothing to the queue; opened, synchronize and reopened each analyse once",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/pr-actions.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-16-AC02",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-16-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-16-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-16-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-16-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-16-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "APP-03",
       "title": "[W3] Static stage: check run, one label, summary, config, logs",
       "phase": "implement",
@@ -7687,7 +7798,8 @@
         "APP-10",
         "APP-11",
         "APP-13",
-        "APP-15"
+        "APP-15",
+        "APP-16"
       ],
       "requirements": [
         "PV-A03",
@@ -10398,6 +10510,114 @@
       ]
     },
     {
+      "id": "WEB-13",
+      "title": "[W2] Unknown addresses answer 404, and every page carries the logo as its icon",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "WEB-12"
+      ],
+      "requirements": [
+        "PV-W02"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "#110, measured on 2026-10-18: https://truedone.pages.dev/no/such-page answers 200 with \"Not a truedone.pages.dev page\", because Cloudflare Pages serves the app shell for every path when the site has no 404.html, and packages/web/_redirects is empty; and /favicon.ico answers the HTML page, so tabs show no icon. Changes: _redirects rewrites only the routes the app serves (/:owner/:repo/pull/:number, /signin, /signin/callback) to /index.html with status 200, with no catch-all; packages/web/404.html is the not-found view in the site's shell, which Pages then serves with status 404 for every other path; the App's logo (packages/app/logo.svg after OPS-09, the red and green ring on #0d1117) is packages/web/favicon.svg, linked as rel=\"icon\" from index.html, why.html, 404.html and the privacy and terms pages tools/build-legal.mjs writes, within the CSP (img-src 'self'). After the deploy, the lead reads /no/such-page (404), a pull request page and /signin (200) and /favicon.svg (image/svg+xml) live.",
+      "scope": {
+        "allow": [
+          "packages/web/_redirects",
+          "packages/web/404.html",
+          "packages/web/favicon.svg",
+          "packages/web/index.html",
+          "packages/web/why.html",
+          "packages/web/privacy.html",
+          "packages/web/terms.html",
+          "packages/web/lib/**",
+          "packages/web/test/**",
+          "tools/build-legal.mjs",
+          "tools/test/build-legal.test.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "WEB-13-AC01",
+          "mandatory": true,
+          "statement": "the routes file rewrites exactly the app's routes to /index.html with 200 and has no catch-all; 404.html is the not-found view in the site shell; every page links /favicon.svg, which exists",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/site-routes.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-13-AC02",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "WEB-13-AC03",
+          "mandatory": true,
+          "statement": "tools suite green, including the legal pages build",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "WEB-13-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-13-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-13-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "WEB-13-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "CLI-02",
       "title": "[W1] npx truedone init",
       "phase": "implement",
@@ -11791,7 +12011,18 @@
           "statement": "npm has truedone 0.1.0",
           "verifier": {
             "type": "command",
-            "cmd": "npm view truedone@0.1.0 version | grep -qx 0.1.0",
+            "cmd": "NPM_CONFIG_USERCONFIG=/dev/null npm view truedone@0.1.0 version | grep -qx 0.1.0",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "REL-P5-AC08",
+          "mandatory": true,
+          "statement": "npm's truedone@0.1.0 is the tarball REL-P1 checked (dist.integrity equals the notes' integrity), latest is 0.1.0, and the maintainer is optitransfer",
+          "verifier": {
+            "type": "command",
+            "cmd": "NPM_CONFIG_USERCONFIG=/dev/null node -e 'const {execSync}=require(\"child_process\");const fs=require(\"fs\");const j=(c)=>JSON.parse(execSync(c).toString());const tags=j(\"npm view truedone dist-tags --json\");const integ=j(\"npm view truedone@0.1.0 dist.integrity --json\");const maint=[].concat(j(\"npm view truedone maintainers --json\"));const notes=fs.readFileSync(\"docs/releases/preview-0.1.0.md\",\"utf8\");process.exit(tags.latest===\"0.1.0\"&&typeof integ===\"string\"&&notes.includes(integ)&&maint.some(m=>String(m).startsWith(\"optitransfer\"))?0:1)'",
             "expect_exit": 0,
             "timeout_s": 300
           }
@@ -11872,6 +12103,17 @@
           }
         },
         {
+          "id": "REL-P6-AC06",
+          "mandatory": true,
+          "statement": "an anonymous reader sees the tag v0.1.0 on mgillr/truedone-action, and its action.yml and dist/index.mjs have the SHA-256s REL-P2 recorded in the notes",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e '(async()=>{const fs=require(\"fs\");const crypto=require(\"crypto\");const notes=fs.readFileSync(\"docs/releases/preview-0.1.0.md\",\"utf8\");for(const f of [\"action.yml\",\"dist/index.mjs\"]){const r=await fetch(\"https://raw.githubusercontent.com/mgillr/truedone-action/v0.1.0/\"+f);if(r.status!==200)process.exit(1);const h=crypto.createHash(\"sha256\").update(Buffer.from(await r.arrayBuffer())).digest(\"hex\");if(!notes.includes(h))process.exit(1)}})().catch(()=>process.exit(1))'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
           "id": "REL-P6-AC02",
           "mandatory": true,
           "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
@@ -11925,7 +12167,9 @@
         "APP-13",
         "WEB-12",
         "README-03",
-        "APP-14"
+        "APP-14",
+        "WEB-13",
+        "APP-16"
       ],
       "requirements": [
         "PV-R01"
@@ -11935,7 +12179,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "D35, the gold standard. From a fresh home, as a new user: the site on its five examples; npx truedone@0.1.0 from npm on the same five; the action from mgillr/truedone-action@v0.1.0 in the sandbox's workflow, its run and its label; the production App installed on the sandbox from its public page, its check run and its label, equal to the verdict core gives; the plugin from the marketplace. Each surface has a row in the \"## Acceptance\" table of docs/releases/preview-0.1.0.md, \"| <surface> | <command> | <output> | <UTC time> | Works |\" or the failure. Only a surface with a Works row flips in packages/web/lib/release.mjs, and node tools/readme-status.mjs rewrites the README in the same change. The production App's global posting flag turns on only after its sandbox row works. While the account's GitHub Actions are locked for billing (the owner, 2026-10-18), the action's row records that it could not run, and its entry in release.mjs stays false; the walk does not wait for it.",
+      "description": "D35, the gold standard. From a fresh home, as a new user: the site on its five examples; npx truedone@0.1.0 from npm on the same five; the action from mgillr/truedone-action@v0.1.0 in the sandbox's workflow, its run and its label; the production App installed on the sandbox from its public page, its check run and its label, equal to the verdict core gives; the plugin from the marketplace. Each surface has a row in the \"## Acceptance\" table of docs/releases/preview-0.1.0.md, \"| <surface> | <command> | <output> | <UTC time> | Works |\" or the failure. Only a surface with a Works row flips in packages/web/lib/release.mjs, and node tools/readme-status.mjs rewrites the README in the same change. The production App's global posting flag turns on only after its sandbox row works. While the account's GitHub Actions are locked for billing (the owner, 2026-10-18), the action's row records that it could not run, and its entry in release.mjs stays false; the walk does not wait for it. Each row names the build it ran (the site: the Pages deployment; the CLI: npm's dist.integrity for the version; the App: the production Worker's /health version; the plugin: the installed commit) and its evidence. The site row reads the five examples' verdicts from the live site. The CLI row runs npx truedone with no version, as the README shows, and records its version line. The App row names the check run id, its app slug (truedone, never truedone-dev) and the label event's actor (truedone[bot]), after the production App is installed on the sandbox from its public page; the lead first reads the App's installations on its settings page and records them, then turns the production global posting flag on and walks the sandbox row at once, since a global off stops every installation.",
       "scope": {
         "allow": [
           "README.md",
@@ -11950,7 +12194,7 @@
         {
           "id": "REL-P4-AC01",
           "mandatory": true,
-          "statement": "every surface set true in release.mjs has a Works row in the acceptance table, and a surface without one fails the test",
+          "statement": "every surface set true in release.mjs has a Works row in the acceptance table that names its build and its evidence, the App row names app slug truedone and actor truedone[bot], and a surface without such a row fails the test",
           "verifier": {
             "type": "test_red_green",
             "test_file": "packages/web/test/release-acceptance.test.mjs",
@@ -13165,7 +13409,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "D35. Ryan made the production App public on 2026-10-18 and the lead set up its page with his approval: the description, the logo, the callback list and the setup URL. Measured that day: the setup URL (/api/github/setup on the Worker) and the first callback (/api/github/callback) both answer 404, because the Worker routes only /health and /api/github/webhook, so a new user would land on an error page after installing. packages/app/app-manifest.json becomes the record of the live settings: public true, the description, the site's /signin/callback as the only callback, no setup URL. packages/app/logo.svg and logo.png (512 px) are the uploaded logo. tools/app-listing-check.mjs reads https://api.github.com/apps/truedone without a token and fails unless it answers 200 and its description, external_url, permissions and events equal the manifest's. docs/ops/apps.md says the production app is public, since when, and what was set.",
+      "description": "D35. Ryan made the production App public on 2026-10-18 and the lead set up its page with his approval: the description, the logo, the callback list and the setup URL. Measured that day: the setup URL (/api/github/setup on the Worker) and the first callback (/api/github/callback) both answer 404, because the Worker routes only /health and /api/github/webhook, so a new user would land on an error page after installing. packages/app/app-manifest.json becomes the record of the live settings: public true, the description, the site's /signin/callback as the only callback, no setup URL. packages/app/logo.svg and logo.png (512 px) are the uploaded logo. tools/app-listing-check.mjs reads https://api.github.com/apps/truedone without a token and fails unless it answers 200 and its description, external_url, permissions and events equal the manifest's. docs/ops/apps.md says the production app is public, since when, and what was set. The listing check also requires a non-empty description equal to the manifest's, and reads every URL the manifest names (the homepage and each callback) live, failing on any status other than 200 or a redirect; the manifest has no setup URL, and the record carries the owner-approved read-back of the settings page (2026-10-18: description saved, one callback, no setup URL, logo set, badge #0d1117).",
       "scope": {
         "allow": [
           "docs/DEPENDENCY-MAP.md",
@@ -13223,6 +13467,17 @@
             "timeout_s": 900,
             "min_tests": 40,
             "max_skipped": 0
+          }
+        },
+        {
+          "id": "OPS-09-AC09",
+          "mandatory": true,
+          "statement": "the description is not empty, and every URL the manifest names answers 200 or a redirect live",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/app-listing-check.mjs --urls",
+            "expect_exit": 0,
+            "timeout_s": 300
           }
         },
         {
