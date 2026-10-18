@@ -19,8 +19,13 @@ jobs:
         run: npx wrangler@3.90.0 pages deploy packages/web --project-name=truedone --branch=main
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      - name: Deploy the token exchange
-        run: npx wrangler@3.90.0 deploy packages/web/exchange/wrangler.toml
+      - name: Deploy the token exchange, once its Worker is on main (WEB-02)
+        run: |
+          if [ -f packages/web/exchange/worker.mjs ]; then
+            npx wrangler@3.90.0 deploy --config packages/web/exchange/wrangler.toml
+          else
+            echo "packages/web/exchange/worker.mjs is not on main yet; the exchange is not deployed"
+          fi
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   app-dev:
@@ -29,7 +34,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Deploy the development app
-        run: npx wrangler@3.90.0 deploy packages/app/wrangler.toml
+        run: npx wrangler@3.90.0 deploy --config packages/app/wrangler.toml --var VERSION:$(git rev-parse HEAD)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   app-prod:
@@ -39,12 +44,12 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Deploy the production app
-        run: npx wrangler@3.90.0 deploy packages/app/wrangler.toml --name truedone
+        run: npx wrangler@3.90.0 deploy --config packages/app/wrangler.toml --name truedone --var VERSION:$(git rev-parse HEAD)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       - name: Health answers the version and the posting switch
         run: |
-          v=$(node -p "require('./package.json').version")
+          v=$(git rev-parse HEAD)
           body=$(curl -fsS https://truedone.ledgerguard-global.workers.dev/health)
           echo "$body" | grep -q "\"version\":\"$v\""
           echo "$body" | grep -q '"posting_enabled"'
