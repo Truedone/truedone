@@ -1,15 +1,17 @@
 // One truedone.pages.dev page load (WEB-01): the route decides the view; a PR route loads the PR through lib/github.mjs and
 // renders core.analyse's result. core's analyse and classify are passed in, so the tests run this with recorded
-// GitHub responses and app.mjs runs it with ./core.mjs.
+// GitHub responses and app.mjs runs it with ./core.mjs. WEB-08: a PR read that GitHub refuses with 401 while a token is
+// kept drops the token and reads the PR again anonymously; a failed sign-in callback is mounted with the kept page, so
+// its links return there.
 import { route, parseTarget } from './route.mjs';
 import { API, RAW, loadPR, RateLimited, GitHubError } from './github.mjs';
-import { prView, precomputedView, homeView, rateLimitView, errorView, notFoundView, noListView, shell } from './view.mjs';
+import { prView, precomputedView, homeView, rateLimitView, errorView, notFoundView, noListView, signinErrorView, shell } from './view.mjs';
 import { mount } from './dom.mjs';
-import { start, finish, readToken } from './signin.mjs';
+import { start, finish, readToken, dropToken } from './signin.mjs';
 
 export async function page(loc, { fetch, doc, root, analyse, classify, storage = null, random = null, api = API, raw = RAW }) {
   const r = route(loc.pathname);
-  const show = (view) => mount(shell(view, loc.pathname), root, doc);
+  const show = (view, path = loc.pathname) => mount(shell(view, path), root, doc);
   let calls = 0;
   try {
     if (r.kind === 'home') {
@@ -20,9 +22,20 @@ export async function page(loc, { fetch, doc, root, analyse, classify, storage =
         if (t) loc.assign(t.path);
       });
     } else if (r.kind === 'pr') {
-      const got = await loadPR(r, { fetch, classify, token: readToken(storage), api, raw });
+      const token = readToken(storage);
+      const read = (t) => loadPR(r, { fetch, classify, token: t, api, raw });
+      let got, expired = null;
+      try {
+        got = await read(token);
+      } catch (e) {
+        // a token GitHub no longer accepts, such as an expired sign-in: forget it and read as an anonymous visitor
+        if (!(token && e instanceof GitHubError && e.status === 401)) throw e;
+        dropToken(storage);
+        expired = loc.pathname;
+        got = await read(null);
+      }
       calls = got.calls;
-      show(prView(analyse(got.input), got.pr, { truncated: got.truncated, analysed: got.input.files.length }));
+      show(prView(analyse(got.input), got.pr, { truncated: got.truncated, analysed: got.input.files.length, expired }));
     } else if (r.kind === 'precomputed') {
       const res = await fetch(`/precomputed/${r.owner}--${r.repo}.json`);
       // a missing list is the site's single page, served 200 as text/html: only a JSON answer is a list (WEB-07)
@@ -34,12 +47,12 @@ export async function page(loc, { fetch, doc, root, analyse, classify, storage =
       start(loc, storage, random);
     } else if (r.kind === 'callback') {
       const done = await finish(loc, storage, fetch);
-      if (!done.ok) show(errorView(done.why));
+      if (!done.ok) show(signinErrorView(done.why, done.back), done.back);
     } else {
       show(notFoundView());
     }
   } catch (e) {
-    if (e instanceof RateLimited) show(rateLimitView(loc.pathname));
+    if (e instanceof RateLimited) show(rateLimitView(loc.pathname, e.reset));
     else if (e instanceof GitHubError && e.status === 404) show(errorView('GitHub has no such pull request, or it is not public.'));
     else show(errorView(e instanceof GitHubError ? e.message : 'Something failed while reading the pull request.'));
   }
