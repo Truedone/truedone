@@ -80,7 +80,7 @@ test("one analysed delivery logs exactly one phase-timing line", async () => {
     const timing = lines.filter((l) => l.includes('"stage":"static"'));
     assert.equal(timing.length, 1, `expected exactly one phase-timing line, got ${timing.length}`);
     const row = JSON.parse(timing[0]);
-    assert.deepEqual(Object.keys(row).sort(), ["check_ms", "delivery", "label_method", "label_ms", "label_write_ms", "phase1_ms", "phase2_ms", "stage", "total_ms"]);
+    assert.deepEqual(Object.keys(row).sort(), ["check_ms", "delivery", "label_ms", "label_write_ms", "phase1_ms", "phase2_ms", "stage", "total_ms"]);
     assert.equal(row.stage, "static");
     assert.equal(row.delivery, "d-phase");
     for (const k of ["phase1_ms", "phase2_ms", "label_ms", "check_ms", "label_write_ms", "total_ms"]) assert.equal(typeof row[k], "number", `${k} is not a number`);
