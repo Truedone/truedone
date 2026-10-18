@@ -100,17 +100,17 @@ When the first release ships, this quick start becomes `npx truedone` on your ow
 <!-- status: written by node tools/readme-status.mjs from the contract and main; do not edit -->
 truedone is pre-release: the npm package, the action, the plugin and the app have no published release, and the release decisions stay open until a record in docs/releases says "Decision: GO".
 
-At main 92cdaead05ce (2026-10-18), 42 of the 79 tasks in the signed contract, [proofline.json](proofline.json), are on main:
+At main 324819e4389f (2026-10-18), 45 of the 80 tasks in the signed contract, [proofline.json](proofline.json), are on main:
 
-- truedone.pages.dev: 3 of 5 (WEB-01, WEB-04, WEB-05).
+- truedone.pages.dev: 4 of 6 (WEB-01, WEB-02, WEB-04, WEB-05).
 - `npx truedone`: 1 of 3 (CLI-02).
 - Claude Code plugin: 1 of 4 (PLG-00).
-- GitHub App: 6 of 8 (APP-02, APP-01, APP-07, APP-03, APP-05, APP-04).
+- GitHub App: 7 of 8 (APP-02, APP-01, APP-07, APP-08, APP-03, APP-05, APP-04).
 - GitHub Action: 2 of 4 (ACT-01, ACT-02).
 - The engine they share: 11 of 14 (CORE-01, CORE-02, CORE-03, CORE-05, CORE-04, CORE-06, CORE-07, RUN-01, RUN-02, RUN-03, JUDGE-01).
 - Measurement gates and the index: 1 of 11 (GATE-06).
 - Releases: 2 of 6 (REL-01, REL-02).
-- Repository, CI, deploys and docs: 15 of 24 (OPS-04, OPS-01, OPS-03A, OPS-03B, ENG-01, SEC-01, SEC-02, SEC-03, DEP-01, DEP-02, DOM-01, REPO-01, REPO-02, DOC-00, README-02).
+- Repository, CI, deploys and docs: 16 of 24 (OPS-04, OPS-01, OPS-03A, OPS-02, OPS-03B, ENG-01, SEC-01, SEC-02, SEC-03, DEP-01, DEP-02, DOM-01, REPO-01, REPO-02, DOC-00, README-02).
 <!-- status: end -->
 
 ## Contributing
