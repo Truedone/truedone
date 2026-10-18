@@ -64,7 +64,7 @@ test("the entry's queue handler posts one check run and one label for a recorded
   const pem = await generatedPkcs1Pem();
   const m = fakeMessage({
     event: "pull_request",
-    delivery: "d-1",
+    delivery: "d-fix-1",
     payload: {
       action: "opened",
       number: 41,
