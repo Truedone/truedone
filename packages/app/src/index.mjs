@@ -7,12 +7,12 @@ import { makeHealth } from "./health.mjs";
 import { makeIntake } from "./webhook.mjs";
 import { makeStatic } from "./static.mjs";
 import { makeRedGreen } from "./redgreen.mjs";
-import { sweepLeftovers } from "./posting.mjs";
+import { listKeys, sweepLeftovers } from "./posting.mjs";
 
 const REMOVED_PREFIX = "removed:";
 
 export function makeApp(env) {
-  const health = makeHealth({ version: env.VERSION ?? "unversioned", postingEnabled: env.POSTING_ENABLED === "true" });
+  const health = makeHealth({ version: env.VERSION ?? "unversioned", kv: env.KV });
   const intake = makeIntake(env);
   return async function app(request) {
     const url = new URL(request.url);
@@ -24,12 +24,29 @@ export function makeApp(env) {
 
 // The stages call GitHub with an installation token minted per delivery from
 // the app's private key (S5: the key exists only as a Worker secret).
+// GitHub issues App keys as PKCS#1 ("BEGIN RSA PRIVATE KEY"; APP-09, issue
+// #91): a PKCS#1 DER is wrapped in the PKCS#8 PrivateKeyInfo header for
+// rsaEncryption, 26 bytes, so Web Crypto's "pkcs8" import accepts it; a
+// PKCS#8 key is taken as today. Keys under 64 KiB of DER fit the two-byte
+// lengths (GitHub's 2048-bit keys are ~1.2 KiB).
 function pemToPkcs8(pem) {
-  const b64 = String(pem).replace(/-----BEGIN PRIVATE KEY-----/, "").replace(/-----END PRIVATE KEY-----/, "").replace(/\s+/g, "");
+  const text = String(pem);
+  const pkcs1 = text.includes("BEGIN RSA PRIVATE KEY");
+  const b64 = text
+    .replace(pkcs1 ? /-----BEGIN RSA PRIVATE KEY-----/ : /-----BEGIN PRIVATE KEY-----/, "")
+    .replace(pkcs1 ? /-----END RSA PRIVATE KEY-----/ : /-----END PRIVATE KEY-----/, "")
+    .replace(/\s+/g, "");
   const raw = atob(b64);
-  const buf = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) buf[i] = raw.charCodeAt(i);
-  return buf.buffer;
+  const der = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) der[i] = raw.charCodeAt(i);
+  if (!pkcs1) return der.buffer;
+  const out = new Uint8Array(26 + der.length);
+  out.set([0x30, 0x82, (der.length + 22) >> 8, (der.length + 22) & 0xff,
+    0x02, 0x01, 0x00,
+    0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01, 0x05, 0x00,
+    0x04, 0x82, der.length >> 8, der.length & 0xff]);
+  out.set(der, 26);
+  return out.buffer;
 }
 
 function b64url(bytes) {
@@ -59,24 +76,30 @@ export function makeConsumers(deps = {}) {
   return {
     async queue(batch, env) {
       for (const message of batch.messages) {
+        let stage = "mint";
         try {
           const { event, delivery } = message.body;
           const installationId = message.body.payload?.installation?.id;
           const token = await mint(env, installationId);
           const stageEnv = { ...env, INSTALLATION_TOKEN: token };
+          stage = event === "workflow_run" ? "red-green" : "static";
           if (event === "pull_request") {
             await (deps.staticStage ?? makeStatic(stageEnv))(delivery);
           } else if (event === "workflow_run") {
             await (deps.redGreenStage ?? makeRedGreen(stageEnv))(delivery);
           }
           message.ack();
-        } catch {
+        } catch (error) {
+          // One line per failed delivery (APP-09): the stage, the delivery id
+          // and the error, so a dead-letter is seen. Never a secret, token or
+          // payload.
+          console.error(JSON.stringify({ stage, delivery: message.body?.delivery, error: `${error?.name ?? "Error"}: ${error?.message ?? error}` }));
           message.retry();
         }
       }
     },
     async scheduled(controller, env) {
-      const names = await env.KV.list({ prefix: REMOVED_PREFIX });
+      const names = await listKeys(env.KV, { prefix: REMOVED_PREFIX });
       for (const name of names) {
         const id = Number(String(name).slice(REMOVED_PREFIX.length));
         if (Number.isFinite(id) && id > 0) await sweep(env, id);
