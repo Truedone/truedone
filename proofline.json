@@ -14823,10 +14823,10 @@
         {
           "id": "ORG-02-AC04",
           "mandatory": true,
-          "statement": "the organisation profile on GitHub is the committed page (the owner pushed it to Truedone/.github)",
+          "statement": "the organisation profile on GitHub is the committed page, byte for byte, read anonymously from raw.githubusercontent.com",
           "verifier": {
             "type": "command",
-            "cmd": "test \"$(gh api repos/Truedone/.github/contents/profile/README.md --jq .sha)\" = \"$(git hash-object docs/org/README.md)\"",
+            "cmd": "curl -fsSL https://raw.githubusercontent.com/Truedone/.github/main/profile/README.md | cmp -s - docs/org/README.md",
             "expect_exit": 0,
             "timeout_s": 300
           }
