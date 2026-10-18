@@ -107,9 +107,13 @@ export async function dropToken(env, installationId) {
 // The static stage for one pull_request delivery, with the kept token; the intake runs it directly (APP-17).
 async function runStatic(env, body) {
   const installationId = body.payload?.installation?.id;
-  const token = await installationToken(env, installationId);
+  // APP-18: the mint starts beside the stage's config read, not before it; the
+  // token is awaited at the first GitHub call. The mint is the App's own
+  // credential, not a repository read, so the switch still precedes every
+  // repository read and every write (APP-15).
+  const tokenP = installationToken(env, installationId);
   try {
-    await makeStatic({ ...env, INSTALLATION_TOKEN: token })(body);
+    await makeStatic({ ...env, INSTALLATION_TOKEN: tokenP })(body);
   } catch (error) {
     if (error?.status === 401) await dropToken(env, installationId);
     throw error;

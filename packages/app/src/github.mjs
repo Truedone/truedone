@@ -10,7 +10,7 @@ export function makeGitHub(env) {
     const r = await fetch(API + p, {
       ...init,
       headers: {
-        authorization: `Bearer ${env.INSTALLATION_TOKEN}`,
+        authorization: `Bearer ${await env.INSTALLATION_TOKEN}`,
         accept: "application/vnd.github+json",
         "user-agent": "truedone-app",
         ...init.headers,
