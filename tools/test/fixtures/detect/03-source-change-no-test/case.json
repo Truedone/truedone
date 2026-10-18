@@ -1,0 +1,16 @@
+{
+  "id": "03-source-change-no-test",
+  "scenario": "a source change with no relevant test",
+  "kind": "no_evidence",
+  "pr": {
+    "title": "Parse negative amounts",
+    "body": "The parser now reads a leading minus sign."
+  },
+  "expected": {
+    "verdict": "no_evidence",
+    "check": "no_test",
+    "detected": true,
+    "baseline_ci": "pass"
+  },
+  "note": "the suite covers another module and still passes; nothing in the change is tested"
+}

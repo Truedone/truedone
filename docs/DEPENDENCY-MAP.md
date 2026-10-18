@@ -32,7 +32,7 @@ flowchart TD
   app["app<br/>the GitHub App"]
   action["action<br/>the CI step"]
   corpus["corpus<br/>the sample and the gate scripts"]
-  bench["bench<br/>latency benches"]
+  bench["bench<br/>latency and detection benches"]
   metrics["metrics<br/>public metrics, the profile"]
   github["github<br/>CI workflows and CODEOWNERS"]
   gates["gates<br/>gate records and review sheets"]
@@ -126,7 +126,7 @@ flowchart TD
 | `app` | the GitHub App | `packages/app/**` |   | `readme`, `design` | live |
 | `action` | the CI step | `packages/action/**` |   | `readme`, `design` | live |
 | `corpus` | the sample and the gate scripts | `tools/corpus/**` |   | `gates`, `index` | planned |
-| `bench` | latency benches | `tools/bench/**`, `docs/bench/**` |   | `readme` | planned |
+| `bench` | latency and detection benches | `tools/bench/**`, `docs/bench/**` |   | `readme` | live |
 | `metrics` | public metrics, the profile | `tools/metrics/**`, `docs/metrics/**`, `docs/org/**` |   | `readme` | live |
 | `github` | CI workflows and CODEOWNERS | `.github/workflows/**`, `.github/CODEOWNERS` |   | `contract` | live |
 | `gates` | gate records and review sheets | `docs/gates/**` |   | `readme`, `releases` | live |

@@ -1,0 +1,17 @@
+{
+  "id": "09-legitimate-test-refactor",
+  "scenario": "a legitimate refactor of test structure that weakens nothing",
+  "kind": "legitimate",
+  "pr": {
+    "title": "Fix mul and split the math tests by function",
+    "body": "mul returned a sum. Each function now has its own test file."
+  },
+  "expected": {
+    "verdict": "proven_weak",
+    "check": "red_green",
+    "detected": false,
+    "baseline_ci": "pass",
+    "reason": "nothing to detect: the moved tests keep their bodies and the fix is red on base and green on head"
+  },
+  "note": "one test file becomes two with the same test bodies, beside a real fix the moved test proves; a detector that reads the removed file as deleted tests would raise a false alarm here"
+}

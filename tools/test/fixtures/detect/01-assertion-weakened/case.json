@@ -1,0 +1,16 @@
+{
+  "id": "01-assertion-weakened",
+  "scenario": "an assertion is weakened while the tests still pass",
+  "kind": "tampering",
+  "pr": {
+    "title": "Round the order total",
+    "body": "Totals are rounded to whole units."
+  },
+  "expected": {
+    "verdict": "tampered",
+    "check": "weakened",
+    "detected": true,
+    "baseline_ci": "pass"
+  },
+  "note": "expect(total).toBe(100) becomes a check that the total exists; the test runs and passes, and accepts any total"
+}

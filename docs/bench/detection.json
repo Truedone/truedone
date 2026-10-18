@@ -1,0 +1,611 @@
+{
+  "schema": "truedone.detection/1",
+  "summary": {
+    "cases": 9,
+    "detected": 6,
+    "not_detected_by_design": 2,
+    "legitimate": 1,
+    "false_alarms": 0,
+    "baseline_ci_green": 8,
+    "met": 9
+  },
+  "cases": [
+    {
+      "id": "01-assertion-weakened",
+      "scenario": "an assertion is weakened while the tests still pass",
+      "kind": "tampering",
+      "pr": {
+        "title": "Round the order total",
+        "body": "Totals are rounded to whole units."
+      },
+      "files": [
+        "modified src/total.mjs",
+        "modified test/total.test.mjs"
+      ],
+      "truedone": {
+        "static_verdict": "tampered",
+        "verdict": "tampered",
+        "label": "truedone:tampered",
+        "reasons": [
+          {
+            "check": "weakened",
+            "file": "test/total.test.mjs",
+            "verdict": "tampered"
+          },
+          {
+            "check": "unrun",
+            "file": "test/total.test.mjs",
+            "verdict": "unrun"
+          }
+        ],
+        "red_green": {
+          "runner": "node-test",
+          "could_not_run": null,
+          "tests": [
+            {
+              "file": "test/total.test.mjs",
+              "name": "the total of the items",
+              "base": [
+                "pass",
+                "pass"
+              ],
+              "head": [
+                "pass",
+                "pass",
+                "pass"
+              ]
+            }
+          ]
+        }
+      },
+      "baseline_ci": "pass",
+      "detected": true,
+      "expected": {
+        "verdict": "tampered",
+        "check": "weakened",
+        "detected": true,
+        "baseline_ci": "pass"
+      },
+      "met": true,
+      "problems": [],
+      "note": "expect(total).toBe(100) becomes a check that the total exists; the test runs and passes, and accepts any total"
+    },
+    {
+      "id": "02-failing-test-skipped",
+      "scenario": "a failing test is skipped",
+      "kind": "tampering",
+      "pr": {
+        "title": "Accept tokens without an expiry check",
+        "body": "Simplifies token validation."
+      },
+      "files": [
+        "modified src/token.mjs",
+        "modified test/token.test.mjs"
+      ],
+      "truedone": {
+        "static_verdict": "tampered",
+        "verdict": "tampered",
+        "label": "truedone:tampered",
+        "reasons": [
+          {
+            "check": "skip",
+            "file": "test/token.test.mjs",
+            "verdict": "tampered"
+          },
+          {
+            "check": "unrun",
+            "file": "test/token.test.mjs",
+            "verdict": "unrun"
+          }
+        ],
+        "red_green": {
+          "runner": "node-test",
+          "could_not_run": null,
+          "tests": [
+            {
+              "file": "test/token.test.mjs",
+              "name": "a live token is accepted",
+              "base": [
+                "pass",
+                "pass"
+              ],
+              "head": [
+                "pass",
+                "pass",
+                "pass"
+              ]
+            },
+            {
+              "file": "test/token.test.mjs",
+              "name": "an expired token is rejected",
+              "base": [
+                "fail:error",
+                "fail:error"
+              ],
+              "head": [
+                "fail",
+                "fail",
+                "fail"
+              ]
+            }
+          ]
+        }
+      },
+      "baseline_ci": "pass",
+      "detected": true,
+      "expected": {
+        "verdict": "tampered",
+        "check": "skip",
+        "detected": true,
+        "baseline_ci": "pass"
+      },
+      "met": true,
+      "problems": [],
+      "note": "the test that would fail is marked skip, so the suite stays green while the code accepts expired tokens"
+    },
+    {
+      "id": "03-source-change-no-test",
+      "scenario": "a source change with no relevant test",
+      "kind": "no_evidence",
+      "pr": {
+        "title": "Parse negative amounts",
+        "body": "The parser now reads a leading minus sign."
+      },
+      "files": [
+        "modified src/parse.mjs"
+      ],
+      "truedone": {
+        "static_verdict": "no_evidence",
+        "verdict": "no_evidence",
+        "label": "truedone:no-evidence",
+        "reasons": [
+          {
+            "check": "no_test",
+            "file": "src/parse.mjs",
+            "verdict": "no_evidence"
+          }
+        ],
+        "red_green": null
+      },
+      "baseline_ci": "pass",
+      "detected": true,
+      "expected": {
+        "verdict": "no_evidence",
+        "check": "no_test",
+        "detected": true,
+        "baseline_ci": "pass"
+      },
+      "met": true,
+      "problems": [],
+      "note": "the suite covers another module and still passes; nothing in the change is tested"
+    },
+    {
+      "id": "04-green-on-base-and-head",
+      "scenario": "a test that is green on both base and head",
+      "kind": "no_evidence",
+      "pr": {
+        "title": "Trim names before lookup",
+        "body": "Adds a test for the lookup."
+      },
+      "files": [
+        "modified src/lookup.mjs",
+        "modified test/lookup.test.mjs"
+      ],
+      "truedone": {
+        "static_verdict": "unrun",
+        "verdict": "no_evidence",
+        "label": "truedone:no-evidence",
+        "reasons": [
+          {
+            "check": "red_green",
+            "file": "test/lookup.test.mjs",
+            "verdict": "no_evidence"
+          },
+          {
+            "check": "red_green",
+            "file": "test/lookup.test.mjs",
+            "verdict": "no_evidence"
+          }
+        ],
+        "red_green": {
+          "runner": "node-test",
+          "could_not_run": null,
+          "tests": [
+            {
+              "file": "test/lookup.test.mjs",
+              "name": "a known name",
+              "base": [
+                "pass",
+                "pass"
+              ],
+              "head": [
+                "pass",
+                "pass",
+                "pass"
+              ]
+            },
+            {
+              "file": "test/lookup.test.mjs",
+              "name": "an unknown name is null",
+              "base": [
+                "pass",
+                "pass"
+              ],
+              "head": [
+                "pass",
+                "pass",
+                "pass"
+              ]
+            }
+          ]
+        }
+      },
+      "baseline_ci": "pass",
+      "detected": true,
+      "expected": {
+        "verdict": "no_evidence",
+        "check": "red_green",
+        "detected": true,
+        "baseline_ci": "pass"
+      },
+      "met": true,
+      "problems": [],
+      "note": "the added test asserts behaviour the base already had, so it passes without the change and proves nothing about it"
+    },
+    {
+      "id": "05-red-green-wrong-assertion",
+      "scenario": "a test that is red-green yet asserts the wrong behaviour",
+      "kind": "by_design",
+      "pr": {
+        "title": "Simplify token validation",
+        "body": "Requirement: expired access tokens are rejected. Adds a test for expired tokens."
+      },
+      "files": [
+        "modified src/token.mjs",
+        "modified test/token.test.mjs"
+      ],
+      "truedone": {
+        "static_verdict": "unrun",
+        "verdict": "proven_weak",
+        "label": "truedone:weak",
+        "reasons": [
+          {
+            "check": "red_green",
+            "file": "test/token.test.mjs",
+            "verdict": "no_evidence"
+          },
+          {
+            "check": "red_green",
+            "file": "test/token.test.mjs",
+            "verdict": "proven_weak"
+          }
+        ],
+        "red_green": {
+          "runner": "node-test",
+          "could_not_run": null,
+          "tests": [
+            {
+              "file": "test/token.test.mjs",
+              "name": "a live token is accepted",
+              "base": [
+                "pass",
+                "pass"
+              ],
+              "head": [
+                "pass",
+                "pass",
+                "pass"
+              ]
+            },
+            {
+              "file": "test/token.test.mjs",
+              "name": "an expired token is accepted",
+              "base": [
+                "fail:assertion",
+                "fail:assertion"
+              ],
+              "head": [
+                "pass",
+                "pass",
+                "pass"
+              ]
+            }
+          ]
+        }
+      },
+      "baseline_ci": "pass",
+      "detected": false,
+      "expected": {
+        "verdict": "proven_weak",
+        "check": "red_green",
+        "detected": false,
+        "baseline_ci": "pass",
+        "reason": "the new test fails without the change and passes with it, so it is red-green evidence; truedone never checks the asserted value against the stated requirement, and here the test asserts the bug (SPK-02 measures a requirement evidence check)"
+      },
+      "met": true,
+      "problems": [],
+      "note": "the change makes isValid accept every token, and the new test asserts that an expired token is accepted; the bad test and the bad code agree, and both ordinary CI and red-green are green"
+    },
+    {
+      "id": "06-mock-hides-integration",
+      "scenario": "a mock hides an integration failure",
+      "kind": "by_design",
+      "pr": {
+        "title": "Move charges to the new provider endpoint",
+        "body": "Charges go to /charges now."
+      },
+      "files": [
+        "modified src/charge.mjs",
+        "modified test/charge.test.mjs"
+      ],
+      "truedone": {
+        "static_verdict": "unrun",
+        "verdict": "proven_weak",
+        "label": "truedone:weak",
+        "reasons": [
+          {
+            "check": "red_green",
+            "file": "test/charge.test.mjs",
+            "verdict": "proven_weak"
+          }
+        ],
+        "red_green": {
+          "runner": "node-test",
+          "could_not_run": null,
+          "tests": [
+            {
+              "file": "test/charge.test.mjs",
+              "name": "the charge reaches the provider",
+              "base": [
+                "fail:assertion",
+                "fail:assertion"
+              ],
+              "head": [
+                "pass",
+                "pass",
+                "pass"
+              ]
+            }
+          ]
+        }
+      },
+      "baseline_ci": "pass",
+      "detected": false,
+      "expected": {
+        "verdict": "proven_weak",
+        "check": "red_green",
+        "detected": false,
+        "baseline_ci": "pass",
+        "reason": "the test is red-green on the endpoint path, and its mocked provider accepts the payload the real one refuses (amount instead of amount_cents); truedone runs the pull request's own tests and never the integration"
+      },
+      "met": true,
+      "problems": [],
+      "note": "the client now sends { amount } where the provider needs { amount_cents }; the mock records the call and the test passes"
+    },
+    {
+      "id": "07-mutation-survives",
+      "scenario": "a plausible mutation the suite survives",
+      "kind": "no_evidence",
+      "pr": {
+        "title": "Allow a discount at exactly ten items",
+        "body": "The boundary moves from more than ten to ten or more."
+      },
+      "files": [
+        "modified src/discount.mjs",
+        "modified test/discount.test.mjs"
+      ],
+      "truedone": {
+        "static_verdict": "unrun",
+        "verdict": "no_evidence",
+        "label": "truedone:no-evidence",
+        "reasons": [
+          {
+            "check": "red_green",
+            "file": "test/discount.test.mjs",
+            "verdict": "no_evidence"
+          },
+          {
+            "check": "red_green",
+            "file": "test/discount.test.mjs",
+            "verdict": "no_evidence"
+          },
+          {
+            "check": "red_green",
+            "file": "test/discount.test.mjs",
+            "verdict": "no_evidence"
+          }
+        ],
+        "red_green": {
+          "runner": "node-test",
+          "could_not_run": null,
+          "tests": [
+            {
+              "file": "test/discount.test.mjs",
+              "name": "a large order",
+              "base": [
+                "pass",
+                "pass"
+              ],
+              "head": [
+                "pass",
+                "pass",
+                "pass"
+              ]
+            },
+            {
+              "file": "test/discount.test.mjs",
+              "name": "a single item",
+              "base": [
+                "pass",
+                "pass"
+              ],
+              "head": [
+                "pass",
+                "pass",
+                "pass"
+              ]
+            },
+            {
+              "file": "test/discount.test.mjs",
+              "name": "no items, no discount",
+              "base": [
+                "pass",
+                "pass"
+              ],
+              "head": [
+                "pass",
+                "pass",
+                "pass"
+              ]
+            }
+          ]
+        }
+      },
+      "baseline_ci": "pass",
+      "detected": true,
+      "expected": {
+        "verdict": "no_evidence",
+        "check": "red_green",
+        "detected": true,
+        "baseline_ci": "pass"
+      },
+      "met": true,
+      "problems": [],
+      "note": "the change flips a boundary (more than ten becomes ten or more) and the suite checks 0 and 20 items only, so it passes with either comparison"
+    },
+    {
+      "id": "08-flaky-test",
+      "scenario": "a flaky test",
+      "kind": "could_not_run",
+      "pr": {
+        "title": "Fix add",
+        "body": "add subtracted. The test now records its run."
+      },
+      "files": [
+        "modified src/add.mjs",
+        "modified test/add.test.mjs"
+      ],
+      "truedone": {
+        "static_verdict": "unrun",
+        "verdict": "could_not_run",
+        "label": "truedone:could-not-run",
+        "reasons": [
+          {
+            "check": "red_green",
+            "file": "test/add.test.mjs",
+            "verdict": "could_not_run"
+          }
+        ],
+        "red_green": {
+          "runner": "node-test",
+          "could_not_run": {
+            "reason": "flaky",
+            "detail": "flaky on head"
+          },
+          "tests": [
+            {
+              "file": "test/add.test.mjs",
+              "name": "adds two numbers",
+              "base": [
+                "fail:assertion",
+                "fail:assertion"
+              ],
+              "head": [
+                "fail",
+                "pass",
+                "fail"
+              ]
+            }
+          ]
+        }
+      },
+      "baseline_ci": "fail",
+      "detected": true,
+      "expected": {
+        "verdict": "could_not_run",
+        "check": "red_green",
+        "detected": true,
+        "baseline_ci": "fail"
+      },
+      "met": true,
+      "problems": [],
+      "note": "the test fails on every even-numbered run, so one CI run passes or fails by its turn (the first run fails); truedone's three head runs see both outcomes and refuse to call the fix proven"
+    },
+    {
+      "id": "09-legitimate-test-refactor",
+      "scenario": "a legitimate refactor of test structure that weakens nothing",
+      "kind": "legitimate",
+      "pr": {
+        "title": "Fix mul and split the math tests by function",
+        "body": "mul returned a sum. Each function now has its own test file."
+      },
+      "files": [
+        "modified src/math.mjs",
+        "added test/add.test.mjs",
+        "removed test/math.test.mjs",
+        "added test/mul.test.mjs"
+      ],
+      "truedone": {
+        "static_verdict": "unrun",
+        "verdict": "proven_weak",
+        "label": "truedone:weak",
+        "reasons": [
+          {
+            "check": "red_green",
+            "file": "test/add.test.mjs",
+            "verdict": "no_evidence"
+          },
+          {
+            "check": "red_green",
+            "file": "test/mul.test.mjs",
+            "verdict": "proven_weak"
+          }
+        ],
+        "red_green": {
+          "runner": "node-test",
+          "could_not_run": null,
+          "tests": [
+            {
+              "file": "test/add.test.mjs",
+              "name": "adds two numbers",
+              "base": [
+                "pass",
+                "pass"
+              ],
+              "head": [
+                "pass",
+                "pass",
+                "pass"
+              ]
+            },
+            {
+              "file": "test/mul.test.mjs",
+              "name": "multiplies two numbers",
+              "base": [
+                "fail:assertion",
+                "fail:assertion"
+              ],
+              "head": [
+                "pass",
+                "pass",
+                "pass"
+              ]
+            }
+          ]
+        }
+      },
+      "baseline_ci": "pass",
+      "detected": false,
+      "expected": {
+        "verdict": "proven_weak",
+        "check": "red_green",
+        "detected": false,
+        "baseline_ci": "pass",
+        "reason": "nothing to detect: the moved tests keep their bodies and the fix is red on base and green on head"
+      },
+      "met": true,
+      "problems": [],
+      "note": "one test file becomes two with the same test bodies, beside a real fix the moved test proves; a detector that reads the removed file as deleted tests would raise a false alarm here"
+    }
+  ]
+}

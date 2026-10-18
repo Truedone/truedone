@@ -1,0 +1,16 @@
+{
+  "id": "07-mutation-survives",
+  "scenario": "a plausible mutation the suite survives",
+  "kind": "no_evidence",
+  "pr": {
+    "title": "Allow a discount at exactly ten items",
+    "body": "The boundary moves from more than ten to ten or more."
+  },
+  "expected": {
+    "verdict": "no_evidence",
+    "check": "red_green",
+    "detected": true,
+    "baseline_ci": "pass"
+  },
+  "note": "the change flips a boundary (more than ten becomes ten or more) and the suite checks 0 and 20 items only, so it passes with either comparison"
+}

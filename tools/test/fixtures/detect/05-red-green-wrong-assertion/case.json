@@ -1,0 +1,17 @@
+{
+  "id": "05-red-green-wrong-assertion",
+  "scenario": "a test that is red-green yet asserts the wrong behaviour",
+  "kind": "by_design",
+  "pr": {
+    "title": "Simplify token validation",
+    "body": "Requirement: expired access tokens are rejected. Adds a test for expired tokens."
+  },
+  "expected": {
+    "verdict": "proven_weak",
+    "check": "red_green",
+    "detected": false,
+    "baseline_ci": "pass",
+    "reason": "the new test fails without the change and passes with it, so it is red-green evidence; truedone never checks the asserted value against the stated requirement, and here the test asserts the bug (SPK-02 measures a requirement evidence check)"
+  },
+  "note": "the change makes isValid accept every token, and the new test asserts that an expired token is accepted; the bad test and the bad code agree, and both ordinary CI and red-green are green"
+}
