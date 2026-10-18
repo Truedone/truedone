@@ -667,22 +667,41 @@ const lang = langOf(path);
 return lang === 'py' ? parsePy(text || '') : parseJs(text || '');
 }
 
-function weakenedNames(baseTests, headTests) {
-const names = [];
-const headBy = new Map(headTests.map((t) => [t.name, t]));
+function pairByName(baseTests, headTests) {
+const queues = new Map();
+for (const t of headTests) {
+if (!queues.has(t.name)) queues.set(t.name, []);
+queues.get(t.name).push(t);
+}
+const pairs = [];
+const consumed = new Set();
 for (const b of baseTests) {
-const h = headBy.get(b.name);
-if (!h) continue;
-let bad = h.assertions.length < b.assertions.length;
+const q = queues.get(b.name);
+const h = q && q.length ? q.shift() : null;
+if (h) {
+pairs.push([b, h]);
+consumed.add(h);
+}
+}
+const unmatched = headTests.filter((t) => !consumed.has(t));
+return { pairs, unmatched };
+}
+
+function assertionsCover(base, head) {
+if (head.length < base.length) return false;
 const used = new Set();
-if (!bad) {
-for (const kind of b.assertions) {
-const idx = h.assertions.findIndex((k, i) => !used.has(i) && rank(k) >= rank(kind) && (k === kind || rank(k) >= rank(kind)));
-if (idx < 0 || rank(h.assertions[idx]) < rank(kind)) { bad = true; break; }
+for (const kind of base) {
+const idx = head.findIndex((k, i) => !used.has(i) && rank(k) >= rank(kind));
+if (idx < 0) return false;
 used.add(idx);
 }
+return true;
 }
-if (bad) names.push(b.name);
+
+function weakenedFromPairs(pairs) {
+const names = [];
+for (const [b, h] of pairs) {
+if (!assertionsCover(b.assertions, h.assertions)) names.push(b.name);
 }
 return names;
 }
@@ -722,6 +741,7 @@ const files = fileMap(input.files);
 const releases = new Set(input.releases || []);
 const pr = String(input.pr || '');
 const allTests = { base: [], head: [] };
+const unmatchedByPath = new Map();
 const findings = [];
 const sourcePaths = [];
 let testChanged = false;
@@ -755,10 +775,11 @@ if (diff) {
 testChanged = true;
 if (!testPath) testPath = path;
 }
-for (const name of weakenedNames(baseTests, headTests)) findings.push(reason('weakened', path, name, 'tampered'));
-for (const b of baseTests) {
-const h = headTests.find((t) => t.name === b.name);
-if (!h) continue;
+const { pairs } = pairByName(baseTests, headTests);
+if (!unmatchedByPath.has(path)) unmatchedByPath.set(path, []);
+for (const u of pairByName(baseTests, headTests).unmatched) unmatchedByPath.get(path).push(u);
+for (const name of weakenedFromPairs(pairs)) findings.push(reason('weakened', path, name, 'tampered'));
+for (const [b, h] of pairs) {
 if (!b.skip && h.skip) findings.push(reason('skip', path, b.name, 'tampered'));
 if (!b.focus && h.focus) findings.push(reason('focus', path, b.name, 'tampered'));
 if (h.timeout > b.timeout && h.timeout > 0) findings.push(reason('timeout', path, b.name, 'review'));
@@ -798,12 +819,20 @@ else stepOther = true;
 }
 
 const headBodies = new Set(allTests.head.map((t) => t.body));
+const consumedEquivalents = new Set();
 for (const b of allTests.base) {
 const still = allTests.head.some((h) => h.path === b.path && h.name === b.name);
 if (still) continue;
 const moved = headBodies.has(b.body) && allTests.head.some((h) => h.body === b.body && (h.path !== b.path || h.name !== b.name));
 if (moved) {
 findings.push(reason('unrun', b.path, b.path, 'unrun'));
+continue;
+}
+
+const replacement = (unmatchedByPath.get(b.path) || []).find((u) => !consumedEquivalents.has(u) && assertionsCover(b.assertions, u.assertions));
+if (replacement) {
+consumedEquivalents.add(replacement);
+findings.push(reason('unrun', b.path, b.name, 'unrun'));
 continue;
 }
 const kept = (b.imports || []).every((spec) => sourceStillThere(files, spec));
