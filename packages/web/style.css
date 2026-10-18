@@ -198,6 +198,10 @@ a.verdict:hover { text-decoration: underline; text-decoration-thickness: 1px; }
 .ladder [aria-current] .verdict { box-shadow: 0 0 0 2px var(--fg); }
 .this-pr { margin-left: .35rem; font-size: .8rem; color: var(--muted); }
 .green-line { margin: 0 0 1rem; color: var(--muted); }
+/* WEB-12: what is not released yet, and home's list of what works today */
+.not-released { margin: -.25rem 0 1rem; font-size: .9rem; color: var(--muted); }
+.works-today { margin: 0 0 2rem; padding-left: 1.2rem; }
+.works-today li { margin: .25rem 0; }
 .example-target { color: var(--muted); font-size: .9rem; }
 
 /* the reason lines, a plain list */

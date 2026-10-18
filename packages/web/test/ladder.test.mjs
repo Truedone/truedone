@@ -89,5 +89,6 @@ test('/why\'s Proven section opens with the static ladder, Proven green at its t
   const ol = section.match(/<ol class="ladder"[^>]*>([\s\S]*?)<\/ol>/)[1];
   const r = [...ol.matchAll(/<li><span class="([^"]+)">([^<]+)<\/span><\/li>/g)].map((m) => [m[2], m[1]]);
   assert.deepEqual(r, [['Tampered', 'rung'], ['Test changes: review', 'rung'], ['Tests changed: not run', 'rung'], ['Proven', 'verdict verdict-yes']]);
-  assert.match(section, /<p class="green-line">Green comes from running the tests: add the truedone step\.<\/p>/);
+  // WEB-12 adds the release note while the action is not released
+  assert.match(section, /<p class="green-line">Green comes from running the tests: add the truedone step \(not released yet\)\.<\/p>/);
 });
