@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { TAGLINE, FOOTER_LINKS, signinHref, SITE_TITLE } from '../packages/web/lib/view.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-const REPO = 'https://github.com/mgillr/truedone/blob/main/';
+const REPO = 'https://github.com/Truedone/truedone/blob/main/';
 const PAGES = { '/privacy': 'privacy.md', '/terms': 'terms.md' };
 export const LEGAL = [['docs/privacy.md', 'packages/web/privacy.html', '/privacy'], ['docs/terms.md', 'packages/web/terms.html', '/terms']];
 

@@ -72,7 +72,7 @@ You need git, Node 22 or later, and Python 3 with pytest, which two tests use. T
 1. Clone the repository.
 
    ```sh
-   git clone https://github.com/mgillr/truedone && cd truedone
+   git clone https://github.com/Truedone/truedone && cd truedone
    ```
 
 2. Run the tests, which use `node:test`.

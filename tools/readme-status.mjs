@@ -1,6 +1,7 @@
 // node tools/readme-status.mjs [--at <rev>] [--check] (README-02): the Status section of README.md, written from two
 // sources only, both read at one main commit: the signed contract (proofline.json) and main's first-parent history. A
-// task is on main when a merge commit there reads "Merge pull request #n from mgillr/<id in lower case>", or a direct
+// task is on main when a merge commit there reads "Merge pull request #n from <owner>/<id in lower case>", the owner
+// mgillr before the move to the Truedone organisation and Truedone after it (D36), or a direct
 // commit's subject starts with "<ID>: ". truedone is pre-release until a docs/releases/*.md at that commit has the line
 // "Decision: GO". The section names the commit it describes, so it stays true for that commit after main moves on.
 // Plain, it writes the section for --at (default origin/main) between the two marker lines. --check writes nothing and
@@ -34,7 +35,7 @@ const OTHER = 'Repository, CI, deploys and docs';
 export function landed(subjects, ids) {
   const on = new Set();
   for (const s of subjects) {
-    const m = s.match(/^Merge pull request #\d+ from mgillr\/([a-z0-9-]+)$/);
+    const m = s.match(/^Merge pull request #\d+ from (?:mgillr|Truedone)\/([a-z0-9-]+)$/);
     const d = s.match(/^([A-Z][A-Z0-9]*-[A-Z0-9]+): /);
     const id = m ? m[1].toUpperCase() : d ? d[1] : null;
     if (id && ids.includes(id)) on.add(id);

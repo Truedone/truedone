@@ -29,7 +29,7 @@ inline in a `*.test.mjs` file. Workflows never use `pull_request_target`.
 
 ## Opening a pull request
 
-1. Fork mgillr/truedone and create a branch from main.
+1. Fork Truedone/truedone and create a branch from main.
 2. Write the failing test first and keep its output.
 3. Make the change, run the checks below, and commit with a sign-off (`git commit -s`).
 4. Open the pull request against main, with the title starting with the task id, and fill in the template.
@@ -83,7 +83,7 @@ supply-chain surface to the release path, so a change keeps both lists empty.
 
 ## Opening an issue
 
-Open an issue at https://github.com/mgillr/truedone/issues/new/choose with one of the two forms:
+Open an issue at https://github.com/Truedone/truedone/issues/new/choose with one of the two forms:
 
 - **Bug report**: where it happened, what you ran, what you expected, what happened, and the version.
 - **Feature request**: the problem, the change you propose, and how a test would show it.
@@ -91,7 +91,7 @@ Open an issue at https://github.com/mgillr/truedone/issues/new/choose with one o
 Blank issues are off, so every issue starts from a form. Search the open issues first, and if one matches, add to it.
 
 Do not report a security vulnerability in a public issue. Follow the security policy at
-https://github.com/mgillr/truedone/security/policy.
+https://github.com/Truedone/truedone/security/policy.
 
 ## Code of conduct
 

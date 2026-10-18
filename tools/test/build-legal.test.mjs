@@ -19,7 +19,7 @@ test('a page has the site shell, the title "<heading> - truedone", and no script
   assert.match(html, /<link rel="stylesheet" href="\/style\.css">/);
   assert.match(html, /<header class="site-header">\n<p class="name"><a href="\/">truedone<\/a><\/p>\n<p class="tagline">Checks whether a pull request's tests prove its change/);
   const footer = html.match(/<footer class="site-footer">([\s\S]*?)<\/footer>/)[1];
-  assert.deepEqual([...footer.matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)].map((m) => [m[2], m[1]]), [['Why', '/why'], ['Privacy', '/privacy'], ['Terms', '/terms'], ['GitHub', 'https://github.com/mgillr/truedone'], ['Sign in with GitHub', '/signin?return=%2Fprivacy']]);
+  assert.deepEqual([...footer.matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)].map((m) => [m[2], m[1]]), [['Why', '/why'], ['Privacy', '/privacy'], ['Terms', '/terms'], ['GitHub', 'https://github.com/Truedone/truedone'], ['Sign in with GitHub', '/signin?return=%2Fprivacy']]);
   assert.doesNotMatch(html, /<script|<style|\sstyle\s*=|\son[a-z]+\s*=|javascript:/i);
 });
 
@@ -38,8 +38,8 @@ test('links: the two documents are site pages, other repository files are on git
   const link = (target) => render(`# T\n\n[x](${target})\n`, 'x.md').body.match(/href="([^"]+)"/)[1];
   assert.equal(link('privacy.md'), '/privacy');
   assert.equal(link('terms.md'), '/terms');
-  assert.equal(link('../LICENSE'), 'https://github.com/mgillr/truedone/blob/main/LICENSE');
-  assert.equal(link('../SECURITY.md'), 'https://github.com/mgillr/truedone/blob/main/SECURITY.md');
+  assert.equal(link('../LICENSE'), 'https://github.com/Truedone/truedone/blob/main/LICENSE');
+  assert.equal(link('../SECURITY.md'), 'https://github.com/Truedone/truedone/blob/main/SECURITY.md');
   assert.equal(link('https://docs.github.com/apps'), 'https://docs.github.com/apps');
   for (const bad of ['http://example.com', 'javascript:alert(1)', 'mailto:x@y.z', '//evil.example', '../../outside']) {
     assert.throws(() => link(bad), MarkdownError, bad);

@@ -38,11 +38,11 @@ export const badgeClass = (verdict) => `verdict verdict-${BADGE[verdict] ?? 'non
 export const whyHref = (verdict) => (BADGE[verdict] && verdict !== 'not_applicable' ? `/why#truedone-${BADGE[verdict]}` : '/why');
 // one public pull request page per verdict the diff alone can give, each checked live on this site before it was added
 export const EXAMPLES = [
-  ['tampered', '/mgillr/truedone-sandbox/pull/31'],
-  ['review', '/mgillr/truedone/pull/17'],
-  ['no_evidence', '/mgillr/truedone/pull/47'],
-  ['unrun', '/mgillr/truedone/pull/54'],
-  ['not_applicable', '/mgillr/truedone/pull/43'],
+  ['tampered', '/Truedone/truedone-sandbox/pull/31'],
+  ['review', '/Truedone/truedone/pull/17'],
+  ['no_evidence', '/Truedone/truedone/pull/47'],
+  ['unrun', '/Truedone/truedone/pull/54'],
+  ['not_applicable', '/Truedone/truedone/pull/43'],
 ];
 // a visitor sent back to /signin/callback would finish a state already used, so the sign-in pages return to /
 const signinPage = (path) => path === '/signin' || path.startsWith('/signin/');
@@ -50,7 +50,7 @@ export const signinHref = (path) => `/signin?return=${encodeURIComponent(path &&
 // x-ratelimit-reset, seconds since the epoch, as the visitor's local hour and minute
 export const resetTime = (reset) => new Date(reset * 1000).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 export const TAGLINE = 'Checks whether a pull request\'s tests prove its change: red without it, green with it.';
-export const FOOTER_LINKS = [['Why', '/why'], ['Privacy', '/privacy'], ['Terms', '/terms'], ['GitHub', 'https://github.com/mgillr/truedone']];
+export const FOOTER_LINKS = [['Why', '/why'], ['Privacy', '/privacy'], ['Terms', '/terms'], ['GitHub', 'https://github.com/Truedone/truedone']];
 export const MAX_REASONS = 10;
 // the rungs the diff and a red-green run can give, from Tampered up to Proven; Proven (new behaviour) shares Proven's
 // label and rung, and a verdict on no rung (No red-green evidence, Could not run, Waiting, Proven (weak)) marks none
