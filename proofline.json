@@ -463,6 +463,12 @@
       ],
       "SPK-02": [
         "SPK-02-AC06"
+      ],
+      "MAP-01": [
+        "MAP-01-AC04"
+      ],
+      "RUN-07": [
+        "RUN-07-AC04"
       ]
     }
   },
@@ -3712,6 +3718,99 @@
       ]
     },
     {
+      "id": "RUN-07",
+      "title": "[W5] A pull request that adds a module and its test is judged red-green, not could not run",
+      "phase": "implement",
+      "owner": "lane-d",
+      "depends_on": [
+        "RUN-04",
+        "JUDGE-01"
+      ],
+      "requirements": [
+        "PV-X05"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Truedone/truedone#130. The red-green run swaps the changed source back to base and runs the head's tests (D6). For a module the pull request adds, the swap removes the module, the new test file fails at import, the junit row is a whole-file failure with no test name, it never pairs with the head run's rows, and the judge reports Could not run: incomplete runs although the head leg passed three times. When a test file fails to load on the base leg because a file the pull request adds is missing, the judge treats every test the head run lists for that file as red on base and says so in the reason. Found while building BENCH-01 on 2026-10-18.",
+      "scope": {
+        "allow": [
+          "packages/core/run/**",
+          "packages/core/test/**",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/action/dist/index.mjs",
+          "tools/bundle.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "RUN-07-AC01",
+          "mandatory": true,
+          "statement": "a base leg with one whole-file import failure for a file the pull request adds and a head leg with three passes of two named tests gives a red-green verdict whose reason names the import failure as the red",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/core/test/new-module-base.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "RUN-07-AC02",
+          "mandatory": true,
+          "statement": "core suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/core/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "RUN-07-AC03",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "RUN-07-AC04",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "RUN-07-AC05",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "RUN-07-AC06",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "RUN-04",
       "title": "[W3-4] Coverage condition: spike, decision and implementation (D8)",
       "phase": "implement",
@@ -5466,7 +5565,7 @@
         "CORE-11",
         "JUDGE-01"
       ],
-      "description": "The owner asked (2026-10-18) for a way to ensure no false alarms all the time. Nine labelled cases from his research note live as base and head fixture trees with an expected outcome each: an assertion weakened while the tests pass; a failing test skipped, deleted or bypassed by a focused one; a source change with no relevant test; a test green on both base and head; a test that is red-green yet asserts the wrong behaviour; a mock that hides an integration failure; a plausible mutation the suite survives; a flaky test; and a legitimate refactor of test structure that weakens nothing. tools/bench/detect.mjs runs the static core and, where the case has a runner, the red-green judge on each, records truedone's verdict beside what baseline CI says (the tests pass or fail), and writes docs/bench/detection.json and docs/bench/detection.md. Its check exits 0 only when every case labelled tampering or no evidence is flagged, the legitimate refactor and the green-on-both case carry no flag, and the cases truedone cannot judge by design (the wrong assertion, the hidden mock) are reported as not detected with the reason, never as caught. Because the check is a contract criterion, CI runs it on every change (PV-B01): a change that makes the core flag the legitimate case cannot land. This is the floor, not the noise claim: GATE-02 and GATE-03R measure noise on real pull requests, and each false alarm found there is added here as a fixture by a follow-up task.",
+      "description": "The owner asked (2026-10-18) for a way to ensure no false alarms all the time. Nine labelled cases from his research note live as base and head fixture trees with an expected outcome each: an assertion weakened while the tests pass; a failing test skipped, deleted or bypassed by a focused one; a source change with no relevant test; a test green on both base and head; a test that is red-green yet asserts the wrong behaviour; a mock that hides an integration failure; a plausible mutation the suite survives; a flaky test; and a legitimate refactor of test structure that weakens nothing. tools/bench/detect.mjs runs the static core and, where the case has a runner, the red-green judge on each, records truedone's verdict beside what baseline CI says (the tests pass or fail), and writes docs/bench/detection.json and docs/bench/detection.md. Its check exits 0 only when every case labelled tampering or no evidence is flagged (the green-on-both case included: a test that passes on base and head is no red-green evidence by the spec's table, which is the product's verdict and not a false alarm), the legitimate refactor carries no flag, and the cases truedone cannot judge by design (the wrong assertion, the hidden mock) are reported as not detected with the reason, never as caught. Because the check is a contract criterion, CI runs it on every change (PV-B01): a change that makes the core flag the legitimate case cannot land. This is the floor, not the noise claim: GATE-02 and GATE-03R measure noise on real pull requests, and each false alarm found there is added here as a fixture by a follow-up task.",
       "scope": {
         "allow": [
           "tools/bench/detect.mjs",
@@ -14544,7 +14643,7 @@
       "depends_on": [
         "ORG-01"
       ],
-      "description": "The owner asked (2026-10-18) for metrics on github.com/Truedone that measure integrations, faults, successes and growth. tools/metrics/collect.mjs reads public GitHub data for the organisation without a token: its repositories, stars, forks, releases, workflow runs by conclusion over the last 30 days, open issues and pull requests, and the median time to the first response on issues. It writes one JSON snapshot in which every figure carries its reporting window, its source URL and its sample size, and every metric with no honest public source (repositories running truedone, pull requests checked, faults caught beyond CI, false alarms, retention) is listed under not_yet_measured, never as a zero. tools/metrics/check.mjs refuses a snapshot with a figure that lacks any of the three or a number under a not-yet-measured name. The seed snapshot is committed as docs/metrics/latest.json. .github/workflows/metrics.yml runs the collector daily and on demand and commits the snapshot to the metrics-data branch (the index branch pattern), never to main. docs/ops/metrics.md names each metric, its definition and its limits: stars are not adoption, downloads are not users.",
+      "description": "The owner asked (2026-10-18) for metrics on github.com/Truedone that measure integrations, faults, successes and growth. tools/metrics/collect.mjs reads public GitHub data for the organisation, anonymously or with the runner's token when GITHUB_TOKEN is set (the anonymous quota is 60 requests an hour for an address, which two runs spend): its repositories, stars, forks, releases, workflow runs by conclusion over the last 30 days, open issues and pull requests, and the median time to the first response on issues. It writes one JSON snapshot in which every figure carries its reporting window, its source URL and its sample size, and every metric with no honest public source (repositories running truedone, pull requests checked, faults caught beyond CI, false alarms, retention) is listed under not_yet_measured, never as a zero. tools/metrics/check.mjs refuses a snapshot with a figure that lacks any of the three or a number under a not-yet-measured name. The seed snapshot is committed as docs/metrics/latest.json. .github/workflows/metrics.yml runs the collector daily and on demand and commits the snapshot to the metrics-data branch (the index branch pattern), never to main. docs/ops/metrics.md names each metric, its definition and its limits: stars are not adoption, downloads are not users.",
       "scope": {
         "allow": [
           "tools/metrics/**",
@@ -14570,10 +14669,10 @@
         {
           "id": "MET-01-AC02",
           "mandatory": true,
-          "statement": "the collector runs live against github.com/Truedone without a token and its snapshot passes the checker",
+          "statement": "the collector runs live against github.com/Truedone, sending the runner's token when one is present (the data is public and the figures do not change), and its snapshot passes the checker",
           "verifier": {
             "type": "command",
-            "cmd": "D=\"$(mktemp -d)\" && node tools/metrics/collect.mjs --org Truedone --out \"$D/latest.json\" && node tools/metrics/check.mjs \"$D/latest.json\"",
+            "cmd": "D=\"$(mktemp -d)\" && GITHUB_TOKEN=\"$(gh auth token 2>/dev/null)\" node tools/metrics/collect.mjs --org Truedone --out \"$D/latest.json\" && node tools/metrics/check.mjs \"$D/latest.json\"",
             "expect_exit": 0,
             "timeout_s": 300
           }
@@ -14775,6 +14874,92 @@
         },
         {
           "id": "ORG-02-AC09",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "MAP-01",
+      "title": "[W2] The map names the generated legal pages as a required update of the privacy and terms notes",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "APP-25"
+      ],
+      "requirements": [
+        "PV-D02"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Truedone/truedone#127. docs/DEPENDENCY-MAP.md maps SECURITY.md, docs/privacy.md and docs/terms.md to the policy node with no update edge, and tools/build-legal.mjs generates packages/web/privacy.html and terms.html from the two notes, so the map check passed a privacy edit (APP-25) that left the site page stale; only the web suite caught it. docs/privacy.md and docs/terms.md become their own node with an update edge to a node for the two generated pages, in all three forms of the map, so the map check names the page as a required update in the same change.",
+      "scope": {
+        "allow": [
+          "docs/DEPENDENCY-MAP.md",
+          "tools/test/depmap-legal.test.mjs",
+          "tools/test/fixtures/depmap-legal/**"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "MAP-01-AC01",
+          "mandatory": true,
+          "statement": "the map check fails a change to docs/privacy.md alone, naming packages/web/privacy.html as the missing update, and passes the change with the page",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/depmap-legal.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "MAP-01-AC02",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MAP-01-AC03",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MAP-01-AC04",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MAP-01-AC05",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "MAP-01-AC06",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
