@@ -2,7 +2,7 @@
 // diff and post one check run and one label. Built against core.analyse's interface
 // (docs/spec.md, core section); @truedone/core is wired in when lane-a's branch lands.
 import { VERDICT_LABEL, LABELS } from "./labels.mjs";
-import { parseConfig } from "./posting.mjs";
+import { parseConfig, postingAllowed } from "./posting.mjs";
 
 const API = "https://api.github.com";
 
@@ -146,8 +146,9 @@ export function makeStatic(env) {
     const { repository, pull_request: pr } = payload;
     const owner = repository.owner.login, repo = repository.name;
     const meta = { owner, repo, number: pr.number, title: pr.title, body: pr.body, author: pr.user };
-    const cfg = parseConfig(await rawFile(owner, repo, pr.head.ref, ".github/truedone.yml"));
-    if (cfg.enabled === "false") return { skipped: "repo_disabled" };
+    const configText = await rawFile(owner, repo, pr.head.ref, ".github/truedone.yml");
+    const allowed = await postingAllowed(env, { installationId: payload.installation?.id, repository: repository.id, configText });
+    if (!allowed.allowed) return { skipped: allowed.reason };
 
     const t0 = Date.now();
     const files = await prFiles(owner, repo, pr.number);

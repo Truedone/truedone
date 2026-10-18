@@ -17,6 +17,17 @@ function fakeFetch(routes) {
   return fetch;
 }
 
+function memoryKV() {
+  const store = new Map();
+  return {
+    store,
+    async get(k) { const e = store.get(k); return e === undefined ? null : e.v; },
+    async put(k, v, opts = {}) { store.set(k, { v, ttl: opts.expirationTtl ?? null }); },
+    async delete(k) { store.delete(k); },
+    async list({ prefix }) { return [...store.keys()].filter((k) => k.startsWith(prefix)); },
+  };
+}
+
 const FILES = [{ path: "test/a.test.mjs", status: "added", patch: "@@ +1" }];
 function routesFor(config) {
   return [
@@ -52,7 +63,7 @@ test("enabled: false stops the run before anything is fetched or posted", async 
   const oldFetch = globalThis.fetch;
   globalThis.fetch = fetch;
   try {
-    const { env } = { env: { INSTALLATION_TOKEN: "t", core: { analyse: async () => { throw new Error("must not run"); } } } };
+    const { env } = { env: { INSTALLATION_TOKEN: "t", KV: memoryKV(), core: { analyse: async () => { throw new Error("must not run"); } } } };
     const r = await makeStatic(env)(delivery());
     assert.equal(r.skipped, "repo_disabled");
     assert.equal(fetch.calls.filter((c) => c.url.includes("/check-runs")).length, 0, "nothing is posted");
