@@ -58,7 +58,7 @@ Nothing is released yet. Each surface ships with a release planned in [docs/spec
 | [truedone.pages.dev](https://truedone.pages.dev) | Anyone reading a public pull request: open `truedone.pages.dev/owner/repo/pull/n` for the static verdict in the browser, with nothing to install. | In development, planned for week 2 |
 | `npx truedone` | Developers, from the terminal: the current branch, or a pull request link. `--run` adds red-green, `--json` prints `truedone.verdict/1`, and `init` adds three lines to `AGENTS.md` or `CLAUDE.md` that ask a coding agent to run it. | In development: static in week 2, `--run` in week 6 |
 | Claude Code plugin | People working with Claude Code: a Stop hook keeps the agent from finishing when a test it changed fails, a test was weakened or disabled, or it says tests pass but has not run them since its last edit. | Planned for week 3, red-green in week 6 |
-| GitHub App | Maintainers: one check run named `truedone` and at most one `truedone:*` label per pull request. It never runs the pull request's code. | Planned for the end of week 4 |
+| GitHub App | Maintainers: one check run named `truedone` and at most one `truedone:*` label per pull request. It never runs the pull request's code. | On main: the app posts the check run and the label on every pull_request event, honouring the repo config and the posting switch (APP-03) |
 | GitHub Action | Repositories that want red-green in CI: one `uses:` line in an existing job, nothing installed. It writes a report the GitHub App reads. | On main (packages/action) |
 
 ## Quick start
