@@ -40,12 +40,21 @@ export function makeGitHub(env) {
     return r.ok ? await r.text() : undefined;
   }
 
+  // A completed check run names the pull request's page on the site as its details (the
+  // App's homepage otherwise, the site root), and the times of this verdict: started_at
+  // when its analysis began (prMeta.startedAt, from the stage) and completed_at now, on a
+  // new run and on an update alike, since GitHub keeps an updated run's first times
+  // unless they are sent again (APP-14).
   async function postCheck(owner, repo, head, result, prMeta) {
+    const now = new Date().toISOString();
     const body = {
       name: "truedone",
       head_sha: head,
+      details_url: pageUrl(prMeta),
       status: "completed",
       conclusion: "neutral",
+      started_at: prMeta.startedAt ?? now,
+      completed_at: now,
       output: { title: `truedone: ${result.verdict.replace(/_/g, " ")}${result.partial ? " (partial)" : ""}`, summary: summary(result, prMeta) },
     };
     const existing = await api(`/repos/${owner}/${repo}/commits/${head}/check-runs?check_name=truedone`).catch(() => null);
@@ -80,6 +89,9 @@ function esc(text) {
     .replace(/@/g, "@`").replace(/\[/g, "\\[").replace(/\]/g, "\\]");
 }
 
+// The pull request's page on the site (D26).
+const pageUrl = (prMeta) => `https://truedone.pages.dev/${prMeta.owner}/${prMeta.repo}/pull/${prMeta.number}`;
+
 function summary(result, prMeta) {
   const lines = [];
   lines.push(`**${result.verdict.replace(/_/g, " ")}${result.partial ? " (partial)" : ""}**`);
@@ -88,7 +100,7 @@ function summary(result, prMeta) {
   }
   if (result.reasons.length > 10) lines.push(`- and ${result.reasons.length - 10} more`);
   if (result.next) lines.push("", `What would change this: ${esc(result.next)}`);
-  lines.push("", `Why: https://truedone.pages.dev/${prMeta.owner}/${prMeta.repo}/pull/${prMeta.number}`);
+  lines.push("", `Why: ${pageUrl(prMeta)}`);
   return lines.join("\n");
 }
 

@@ -62,6 +62,8 @@ export function makeRedGreen(env) {
   }
 
   return async function onWorkflowRun(delivery) {
+    // the check run's started_at: when this delivery's red-green judgement began (APP-14)
+    const startedAt = new Date().toISOString();
     const { workflow_run: run, action } = delivery.payload;
     if (action !== "completed") return { skipped: action };
     const owner = delivery.payload.repository.owner.login;
@@ -97,7 +99,7 @@ export function makeRedGreen(env) {
     // request's current head; the label belongs to the pull request, so it is written
     // only while that commit is still the head, and a run on an older commit leaves the
     // newer head's label to that head's own run.
-    await env.postCheck(headSha, judged, { owner, repo, number: pr.number });
+    await env.postCheck(headSha, judged, { owner, repo, number: pr.number, startedAt });
     if (pr.head.sha === headSha) await env.postLabel(pr.number, judged);
     env.LOG?.({ installation: delivery.payload.installation?.id, repository: delivery.payload.repository.id, pr: pr.number, verdict: judged.verdict, ms: Date.now() - (delivery._t0 || Date.now()) });
     return { verdict: judged.verdict, pr: pr.number };
