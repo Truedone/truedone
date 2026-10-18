@@ -10,7 +10,7 @@ Could not run applies only when no test reached a result. When several tests ran
 
 A verdict states what was observed about the change. It never says "safe" or "correct" and never addresses the author.
 
-What to do next, which is also the Result's `next`, and what truedone.pages.dev/why shows for each label:
+What to do next for each label, which truedone.pages.dev/why shows. The Result's `next` is built from the reasons that give its verdict (D33): one sentence per group of them, in the table's order; a verdict whose reasons fall in no group keeps its text below, and a lesser finding adds no sentence:
 
 - Tampered: Restore an equivalent test, or pin the step to a published release.
 - Test changes: review: Confirm the test change is intended.

@@ -6,7 +6,7 @@ core is two pure functions in one ES module, with no I/O. `analyse(input)` runs 
 
 The input holds the PR's files in the shape of the GitHub PR files API (path, status, previous path, patch, and base and head contents), the PR's title, body and author, and two optional fields: the published truedone action SHAs (D18) and the limits on files, lines and fetched files. Base and head contents are given only for test, setup, runner-config and workflow files.
 
-The Result has the schema `truedone.verdict/1`. It holds one verdict, a label or null, a `partial` flag, the reasons (one line each, at most 10 shown) and `next`, which says what would change the verdict.
+The Result has the schema `truedone.verdict/1`. It holds one verdict, a label or null, a `partial` flag, the reasons (one line each, at most 10 shown) and `next`, which says what would change the verdict, built from the reasons that give that verdict (D33); each reason carries the verdict it alone gives.
 
 The starting code is in proofline: `src/forbidden.mjs`, `src/checks.mjs`, `src/infer.mjs` and `src/hook-stop.mjs`. That code reads git and the file system, so it is ported to pure functions, not copied. proofline has no runtime dependencies today.
 
@@ -44,7 +44,7 @@ flowchart LR
     V["verdict: tampered, review, could_not_run, proven, proven_new, proven_weak, no_evidence, pending, unrun, not_applicable"]
     LB["label: string or null"]
     PT["partial: boolean"]
-    RS["reasons: check, file, line?, message; at most 10 shown"]
+    RS["reasons: check, file, line?, message, verdict; at most 10 shown"]
     NX["next: what would change the verdict"]
   end
   subgraph PORT["proofline starting code, ported to pure functions"]

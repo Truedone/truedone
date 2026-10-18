@@ -44,6 +44,7 @@ Each default stands unless Ryan changes it before signing the contracts.
 | D30 | README | README.md stays short: a summary of at most 60 words, one Mermaid flowchart, a quick start of one to five steps and at most 150 lines, checked by tools/readme-check.mjs. A second lane runs the quick start from a clean directory and records its review. Its Status section is written by tools/readme-status.mjs from the signed contract and main's first-parent history and names the main commit it describes; after each landing the lead regenerates it in a signed commit "docs: README status at <short sha>" (README-02) | A first-time visitor gets from the page to a verdict in a few steps |
 | D31 | Repository standard | The repository carries CONTRIBUTING.md with the Developer Certificate of Origin, CODE_OF_CONDUCT.md (Contributor Covenant 2.1), NOTICE, CHANGELOG.md, issue and pull request templates, a description, the homepage and topics, and a dependency map a person can read: an explanation, a labelled diagram and a table of every node, kept in step with the json block the check reads | The owner asked for a gold-standard repository, and an outside contributor finds how to take part in the files GitHub shows first |
 | D32 | When truedone.pages.dev goes live | The site goes live, unannounced, when DEP-01 merges: deploy.yml's web job deploys packages/web to the Pages project truedone on every push to main, in environment dev. REL-W2's GO no longer makes the site live; it governs the npm release, index #1 on the index-data branch and the launch post, which Ryan posts himself (Ryan, 2026-10-17: "agree and approve with all waiting") | The site holds no secret and never runs PR code (S3), so it can serve before the launch; the launch post is what announces it |
+| D33 | The next step | The Result's `next` is what would change the verdict, so it is built from the reasons that give the result's own verdict: one sentence per group of them, in the table's order. Under Tampered: restore an equivalent test for skip, focus, weakened or a tampered deletion, and pin the step for a step change. Under Test changes: review: confirm the test change is intended for parametrised, timeout, snapshot or a review deletion, and confirm the step change for a re-pin to a release. A verdict whose reasons fall in no group keeps its What to do next text. A lesser finding, such as an unrun reason under Tampered, keeps its reason line, marked by its verdict, and adds no sentence, since running the tests cannot change a Tampered verdict. Each reason carries the verdict it alone gives (CORE-09, issue #56; 2026-10-18) | A PR whose only reason was a weakened assertion was told to pin a step it never touched, and a snapshot update would be told to restore a test; the advice must follow what was found, and only what would change the verdict |
 
 ## core
 
@@ -70,7 +71,7 @@ Result = {
          | "unrun" | "not_applicable",
   label: string | null,
   partial: boolean,
-  reasons: [{ check, file, line?, message }],   one line each, at most 10 shown
+  reasons: [{ check, file, line?, message, verdict }],   one line each, at most 10 shown; verdict is the verdict that reason alone gives
   next: string                                   what would change the verdict
 }
 ```
@@ -271,7 +272,7 @@ Every PR gets exactly one verdict, chosen by the precedence below. Every verdict
 | **Tests changed: not run** | `truedone:unrun` | Yes | Tests were added or changed with nothing weakened, and no red-green has run: the repository has no truedone step, or the verdict comes from truedone.pages.dev or the static CLI | Run the changed tests: the next rung. |
 | **Not applicable** | none | Yes | Docs only; a lockfile or dependency change; a dependency or release bot (Dependabot, Renovate, release-please; agent bots are always checked); a CI-only change that touches no test and not the truedone step; a pure rename; a language version 1 does not support, with the reason shown | Nothing. |
 
-The Result's `next` is the verdict's What to do next text.
+The Result's `next` is built from the reasons that give its verdict (D33): one sentence per group of them, in the table's order; a verdict whose reasons fall in no group keeps its What to do next text, and a lesser finding adds no sentence.
 
 **Precedence**, highest first: Tampered, Test changes: review, Could not run, Proven, Proven (new behaviour), Proven (weak), No red-green evidence, Waiting for approval, Tests changed: not run, Not applicable. Could not run applies only when no test reached a result. When several tests ran, the best result of any test stands and the others are listed.
 
