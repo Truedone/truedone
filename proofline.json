@@ -360,6 +360,9 @@
       ],
       "APP-10": [
         "APP-10-AC05"
+      ],
+      "README-03": [
+        "README-03-AC07"
       ]
     }
   },
@@ -4200,7 +4203,7 @@
       "requirements": [
         "PV-G06"
       ],
-      "description": "tools/corpus/prospects.mjs reads only the committed sample in tools/corpus/data (GATE-01), with no network, and --write docs/gates/gate5-candidates.tsv writes one row per repository of the agent and baseline groups, with the header repo, agent_prs, no_test_share, latest_pr, runner, supported, statement_url: the number of agent PRs; the share of them that change source and no test, by the sample's own file classes, to four decimals; the date of the latest PR in the window; the runner that detectFromManifests finds from the repository's manifests in the sample, as gates.mjs does for gate 4, or none; yes when the repository's language is JavaScript, TypeScript or Python, else no; and an empty statement_url column, since the link to a maintainer's public statement on AI-PR load is Ryan's, in docs/gates/gate5-statements.tsv (OPS-06). Rows are sorted by agent PRs times the no-test share, highest first, ties broken by the later latest PR, then by repo. Nothing in the sheet is typed by hand. Owner lane-b from 2026-10-18 06:42Z: built against a fixture sample before GATE-01 commits, finished on the committed sample the hour it lands.",
+      "description": "tools/corpus/prospects.mjs reads only the committed sample in tools/corpus/data (GATE-01), with no network, and --write docs/gates/gate5-candidates.tsv writes one row per repository of the agent and baseline groups, with the header repo, agent_prs, no_test_share, latest_pr, runner, supported, statement_url: the number of agent PRs; the share of them that change source and no test, by the sample's own file classes, to four decimals; the date of the latest PR in the window; the runner that detectFromManifests finds from the repository's manifests in the sample, as gates.mjs does for gate 4, or none; yes when the repository's language is JavaScript, TypeScript or Python, else no; and an empty statement_url column, since the link to a maintainer's public statement on AI-PR load is Ryan's, in docs/gates/gate5-statements.tsv (OPS-06). Rows are sorted by agent PRs times the no-test share, highest first, ties broken by the later latest PR, then by repo. Nothing in the sheet is typed by hand. Owner lane-b from 2026-10-18 06:42Z: built against a fixture sample before GATE-01 commits, finished on the committed sample the hour it lands. The sort is by the no-test count, the agent pull requests that change source and no test, which equals agent_prs times no_test_share before rounding.",
       "scope": {
         "allow": [
           "tools/corpus/prospects.mjs",
@@ -4497,7 +4500,7 @@
       "requirements": [
         "PV-G03"
       ],
-      "description": "tools/corpus/gate3.mjs draws 200 Tampered and Test changes: review flags from merged PRs in the sample, at least 50 Tampered (drawing more PRs if needed), and writes docs/gates/gate3-sheet.tsv, tab-separated with a header: pr_url, verdict, check, reason, file, line, reviewer_verdict, reviewer. The last two columns are empty. Tabs and newlines inside fields become spaces. Owner lane-b from 2026-10-18 06:42Z: built against a fixture sample before GATE-01 commits, finished on the committed sample the hour it lands.",
+      "description": "tools/corpus/gate3.mjs draws 200 Tampered and Test changes: review flags from merged PRs in the sample, at least 50 Tampered (drawing more PRs if needed), and writes docs/gates/gate3-sheet.tsv, tab-separated with a header: pr_url, verdict, check, reason, file, line, reviewer_verdict, reviewer. The last two columns are empty. Tabs and newlines inside fields become spaces. Owner lane-b from 2026-10-18 06:42Z: built against a fixture sample before GATE-01 commits, finished on the committed sample the hour it lands. The draw is over the merged pull requests of the D12 window's agent and baseline groups; the pre-2024 group is left out, as the reviewers judge current practice.",
       "scope": {
         "allow": [
           "tools/corpus/gate3.mjs",
@@ -11724,6 +11727,129 @@
         },
         {
           "id": "README-02-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "README-03",
+      "title": "[W2] The README's ways to use it come from the release state the site reads",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "README-02",
+        "WEB-12"
+      ],
+      "requirements": [
+        "PV-D03"
+      ],
+      "description": "Read on main c7530340 as a first-time visitor (2026-10-18 09:54Z): README.md's \"Ways to use it\" table says truedone.pages.dev is \"In development, planned for week 2\" while the site checks any public pull request; its App row says the app posts on every pull_request event and its action row says \"On main\", which read as working, while neither is released (production App private and installed nowhere, mgillr/truedone-action empty); the line above says nothing is released. The prerequisites line says one test needs pytest (run-live-pytest and run-coverage-py both do) and names curl, which the quick start does not use. Changes: tools/readme-status.mjs also writes the table's Status column between its own marker lines, from packages/web/lib/release.mjs (the site row \"Live\" always; each released surface \"Released\", each other \"Not released yet\"); the line above the table says the site is live and the rest come with the first release; the prerequisites line names git, Node 22 or later and Python 3 with pytest, which two tests use. --check fails when the table and release.mjs disagree.",
+      "scope": {
+        "allow": [
+          "tools/readme-status.mjs",
+          "tools/test/readme-status.test.mjs",
+          "tools/test/readme-ways.test.mjs",
+          "README.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "README-03-AC01",
+          "mandatory": true,
+          "statement": "the Status column is written from release.mjs: the site Live, every unreleased surface Not released yet, and flipping a surface in a scratch copy of release.mjs changes only its row",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/readme-ways.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "README-03-AC02",
+          "mandatory": true,
+          "statement": "the README on this tree matches what the generator writes",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/readme-status.mjs --check",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "README-03-AC03",
+          "mandatory": true,
+          "statement": "the prerequisites line says two tests use pytest and names no curl",
+          "verifier": {
+            "type": "command",
+            "cmd": "grep -q \"which two tests use\" README.md && ! grep -nE \"^You need .*curl\" README.md",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "README-03-AC04",
+          "mandatory": true,
+          "statement": "the README checks still hold",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/readme-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "README-03-AC05",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "README-03-AC06",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "README-03-AC07",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "README-03-AC08",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "README-03-AC09",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
