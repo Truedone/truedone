@@ -8,6 +8,7 @@ import { makeIntake } from "./webhook.mjs";
 import { makeStatic } from "./static.mjs";
 import { makeRedGreen } from "./redgreen.mjs";
 import { listKeys, sweepLeftovers } from "./posting.mjs";
+import { analyse as coreAnalyse } from "../../core/core.mjs";
 
 const REMOVED_PREFIX = "removed:";
 
@@ -111,12 +112,20 @@ export function makeConsumers(deps = {}) {
   };
 }
 
+// APP-11: the core engine, handed to the static stage as-is. The stage builds
+// the recorded input itself (files with fetched contents, the PR meta, the
+// published SHAs, the limits) and calls analyse(input).
+function coreFor(env) {
+  env.core ??= { analyse: coreAnalyse };
+  return env;
+}
+
 export default {
   fetch(request, env) {
     return makeApp(env)(request);
   },
   async queue(batch, env) {
-    return makeConsumers().queue(batch, env);
+    return makeConsumers().queue(batch, coreFor(env));
   },
   async scheduled(controller, env) {
     return makeConsumers().scheduled(controller, env);
