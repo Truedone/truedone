@@ -27,6 +27,8 @@ function github({ existing = false } = {}) {
   return fakeGitHub({
     api: {
       "POST /app/installations/3/access_tokens": { token: "tok" },
+      // APP-25: a queued run reads the pull request from GitHub
+      "GET /repos/o/r/pulls/6": PULL,
       "GET /repos/o/r/pulls/6/files": [{ filename: "test/a.test.js", status: "modified", patch: "@@ -5,0 +6,3 @@" }],
       [`GET /repos/o/r/commits/${H}/pulls`]: [PULL],
       "GET /repos/o/r/actions/runs/77/jobs": { jobs: [{ id: 1, name: "test" }] },

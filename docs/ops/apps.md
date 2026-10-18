@@ -37,6 +37,17 @@ marker last. An installation whose sweep fails keeps its marker for the next day
 fails with one log line per failed installation (`"stage": "sweep"`). Labels, check runs and comments already written stay,
 since they belong to the repository.
 
+A queued delivery holds no pull request text (APP-25, #125). The intake queues, for each event, only the fields its stage reads:
+the action, the installation id and the repository's id, owner and name, with a pull request's number and base and head shas, or
+a workflow run's id, head sha, head repository, conclusion and jobs URL. The stages read only those fields, so a message queued
+in the full shape is handled the same way. A queued pull request run reads the pull request from GitHub with the installation
+token, so it analyses the title, body and author as they stand when it runs, while its check and label are still written at
+the queued head commit. The direct run in the intake analyses the delivery it has just received and makes no extra call. Each
+dead-letter queue has a consumer in the same Worker that logs one line per message (`"stage": "dead-letter"`, with the queue,
+the delivery id, the event and the attempts) and acknowledges it, so nothing waits there for Cloudflare's four days. On
+2026-10-18 at 20:58Z `truedone-dev-dlq` held 386 messages in the full shape (6,633,339 bytes) and `truedone-dlq` held 1. The
+first deploy with these consumers acknowledges them.
+
 The development app belongs to the Truedone organisation since 2026-10-18 (D36), with the repositories; its installation on
 the old account ended with the transfer.
 

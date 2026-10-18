@@ -4,7 +4,7 @@
 // reader, so the App and truedone.pages.dev build the same input for the same pull
 // request (APP-13).
 import { makeGitHub } from "./github.mjs";
-import { ACTIONS } from "./webhook.mjs";
+import { ACTIONS, slim } from "./webhook.mjs";
 import { parseConfig, postingAllowed } from "./posting.mjs";
 import { loadPR, LIMITS } from "../../web/lib/github.mjs";
 import { classify } from "../../core/core.mjs";
@@ -23,9 +23,11 @@ const API = "https://api.github.com";
 // Every request carries the App's user-agent: GitHub's API answers 403 without one, and
 // the site's reader sets none because a browser adds its own.
 export function makeAnalyser(env, gh) {
-  return async function analyse(env2, owner, repo, pr) {
-    // the published shas are read alongside the pull request's files and contents (APP-15)
+  return async function analyse(env2, owner, repo, prOrPromise) {
+    // the published shas are read alongside the pull request's files and contents (APP-15), and alongside the pull
+    // request itself when a queued run reads it from GitHub (APP-25)
     const shas = gh.publishedShas();
+    const pr = await prOrPromise;
     if (!pr) return env2.core.analyse({ files: [], pr: {}, releases: await shas, limits: LIMITS });
     const prUrl = `${API}/repos/${owner}/${repo}/pulls/${pr.number}`;
     const github = (url, init = {}) => String(url) === prUrl
@@ -38,16 +40,20 @@ export function makeAnalyser(env, gh) {
 
 export function makeStatic(env) {
   const gh = makeGitHub(env);
-  const { rawFile, checkRunFor, labelState, postCheck, postLabel } = gh;
+  const { api, rawFile, checkRunFor, labelState, postCheck, postLabel } = gh;
   const analyse = makeAnalyser(env, gh);
 
-  return async function onPullRequest(delivery) {
-    const { payload } = delivery;
+  // APP-25 (#125): the stage reads only the fields slim keeps, so a message queued in the full shape is handled like a
+  // new one. The pull request comes from memory on the direct run (known: the delivery just received, never stored) or
+  // from GitHub on a queued run, which so analyses the title, body and author as they stand when it runs. Either way the
+  // analysis is at the delivery's base and head shas, where its check and label are written.
+  return async function onPullRequest(delivery, { pr: known } = {}) {
+    const payload = slim("pull_request", delivery.payload);
     // The intake drops every other action (APP-16); this covers a message queued before that.
     if (payload.action && !ACTIONS.pull_request.has(payload.action)) return { skipped: payload.action };
     const { repository, pull_request: pr } = payload;
     const owner = repository.owner.login, repo = repository.name;
-    const meta = { owner, repo, number: pr.number, title: pr.title, body: pr.body, author: pr.user };
+    const meta = { owner, repo, number: pr.number };
     // Three phases (APP-15), each running its calls together. (1) The switch: the repository's
     // setting, read at the base so a pull request cannot switch truedone off for itself
     // (APP-13), and both posting flags. Nothing else is read before it, so a repository that
@@ -64,7 +70,9 @@ export function makeStatic(env) {
     const t0 = Date.now();
     meta.startedAt = new Date(t0).toISOString();
     let analyseDone, labelDone, checkDone;
-    const analyseP = analyse(env, owner, repo, pr).then((r) => { analyseDone = Date.now(); return r; });
+    const fullP = (known ? Promise.resolve(known) : api(`/repos/${owner}/${repo}/pulls/${pr.number}`))
+      .then((full) => ({ ...full, base: { ...full.base, sha: pr.base.sha }, head: { ...full.head, sha: pr.head.sha } }));
+    const analyseP = analyse(env, owner, repo, fullP).then((r) => { analyseDone = Date.now(); return r; });
     let labelWritten;
     const labelChain = Promise.all([analyseP, labelState(owner, repo, pr.number)]).then(([result, labels]) => postLabel(owner, repo, pr.number, result, meta, labels).then((written) => { labelDone = Date.now(); labelWritten = written; return result; }));
     const checkChain = Promise.all([analyseP, checkRunFor(owner, repo, pr.head.sha)]).then(([result, found]) => postCheck(owner, repo, pr.head.sha, result, meta, found).then(() => { checkDone = Date.now(); return result; }));

@@ -32,6 +32,8 @@ function github({ expires = true } = {}) {
   const fake = fakeGitHub({
     api: {
       "POST /app/installations/3/access_tokens": expires ? { token: NEW, expires_at: inMinutes(60) } : { token: NEW },
+      // APP-25: a queued run reads the pull request from GitHub
+      "GET /repos/o/r/pulls/6": PULL,
       "GET /repos/o/r/pulls/6/files": [{ filename: FILE, status: "modified", patch: "@@ -5,0 +6,3 @@" }],
       ...writeRoutes("o", "r", 6, H),
       "GET /repos/o/r/labels": LABELS.map((l) => ({ name: l.name })),

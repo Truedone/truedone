@@ -26,6 +26,13 @@ max_batch_timeout = 0
 max_retries = 3
 dead_letter_queue = "truedone-dev-dlq"
 
+# APP-25 (#125): the dead-letter queue's consumer logs each message as one line of identifiers and acknowledges it, so
+# nothing waits there for Cloudflare's four days. It has no dead-letter queue of its own.
+[[queues.consumers]]
+queue = "truedone-dev-dlq"
+max_batch_size = 10
+max_batch_timeout = 0
+
 [[analytics_engine_datasets]]
 binding = "METRICS"
 
@@ -57,6 +64,12 @@ max_batch_size = 10
 max_batch_timeout = 0
 max_retries = 3
 dead_letter_queue = "truedone-dlq"
+
+# APP-25 (#125): as for truedone-dev-dlq above.
+[[env.production.queues.consumers]]
+queue = "truedone-dlq"
+max_batch_size = 10
+max_batch_timeout = 0
 
 [[env.production.analytics_engine_datasets]]
 binding = "METRICS"

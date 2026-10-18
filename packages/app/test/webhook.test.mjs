@@ -67,11 +67,12 @@ test("a signature made with the wrong secret answers 401", async () => {
 test("a correct signature is acknowledged and queued", async () => {
   const e = env();
   const intake = makeIntake(e);
-  const r = await intake(await signedRequest({ action: "opened", number: 1 }));
+  const r = await intake(await signedRequest({ action: "opened", number: 1, pull_request: { number: 1, title: "t", base: { sha: "b" }, head: { sha: "h" } } }));
   assert.equal(r.status, 200);
   assert.equal(e.QUEUE.messages.length, 1);
   assert.equal(e.QUEUE.messages[0].event, "pull_request");
-  assert.equal(e.QUEUE.messages[0].payload.number, 1);
+  // APP-25: the queued payload is the slim shape
+  assert.equal(e.QUEUE.messages[0].payload.pull_request.number, 1);
 });
 
 test("a missing delivery id answers 400", async () => {

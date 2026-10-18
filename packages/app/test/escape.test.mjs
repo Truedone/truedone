@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeStatic } from "../src/static.mjs";
-import { flagsDB } from "./lib/github.mjs";
+import { flagsDB, directRun } from "./lib/github.mjs";
 
 // APP-03-AC04 (S7): a PR body with @mentions and Markdown cannot inject into the
 // check-run summary. The recording-fetch fake the app tests share, inline.
@@ -75,7 +75,7 @@ async function postedSummary(env) {
   const oldFetch = globalThis.fetch;
   globalThis.fetch = fetch;
   try {
-    await makeStatic(env)(PAYLOAD);
+    await directRun(makeStatic(env), PAYLOAD);
     const created = fetch.calls.filter((c) => c.method === "POST" && c.url.includes("/check-runs"))[0];
     return JSON.parse(created.init.body).output.summary;
   } finally { globalThis.fetch = oldFetch; }

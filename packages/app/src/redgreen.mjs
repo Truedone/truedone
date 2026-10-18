@@ -2,6 +2,7 @@
 // take the report only after four checks, let core.judge decide, update the run and label.
 // A run held for a first-time contributor (conclusion action_required) is Waiting for approval.
 import { VERDICT_LABEL, LABELS } from "./labels.mjs";
+import { slim } from "./webhook.mjs";
 
 const API = "https://api.github.com";
 const MAX_ARTIFACT = 256 * 1024;
@@ -64,10 +65,12 @@ export function makeRedGreen(env) {
   return async function onWorkflowRun(delivery) {
     // the check run's started_at: when this delivery's red-green judgement began (APP-14)
     const startedAt = new Date().toISOString();
-    const { workflow_run: run, action } = delivery.payload;
+    // APP-25: only the fields slim keeps, whichever shape the message was queued in
+    const payload = slim("workflow_run", delivery.payload);
+    const { workflow_run: run, action } = payload;
     if (action !== "completed") return { skipped: action };
-    const owner = delivery.payload.repository.owner.login;
-    const repo = delivery.payload.repository.name;
+    const owner = payload.repository.owner.login;
+    const repo = payload.repository.name;
     const headSha = run.head_sha;
 
     const pr = await findPr(owner, repo, headSha, run.head_repository.full_name);
@@ -101,8 +104,8 @@ export function makeRedGreen(env) {
     // newer head's label to that head's own run.
     await env.postCheck(headSha, judged, { owner, repo, number: pr.number, startedAt });
     if (pr.head.sha === headSha) await env.postLabel(pr.number, judged);
-    env.LOG?.({ installation: delivery.payload.installation?.id, repository: delivery.payload.repository.id, pr: pr.number, verdict: judged.verdict, ms: Date.now() - (delivery._t0 || Date.now()) });
-    env.METRICS?.writeDataPoint({ blobs: [judged.verdict, String(delivery.payload.repository.id)], doubles: [Date.now() - (delivery._t0 || Date.now())], indexes: [String(pr.number)] });
+    env.LOG?.({ installation: payload.installation?.id, repository: payload.repository.id, pr: pr.number, verdict: judged.verdict, ms: Date.now() - (delivery._t0 || Date.now()) });
+    env.METRICS?.writeDataPoint({ blobs: [judged.verdict, String(payload.repository.id)], doubles: [Date.now() - (delivery._t0 || Date.now())], indexes: [String(pr.number)] });
     return { verdict: judged.verdict, pr: pr.number };
   };
 }

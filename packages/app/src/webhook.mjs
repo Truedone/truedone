@@ -27,6 +27,28 @@ export const QUEUE_DELAY_S = 15;
 export const REFUSED_RETRY_DELAY_S = 60;
 
 const LATE = Symbol("late");
+
+// APP-25 (#125): a queued delivery carries only the fields its stage reads (ids, shas, the action, the repository's
+// owner and name), so neither a queue nor a dead-letter queue holds pull request text, an author login or a commit
+// message. The stages apply slim to whatever they are given, so a message queued in the full shape is handled the same.
+export function slim(event, payload = {}) {
+  const { action, installation, repository } = payload;
+  const out = {
+    action,
+    installation: installation && { id: installation.id },
+    repository: repository && { id: repository.id, name: repository.name, owner: { login: repository.owner?.login } },
+  };
+  if (event === "pull_request" && payload.pull_request) {
+    const pr = payload.pull_request;
+    out.pull_request = { number: pr.number, base: { sha: pr.base?.sha }, head: { sha: pr.head?.sha } };
+  }
+  if (event === "workflow_run" && payload.workflow_run) {
+    const run = payload.workflow_run;
+    out.workflow_run = { id: run.id, head_sha: run.head_sha, head_repository: { full_name: run.head_repository?.full_name }, conclusion: run.conclusion, jobs_url: run.jobs_url };
+  }
+  return out;
+}
+const queued = (body) => ({ event: body.event, delivery: body.delivery, payload: slim(body.event, body.payload) });
 const logLine = (delivery, error, fields = { stage: "intake" }) => console.error(JSON.stringify({ ...fields, delivery, error: `${error?.name ?? "Error"}: ${error?.message ?? error}` }));
 
 export async function verifySignature(secret, body, header) {
@@ -54,7 +76,7 @@ export function makeIntake(env, { run, budgetMs = DIRECT_BUDGET_MS } = {}) {
   // analysed rather than dropped as a duplicate.
   async function handOver(body, seenKey, opts) {
     try {
-      await (opts ? env.QUEUE.send(body, opts) : env.QUEUE.send(body));
+      await (opts ? env.QUEUE.send(queued(body), opts) : env.QUEUE.send(queued(body)));
     } catch (error) {
       logLine(body.delivery, error);
       await env.KV.delete(seenKey);
@@ -129,7 +151,7 @@ export function makeIntake(env, { run, budgetMs = DIRECT_BUDGET_MS } = {}) {
       ctx.waitUntil(direct({ event, delivery, payload }, seenKey));
       return Response.json({ analysing: event }, { status: 200 });
     }
-    await env.QUEUE.send({ event, delivery, payload });
+    await env.QUEUE.send(queued({ event, delivery, payload }));
     return Response.json({ queued: event }, { status: 200 });
   };
 }
