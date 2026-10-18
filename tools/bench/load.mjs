@@ -71,7 +71,22 @@ async function main() {
   globalThis.fetch = stubFetch(counts);
   const queued = [];
   const queue = { async send(body) { counts.queueSend += 1; queued.push(body); } };
-  const intakeEnv = { ...process.env, WEBHOOK_SECRET: SECRET, KV: kv, QUEUE: queue };
+  // APP-19: the posting switch reads the D1 table flags. The stub answers the
+  // one query with the global row on and no installation row, which reads on.
+  const FLAGS = {
+    prepare() {
+      return {
+        bind(...keys) {
+          return {
+            async all() {
+              return { results: keys.filter((k) => k === "posting_enabled").map((k) => ({ key: k, value: "on" })) };
+            },
+          };
+        },
+      };
+    },
+  };
+  const intakeEnv = { ...process.env, WEBHOOK_SECRET: SECRET, KV: kv, QUEUE: queue, FLAGS };
   const intake = makeIntake(intakeEnv);
 
   // The replay: one pull_request opened delivery per installation.
@@ -98,7 +113,7 @@ async function main() {
   // The drain: the real queue handler with the real stages against the stub API.
   let acked = 0;
   let retried = 0;
-  const staticStage = makeStatic({ INSTALLATION_TOKEN: "stub-token", KV: kv, core: { analyse: async () => VERDICT }, LOG: undefined, RELEASE_SHA_CACHE: [] });
+  const staticStage = makeStatic({ INSTALLATION_TOKEN: "stub-token", KV: kv, FLAGS, core: { analyse: async () => VERDICT }, LOG: undefined, RELEASE_SHA_CACHE: [] });
   const redGreenStage = makeRedGreen({ INSTALLATION_TOKEN: "stub-token", core: { judge: async () => VERDICT }, staticResult: () => ({}), staticVerdict: () => null, defaultStepSha: async () => "step1", publishedShas: async () => [], postCheck: async () => {}, postLabel: async () => {}, UNZIP: async (buf) => ({ entries: [{ data: new Uint8Array() }] }) });
   const handler = makeConsumers({
     mint: async () => "stub-token",
