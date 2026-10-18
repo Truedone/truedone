@@ -433,6 +433,9 @@
       ],
       "APP-20": [
         "APP-20-AC06"
+      ],
+      "APP-21": [
+        "APP-21-AC05"
       ]
     }
   },
@@ -7661,6 +7664,108 @@
         },
         {
           "id": "APP-20-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "APP-21",
+      "title": "[W2] The label write is trialled by method on live deliveries",
+      "phase": "implement",
+      "owner": "lane-d",
+      "depends_on": [
+        "APP-20"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "#108. After APP-20, APP-06-AC02 still reads p50 3000 ms (glm, 30 PRs on fc2a1239: 2 s x5, 3 s x18, 4 s x6, 7 s x1). The phase lines put the label chain at p50 1105 ms from the start of phase 2, with the analysis at 380, so the single label write takes about 700 ms from IAD. The label write is trialled by method, chosen by the delivery id's hash in turn: (1) REST POST /repos/{o}/{r}/issues/{n}/labels as today; (2) GraphQL addLabelsToLabelable with the pull request's node id from the delivery and the label's node id from the repository labels already read; (3) REST PATCH /repos/{o}/{r}/issues/{n} with the full label list, keeping every label already on the issue. A GraphQL answer that carries errors throws, so the APP-17 queue path retries it. The phase line gains label_write_ms and label_method. A follow-up task keeps the fastest method by its measured p50 and removes the trial.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-21-AC01",
+          "mandatory": true,
+          "statement": "each delivery id fires only its method's route, a GraphQL answer with errors throws, PATCH keeps the labels already on the issue, and the phase line carries label_write_ms and label_method",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/label-method.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-21-AC02",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-21-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-21-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-21-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-21-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-21-AC07",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
