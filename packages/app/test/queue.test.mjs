@@ -19,7 +19,7 @@ function memoryKV() {
     async get(k) { const e = store.get(k); return e === undefined ? null : e.v; },
     async put(k, v, opts = {}) { store.set(k, { v, ttl: opts.expirationTtl ?? null }); },
     async delete(k) { store.delete(k); },
-    async list({ prefix }) { return [...store.keys()].filter((k) => k.startsWith(prefix)); },
+    async list(opts = {}) { const ks = [...store.keys()].filter((k) => k.startsWith(opts.prefix)); return { keys: ks, list_complete: true, cursor: undefined }; },
   };
 }
 
