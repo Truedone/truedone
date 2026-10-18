@@ -16,7 +16,8 @@ import { fakeGitHub, memoryKV, delivery, checkRuns, labelWrites, sandbox42, pkcs
 
 test("the entry posts exactly one check run and one label, with core's verdict for the recorded #42 files", async (t) => {
   const s = sandbox42();
-  const fetch = fakeGitHub({ api: { ...s.api, "POST /app/installations/3/access_tokens": { token: "tok-42" } }, raw: s.raw });
+  // APP-25: a queued run reads the pull request from GitHub
+  const fetch = fakeGitHub({ api: { ...s.api, [`GET /repos/${s.owner}/${s.repo}/pulls/42`]: s.pull, "POST /app/installations/3/access_tokens": { token: "tok-42" } }, raw: s.raw });
   const site = await loadPR({ owner: s.owner, repo: s.repo, number: 42 }, {
     fetch: fakeGitHub({ api: { ...s.api, [`GET /repos/${s.owner}/${s.repo}/pulls/42`]: s.pull }, raw: s.raw }),
     classify,

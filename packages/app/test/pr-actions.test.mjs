@@ -25,6 +25,8 @@ const after = `${before}test('a again', () => {\n  assert.equal(f(), 1);\n});\n`
 const github = () => fakeGitHub({
   api: {
     "POST /app/installations/3/access_tokens": { token: "tok" },
+    // APP-25: a queued run reads the pull request from GitHub
+    "GET /repos/o/r/pulls/6": PULL,
     "GET /repos/o/r/pulls/6/files": [{ filename: FILE, status: "modified", patch: "@@ -5,0 +6,3 @@" }],
     ...writeRoutes("o", "r", 6, H),
     "GET /repos/o/r/labels": LABELS.map((l) => ({ name: l.name })),

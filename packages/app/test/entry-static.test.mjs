@@ -10,6 +10,7 @@ import worker from "../src/index.mjs";
 import { flagsDB } from "./lib/github.mjs";
 
 const API = "https://api.github.com";
+const PR41 = { number: 41, title: "t", body: "", user: { login: "someone" }, head: { ref: "branch", sha: "sha-41" }, base: { ref: "main", sha: "base-41" } };
 const esc = (s) => s.replace(/[./]/g, "\\$&");
 
 function memoryKV() {
@@ -50,6 +51,8 @@ test("the entry's queue handler posts one check run and one label for a recorded
       [/raw\.githubusercontent\.com\/mgillr\/truedone-sandbox\/base-41\//, "const a = 1;\n"],
       [/raw\.githubusercontent\.com\/mgillr\/truedone-sandbox\/sha-41\//, "const a = 2;\n"],
       [new RegExp(`${esc(API)}/repos/truedone/action/tags`), []],
+      // APP-25: a queued run reads the pull request from GitHub
+      [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/pulls/41$`), PR41],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/pulls/41/files`), [{ filename: "test/a.test.js", status: "modified", patch: "@@ -1,3 +1,3 @@" }]],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/commits/sha-41/check-runs`), { check_runs: [] }],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/labels`), []],
@@ -70,7 +73,7 @@ test("the entry's queue handler posts one check run and one label for a recorded
       action: "opened",
       number: 41,
       repository: { id: 9001, name: "truedone-sandbox", owner: { login: "mgillr" } },
-      pull_request: { number: 41, title: "t", body: "", user: { login: "someone" }, head: { ref: "branch", sha: "sha-41" }, base: { ref: "main", sha: "base-41" } },
+      pull_request: PR41,
       installation: { id: 3 },
     },
   });

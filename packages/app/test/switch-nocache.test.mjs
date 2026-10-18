@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeStatic } from "../src/static.mjs";
-import { flagsDB } from "./lib/github.mjs";
+import { flagsDB, directRun } from "./lib/github.mjs";
 
 // APP-05-AC02 (R5): the flag is read with no cache. The same env flips the flag
 // between two deliveries; the second delivery must see the fresh value.
@@ -64,12 +64,12 @@ test("a delivery after the flag flips sees the fresh value and stops", async () 
     const db = flagsDB();
     const env = { INSTALLATION_TOKEN: "t", KV: kv, FLAGS: db, core: { analyse: async () => result() } };
     const stage = makeStatic(env);
-    const first = await stage(PAYLOAD);
+    const first = await directRun(stage, PAYLOAD);
     assert.equal(first.verdict, "proven", "the first delivery posts");
     const posted = fetch.calls.filter((c) => c.method === "POST").length;
     assert.ok(posted > 0, "the first delivery wrote to GitHub");
     db.store.set("posting_enabled:3", "off");
-    const second = await stage(PAYLOAD);
+    const second = await directRun(stage, PAYLOAD);
     assert.deepEqual(second, { skipped: "posting_disabled" }, "the second delivery reads the flag uncached");
     assert.equal(fetch.calls.filter((c) => c.method === "POST").length, posted, "no new writes after the switch");
   } finally { globalThis.fetch = oldFetch; }

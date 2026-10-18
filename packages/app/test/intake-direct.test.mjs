@@ -104,7 +104,7 @@ test("opened: answered 200 with nothing queued, then analysed once in waitUntil"
   assert.equal(JSON.parse(checks[0].body).head_sha, H);
 });
 
-test("a run that throws: the delivery goes to the queue as it came, and one log line names it without the token", async (t) => {
+test("a run that throws: the delivery goes to the queue in the slim shape, and one log line names it without the token", async (t) => {
   const gh = github({ filesStatus: 500 });
   useFetch(t, gh);
   const logs = captureLogs(t);
@@ -112,7 +112,9 @@ test("a run that throws: the delivery goes to the queue as it came, and one log 
   const ctx = context();
   const r = await deliver(env, "pull_request", "opened", "d-2", ctx);
   assert.equal(r.status, 200);
-  assert.deepEqual(sent, [[{ event: "pull_request", delivery: "d-2", payload: payloadFor("pull_request", "opened") }]], "queued once, with no delay");
+  // APP-25: only the fields the stage reads, with no pull request text
+  const slim = { action: "opened", installation: { id: 3 }, repository: { id: REPO.id, name: REPO.name, owner: { login: "o" } }, pull_request: { number: 6, base: { sha: PULL.base.sha }, head: { sha: PULL.head.sha } } };
+  assert.deepEqual(sent, [[{ event: "pull_request", delivery: "d-2", payload: slim }]], "queued once, with no delay");
   assert.equal(count(gh, "POST /repos/o/r/check-runs"), 0, "nothing written");
   assert.equal(await env.KV.get("delivery:d-2"), "1", "the queue has it, so the dedupe record stays");
   const lines = logs.map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean).filter((l) => l.stage === "intake");

@@ -26,6 +26,8 @@ function github(names, raw = {}) {
   const contents = Object.fromEntries(names.flatMap((p) => [[`o/r/${B}/${p}`, before(p)], [`o/r/${H}/${p}`, after(p)]]));
   const api = {
     "POST /app/installations/3/access_tokens": { token: "tok" },
+    // APP-25: a queued run reads the pull request from GitHub
+    "GET /repos/o/r/pulls/6": pull,
     "GET /repos/o/r/pulls/6/files": files,
     ...writeRoutes("o", "r", 6, H),
     "GET /repos/o/r/labels": LABELS.map((l) => ({ name: l.name })),
@@ -75,9 +77,12 @@ test("two changed test files: under half the time in sequence, the reads togethe
   assert.ok(ms < (n * 100) / 2, `${ms} ms is not under half of ${n * 100} ms`);
   // phase 2: every read starts together, after the config read has answered
   const config = startOf(f.calls, /^GET raw:o\/r\/c+\/\.github\/truedone\.yml$/);
-  const reads = [/^GET \/repos\/o\/r\/pulls\/6\/files$/, /^GET \/repos\/truedone\/action\/tags$/, /^GET \/repos\/o\/r\/commits\/d+\/check-runs$/, /^GET \/repos\/o\/r\/issues\/6\/labels$/, /^GET \/repos\/o\/r\/labels$/].map((re) => startOf(f.calls, re));
+  // APP-25: a queued run reads the pull request from GitHub beside the other reads, and its files once it has it
+  const reads = [/^GET \/repos\/o\/r\/pulls\/6$/, /^GET \/repos\/truedone\/action\/tags$/, /^GET \/repos\/o\/r\/commits\/d+\/check-runs$/, /^GET \/repos\/o\/r\/issues\/6\/labels$/, /^GET \/repos\/o\/r\/labels$/].map((re) => startOf(f.calls, re));
   assert.ok(Math.max(...reads) - Math.min(...reads) < 50, `the reads start together: ${reads}`);
   assert.ok(Math.min(...reads) >= config + 100, "no read starts before the switch is read");
+  const prRead = startOf(f.calls, /^GET \/repos\/o\/r\/pulls\/6$/), filesRead = startOf(f.calls, /^GET \/repos\/o\/r\/pulls\/6\/files$/);
+  assert.ok(filesRead >= prRead + 100 && filesRead - prRead < 150, `the files are read once the pull request answers: ${prRead}, ${filesRead}`);
   // phase 3: the two writes start together
   const writes = repoWrites(f.calls);
   assert.deepEqual(writes.map((c) => `${c.method} ${path(c)}`).sort(), ["POST /repos/o/r/check-runs", "POST /repos/o/r/issues/6/labels"]);

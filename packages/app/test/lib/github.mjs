@@ -68,6 +68,10 @@ export function delivery(pull, installation = 3) {
   };
 }
 
+// APP-25: the intake's direct run hands the static stage the delivery's own pull request in memory, so the stage reads
+// no pull request from GitHub; a queued run is the stage with the message alone, and fetches it.
+export const directRun = (stage, d) => stage(d, { pr: d.payload.pull_request });
+
 // The calls the stage made of one kind.
 export const checkRuns = (fetch) => fetch.calls.filter((c) => c.method === "POST" && /\/check-runs$/.test(c.url));
 // APP-21: a label write is the REST POST of the label list, the issue PATCH

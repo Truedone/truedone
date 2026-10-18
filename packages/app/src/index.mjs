@@ -6,7 +6,7 @@
 // failures; the scheduled handler runs APP-05's daily sweep over the removed
 // installations' leftovers. Only Web APIs.
 import { makeHealth } from "./health.mjs";
-import { makeIntake, REFUSED_RETRY_DELAY_S } from "./webhook.mjs";
+import { makeIntake, REFUSED_RETRY_DELAY_S, slim } from "./webhook.mjs";
 import { makeStatic, makeAnalyser } from "./static.mjs";
 import { makeRedGreen } from "./redgreen.mjs";
 import { listKeys, sweepLeftovers, tokenKey } from "./posting.mjs";
@@ -15,6 +15,9 @@ import { unzip } from "./unzip.mjs";
 import { analyse as coreAnalyse, judge as coreJudge } from "../../core/core.mjs";
 
 const REMOVED_PREFIX = "removed:";
+// APP-25 (#125): the dead-letter queues, named in wrangler.toml. A message on one is logged as one line of identifiers
+// and acknowledged, so nothing waits there for Cloudflare's four days. Not exported (see TOKEN_MARGIN_S).
+const DEAD_LETTER_QUEUES = new Set(["truedone-dev-dlq", "truedone-dlq"]);
 
 export function makeApp(env) {
   const health = makeHealth({ version: env.VERSION ?? "unversioned", flags: env.FLAGS });
@@ -105,7 +108,8 @@ export async function dropToken(env, installationId) {
   if (env.KV && installationId !== undefined) await env.KV.delete(tokenKey(installationId));
 }
 
-// The static stage for one pull_request delivery, with the kept token; the intake runs it directly (APP-17).
+// The static stage for one pull_request delivery, with the kept token; the intake runs it directly (APP-17), with the
+// delivery's pull request in memory, so the direct run makes no extra GitHub call (APP-25).
 async function runStatic(env, body) {
   const installationId = body.payload?.installation?.id;
   // APP-18: the mint starts beside the stage's config read, not before it; the
@@ -114,7 +118,7 @@ async function runStatic(env, body) {
   // repository read and every write (APP-15).
   const tokenP = installationToken(env, installationId);
   try {
-    await makeStatic({ ...env, INSTALLATION_TOKEN: tokenP })(body);
+    await makeStatic({ ...env, INSTALLATION_TOKEN: tokenP })(body, { pr: body.payload?.pull_request });
   } catch (error) {
     if (error?.status === 401) await dropToken(env, installationId);
     throw error;
@@ -128,6 +132,14 @@ export function makeConsumers(deps = {}) {
   const sweep = deps.sweep ?? sweepLeftovers;
   return {
     async queue(batch, env) {
+      if (DEAD_LETTER_QUEUES.has(batch.queue)) {
+        for (const message of batch.messages) {
+          const { delivery, event } = message.body ?? {};
+          console.error(JSON.stringify({ stage: "dead-letter", queue: batch.queue, delivery: String(delivery ?? ""), event: String(event ?? ""), attempts: message.attempts }));
+          message.ack();
+        }
+        return;
+      }
       for (const message of batch.messages) {
         let stage = "mint";
         try {
@@ -142,7 +154,7 @@ export function makeConsumers(deps = {}) {
           if (event === "pull_request") {
             await (deps.staticStage ?? makeStatic(stageEnv))(message.body);
           } else if (event === "workflow_run") {
-            await (deps.redGreenStage ?? makeRedGreen(redgreenFor(stageEnv, message.body.payload)))(message.body);
+            await (deps.redGreenStage ?? makeRedGreen(redgreenFor(stageEnv, slim("workflow_run", message.body.payload))))(message.body);
           }
           message.ack();
         } catch (error) {
