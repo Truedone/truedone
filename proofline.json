@@ -351,6 +351,12 @@
       ],
       "WEB-11": [
         "WEB-11-AC05"
+      ],
+      "APP-09": [
+        "APP-09-AC09"
+      ],
+      "WEB-12": [
+        "WEB-12-AC06"
       ]
     }
   },
@@ -6129,6 +6135,151 @@
       ]
     },
     {
+      "id": "APP-09",
+      "title": "[W2] The App mints its token from the key GitHub issues, logs a failed delivery, sweeps KV correctly, and reports the real posting state",
+      "phase": "implement",
+      "owner": "lane-d",
+      "depends_on": [
+        "APP-08",
+        "APP-05"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "description": "Measured on 2026-10-18 (issue #91): GitHub delivers pull_request webhooks to truedone-dev (wrangler tail 08:42Z, outcome ok) and no sandbox pull request has ever received a label or a check. pemToPkcs8 in packages/app/src/index.mjs strips only the PKCS#8 header, and GitHub issues App private keys as PKCS#1 (\"BEGIN RSA PRIVATE KEY\"; the Worker's PRIVATE_KEY is the manifest conversion's pem field); main's own function throws InvalidCharacterError on a PKCS#1 key (measured with a generated key). The queue consumer catches every error and retries with no log line, so each delivery drops to the dead-letter queue unseen. Fixes: (1) the key import accepts PKCS#1 by wrapping its DER in the PKCS#8 PrivateKeyInfo header for rsaEncryption, and PKCS#8 as today, with Web APIs only; (2) a failed delivery logs one line with the stage (mint, static, red-green), the delivery id and the error name and message, never a secret, token or payload, before the retry; (3) the daily sweep iterates the keys of the object KV.list returns, following its cursor; (4) the posting switch has one global KV key, posting_enabled, read uncached before every write beside the per-installation key, and /health reports posting_enabled from that global key (on unless it reads off), not from an environment variable. The secret stays a Worker secret (S5); nothing is read back.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "packages/app/README.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-09-AC01",
+          "mandatory": true,
+          "statement": "a PKCS#1 key and a PKCS#8 key both import and sign, and the signature verifies with the public key",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/key-format.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-09-AC02",
+          "mandatory": true,
+          "statement": "a failed delivery logs the stage, the delivery id and the error, and no secret, token or payload, before it retries",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/consumer-log.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-09-AC03",
+          "mandatory": true,
+          "statement": "the sweep iterates the keys KV.list returns, across a cursor",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/sweep-list.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-09-AC04",
+          "mandatory": true,
+          "statement": "the global posting_enabled key stops every write when off, and /health reports it",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/posting-global.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-09-AC05",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-09-AC06",
+          "mandatory": true,
+          "statement": "no secret value is written into app source",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"(PRIVATE_KEY|WEBHOOK_SECRET|CLIENT_SECRET)[[:space:]]*[:=][[:space:]]*[\\\"'][^\\\"']{16,}\" packages/app --exclude-dir=test",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-09-AC07",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-09-AC08",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-09-AC09",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-09-AC10",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-09-AC11",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
       "id": "APP-03",
       "title": "[W3] Static stage: check run, one label, summary, config, logs",
       "phase": "implement",
@@ -6824,7 +6975,8 @@
       "depends_on": [
         "APP-05",
         "DEP-01",
-        "OPS-02"
+        "OPS-02",
+        "APP-09"
       ],
       "requirements": [
         "PV-A03",
@@ -9409,6 +9561,117 @@
         },
         {
           "id": "WEB-11-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "WEB-12",
+      "title": "[W2] The site says plainly which parts are released",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "WEB-11"
+      ],
+      "requirements": [
+        "PV-W02"
+      ],
+      "description": "Measured on 2026-10-18 08:55Z as a new user (issue #92): every page shows \"npx truedone <PR link> --run\", and npx truedone in a fresh HOME prints \"truedone is not released yet\" and exits 1; the green line says to add the truedone step while mgillr/truedone-action is empty and the production App is private; home names the Claude Code plugin, which has no install path. The site gives no word that these are not released. Changes: packages/web/lib/release.mjs holds one release state per surface (cli, action, app, plugin), all false now, the only place a release flips; the next rung, the green line and the plugin line read it and, for a surface not released, say \"Not released yet\" with a link to https://github.com/mgillr/truedone to follow the first release, keeping the red-green warning (PV-W05); home gains a short \"What works today\" list: this site checks any public pull request now, and the command line, the action, the App and the plugin come with the first release. /why says the same in one line.",
+      "scope": {
+        "allow": [
+          "packages/web/lib/**",
+          "packages/web/why.html",
+          "packages/web/style.css",
+          "packages/web/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "WEB-12-AC01",
+          "mandatory": true,
+          "statement": "with every surface unreleased, each page that names the command line, the step or the plugin says Not released yet with the follow link; flipping one surface in the release state removes its notice",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/release-state.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-12-AC02",
+          "mandatory": true,
+          "statement": "home lists what works today",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/works-today.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-12-AC03",
+          "mandatory": true,
+          "statement": "every page still shows the next rung with the red-green warning (PV-W05)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test packages/web/test/next-rung.test.mjs",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "WEB-12-AC04",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 100,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "WEB-12-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-12-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-12-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "WEB-12-AC08",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
