@@ -332,6 +332,9 @@
       ],
       "CORE-10": [
         "CORE-10-AC10"
+      ],
+      "CORE-11": [
+        "CORE-11-AC09"
       ]
     }
   },
@@ -2807,6 +2810,164 @@
         },
         {
           "id": "CORE-10-AC12",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "CORE-11",
+      "title": "[W2] A replaced test's unrun reason names its file",
+      "phase": "implement",
+      "owner": "lane-d",
+      "depends_on": [
+        "CORE-10"
+      ],
+      "requirements": [
+        "PV-C04",
+        "PV-C05",
+        "PV-C08"
+      ],
+      "description": "Measured live after the deploy from d90ded65 (issue #70): pull request #39's reason line reads \"packages/web/test/route.test.mjs: Tests in a pasted github.com or truedone.dev link, or owner/repo#n, becomes the PR path changed and have not been run.\" packages/core/src/checks.mjs:458, the replacement branch CORE-10 added, calls reason('unrun', b.path, b.name, 'unrun') while the moved branch at :449 passes b.path; the unrun template (messages.mjs:3, \"Tests in {name} changed and have not been run.\") expects a file, and the page adds a file prefix when the message does not name the file. Fix: b.name becomes b.path, and a test checks that a replaced test's unrun reason names its file once and no test name. Bundles rebuilt; nothing else changes.",
+      "scope": {
+        "allow": [
+          "packages/core/src/checks.mjs",
+          "packages/core/test/**",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/action/dist/index.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "CORE-11-AC01",
+          "mandatory": true,
+          "statement": "a replaced test's unrun reason names its file once and no test name",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/core/test/replaced-unrun.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CORE-11-AC02",
+          "mandatory": true,
+          "statement": "every checks-table row keeps its verdict, in each language",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --input-type=module -e 'import fs from \"node:fs\";import {analyse} from \"./packages/core/src/analyse.mjs\";const d=\"packages/core/test/fixtures/checks/\";const want={\"skip_added\":\"tampered\",\"focus_added\":\"tampered\",\"assertion_weakened\":\"tampered\",\"test_deleted_source_kept\":\"tampered\",\"test_deleted_source_deleted\":\"review\",\"test_moved\":\"unrun\",\"snapshot_updated\":\"review\",\"param_case_removed\":\"review\",\"timeout_raised\":\"review\",\"runner_config_changed\":\"review\",\"step_repinned_release\":\"review\",\"step_changed\":\"tampered\",\"claims_adds_tests\":\"no_evidence\",\"source_no_test\":\"no_evidence\",\"tests_changed_no_report\":\"unrun\",\"docs_only\":\"not_applicable\"};const per=[\"skip_added\",\"focus_added\",\"assertion_weakened\",\"test_deleted_source_kept\",\"test_moved\",\"timeout_raised\"];for(const [r,v] of Object.entries(want))for(const l of (per.includes(r)?[\"js\",\"ts\",\"py\"]:[\"any\"])){const p=d+r+\"/\"+l+\".json\";if(!fs.existsSync(p)){console.error(\"missing\",p);process.exit(1)}const f=JSON.parse(fs.readFileSync(p,\"utf8\"));const o=analyse({files:f.files,pr:f.pr??{title:\"\",body:\"\",author:{login:\"a\",type:\"User\"}},releases:f.releases??[]});if(o.verdict!==v){console.error(p,o.verdict,\"!=\",v);process.exit(1)}if(/\\b(safe|correct|you|your)\\b/i.test(JSON.stringify([o.reasons,o.next]))){console.error(\"wording\",p);process.exit(1)}}'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "CORE-11-AC03",
+          "mandatory": true,
+          "statement": "the committed bundles match their sources",
+          "verifier": {
+            "type": "docs",
+            "cmd": "node tools/bundle.mjs",
+            "paths": [
+              "packages/core/core.mjs",
+              "packages/web/core.mjs",
+              "packages/cli/truedone.mjs",
+              "packages/cli/plugin/hooks/stop.mjs",
+              "packages/action/dist/index.mjs"
+            ]
+          }
+        },
+        {
+          "id": "CORE-11-AC04",
+          "mandatory": true,
+          "statement": "every committed bundle builds from the sources on this tree and matches them",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/bundle.mjs && git diff --quiet -- packages/core/core.mjs packages/web/core.mjs packages/cli packages/action/dist",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-11-AC05",
+          "mandatory": true,
+          "statement": "core.mjs stays under 60 KB",
+          "verifier": {
+            "type": "metric",
+            "cmd": "node tools/bundle.mjs >/dev/null && node -e 'console.log(JSON.stringify({bytes:require(\"fs\").statSync(\"packages/core/core.mjs\").size}))'",
+            "key": "bytes",
+            "op": "<",
+            "value": 61440,
+            "timeout_s": 3600,
+            "name": "core_bytes"
+          }
+        },
+        {
+          "id": "CORE-11-AC06",
+          "mandatory": true,
+          "statement": "core source does no I/O and uses no Node, Deno or Workers API",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|process\\.|Buffer\\.|fetch\\(|Deno\\.|XMLHttpRequest|localStorage\" packages/core/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-11-AC07",
+          "mandatory": true,
+          "statement": "core suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/core/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 235,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "CORE-11-AC08",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-11-AC09",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-11-AC10",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "CORE-11-AC11",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
