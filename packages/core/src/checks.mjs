@@ -14,7 +14,7 @@ const CHECK_ORDER = ['skip', 'focus', 'weakened', 'deleted', 'snapshot', 'parame
 const VERDICT_RANK = ['tampered', 'review', 'could_not_run', 'proven', 'proven_new', 'proven_weak', 'no_evidence', 'pending', 'unrun', 'not_applicable'];
 
 const STRONG = new Set(['toBe', 'toEqual', 'toStrictEqual', 'assertEqual', 'assertEq']);
-const WEAK = new Set(['toBeDefined', 'toBeTruthy', 'toBeNull', 'toBeTypeOf', 'assertTrue', 'assertIsNotNone', 'assertBare']);
+const WEAK = new Set(['toBeDefined', 'toBeTruthy', 'toBeNull', 'toBeTypeOf', 'assertTrue', 'assertIsNotNone', 'assertBare', 'assertOk']);
 
 function normPath(p) {
   return String(p || '').replace(/\\/g, '/');
@@ -50,18 +50,58 @@ function stringsOf(src, re) {
   return out;
 }
 
+function boolLit(text) {
+  return /^(true|false|null|undefined|True|False|None)$/.test(String(text).trim());
+}
+
+function liveText(body) {
+  let text = stripComments(body);
+  let prev = '';
+  while (text !== prev) {
+    prev = text;
+    text = text.replace(/if\s*\(\s*(?:false|0)\s*\)\s*\{[^{}]*\}/g, '');
+  }
+  text = text.replace(/try\s*\{([^{}]*)\}\s*catch\s*\([^)]*\)\s*\{([^{}]*)\}/g, (all, tried, caught) => (
+    /\bthrow\b/.test(caught) ? all : ''
+  ));
+  const cut = text.search(/(^|[;{}])\s*return\s*;/);
+  return cut < 0 ? text : text.slice(0, cut);
+}
+
 function jsAssertions(body) {
+  const text = liveText(body);
   const out = [];
-  const re = /(?:^|[^\w])(?:not\.)?(toBeDefined|toBeTruthy|toBeTypeOf|toStrictEqual|toEqual|toBeNull|toBe)\s*\(/g;
-  for (const m of body.matchAll(re)) out.push(m[1] === 'toBeNull' && /not\.toBeNull\s*\(/.test(body) ? 'toBeNull' : m[1]);
+  const re = /expect\s*\(\s*([^()]*)\)\s*\.\s*(not\.)?(toBeDefined|toBeTruthy|toBeTypeOf|toStrictEqual|toEqual|toBeNull|toBe)\s*\(\s*([^()]*)\)/g;
+  for (const m of text.matchAll(re)) {
+    const kind = m[3];
+    if ((kind === 'toBe' || kind === 'toEqual' || kind === 'toStrictEqual') && boolLit(m[1]) && boolLit(m[4])) continue;
+    out.push(kind);
+  }
+  const nodeRe = /\bassert\s*(?:\.(\w+))?\s*\(\s*([^()]*)\)/g;
+  for (const m of text.matchAll(nodeRe)) {
+    const method = m[1] || '';
+    const args = m[2].split(',').map((part) => part.trim());
+    if (!method || method === 'ok') {
+      if (boolLit(args[0] || '')) continue;
+      out.push(method === 'ok' ? 'assertOk' : 'assertBare');
+      continue;
+    }
+    if (method === 'equal' || method === 'strictEqual' || method === 'deepEqual' || method === 'deepStrictEqual') {
+      if (args.length >= 2 && boolLit(args[0]) && boolLit(args[1])) continue;
+      out.push(method === 'deepEqual' || method === 'deepStrictEqual' ? 'assertEq' : 'assertEqual');
+    }
+  }
   return out;
 }
 
 function pyAssertions(body) {
+  const text = liveText(body);
   const out = [];
-  for (const m of body.matchAll(/\b(assertEqual|assertTrue|assertIsNotNone)\s*\(/g)) out.push(m[1]);
-  for (const m of body.matchAll(/^\s*assert\s+(.+)$/gm)) {
-    out.push(/==|!=/.test(m[1]) ? 'assertEq' : 'assertBare');
+  for (const m of text.matchAll(/\b(assertEqual|assertTrue|assertIsNotNone)\s*\(/g)) out.push(m[1]);
+  for (const m of text.matchAll(/^\s*assert\s+(.+)$/gm)) {
+    const expr = m[1].trim();
+    if (/^(True|False|None)$/.test(expr)) continue;
+    out.push(/==|!=/.test(expr) ? 'assertEq' : 'assertBare');
   }
   return out;
 }
@@ -120,7 +160,7 @@ function parseJs(src) {
     const each = m[2] ? [m[2]] : null;
     tests.push({
       name: m[5],
-      skip: m[1] === 'xit' || m[1] === 'xtest' || m[3] === 'skip',
+      skip: m[1] === 'xit' || m[1] === 'xtest' || m[3] === 'skip' || /\bthis\.skip\s*\(/.test(body) || /(?<![.\w])t\.skip\s*\(/.test(body) || /skip\s*:\s*true/.test(src.slice(m.index + m[0].length, m.index + m[0].length + 80)),
       focus: m[1] === 'fit' || m[1] === 'fdescribe' || m[3] === 'only',
       assertions: assertionsOf('js', body),
       timeout: maxNum(src, /(?:setTimeout|timeout)\s*\(\s*(\d+)/g),
@@ -141,7 +181,7 @@ function parsePy(src) {
     const param = marks.find((d) => d.includes('parametrize'));
     tests.push({
       name: m[2],
-      skip: marks.some((d) => /pytest\.mark\.(skip|skipif|xfail)\b/.test(d) || /\.skip\b/.test(d)),
+      skip: marks.some((d) => /pytest\.mark\.(skip|skipif|xfail)\b/.test(d) || /\.skip\b/.test(d)) || /\bpytest\.skip\s*\(/.test(body),
       focus: marks.some((d) => /pytest\.mark\.only\b/.test(d)),
       assertions: assertionsOf('py', body),
       timeout: maxNum(marks.join('\n') + body, /timeout\s*\(\s*(\d+)/g),

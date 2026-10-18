@@ -1,0 +1,14 @@
+{
+  "files": [
+    {
+      "path": "src/add.js",
+      "base": "export function add(a, b) { return a + b; }\n",
+      "head": "export function add(a, b) { return a + b + 1; }\n"
+    },
+    {
+      "path": "a.test.js",
+      "base": "test('adds', () => { expect(sum).toBe(2); });\n",
+      "head": "test('adds', () => { expect(sum).toBeDefined(); });\n"
+    }
+  ]
+}
