@@ -1,0 +1,72 @@
+name: Wrong verdict
+description: truedone gave a pull request a verdict you think is wrong, or missed something it should have caught.
+title: "Wrong verdict: "
+labels: ["wrong-verdict"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Each report is read, and a confirmed one becomes a case in truedone's detection benchmark, so the same mistake is caught on every change from then on (D39 in docs/spec.md).
+        This form never asks for code. For a public pull request we read the public record ourselves, at the two commits you give, and keep that copy privately. Do not paste code from a private repository here.
+  - type: input
+    id: pr
+    attributes:
+      label: Pull request
+      description: The pull request link, such as https://github.com/owner/repo/pull/12.
+      placeholder: https://github.com/owner/repo/pull/12
+    validations:
+      required: true
+  - type: input
+    id: head
+    attributes:
+      label: Head commit
+      description: The full head commit the verdict was given on, 40 hexadecimal characters. The check run and `npx truedone report` show it.
+    validations:
+      required: true
+  - type: input
+    id: base
+    attributes:
+      label: Base commit
+      description: The full base commit of that comparison, 40 hexadecimal characters.
+    validations:
+      required: true
+  - type: input
+    id: verdict
+    attributes:
+      label: Verdict shown
+      description: The verdict truedone gave, such as tampered, no_evidence or proven.
+    validations:
+      required: true
+  - type: input
+    id: reasons
+    attributes:
+      label: Reason codes
+      description: The reason check codes the verdict listed, such as weakened or no_test, separated by commas, if you have them.
+    validations:
+      required: false
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is wrong
+      description: Pick the one that fits best.
+      options:
+        - a false alarm
+        - a missed tamper
+        - missed evidence
+        - the wrong class
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: truedone version
+      description: The version of the App, the action or the command line that gave the verdict.
+    validations:
+      required: true
+  - type: textarea
+    id: note
+    attributes:
+      label: Note
+      description: Anything that helps us see the mistake, in your words. No code.
+    validations:
+      required: false
