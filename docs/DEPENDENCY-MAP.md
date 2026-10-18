@@ -34,6 +34,7 @@ flowchart TD
   corpus["corpus<br/>the sample and the gate scripts"]
   bench["bench<br/>latency and detection benches"]
   metrics["metrics<br/>public metrics, the profile"]
+  misses["misses<br/>the wrong-verdict collector"]
   github["github<br/>CI workflows and CODEOWNERS"]
   gates["gates<br/>gate records and review sheets"]
   index["index<br/>the weekly index"]
@@ -86,6 +87,8 @@ flowchart TD
   corpus -.->|review| index
   bench -.->|review| readme
   metrics -.->|review| readme
+  misses -.->|review| metrics
+  misses -.->|review| bench
   github -.->|review| contract
   gates -.->|review| readme
   gates -.->|review| releases
@@ -128,6 +131,7 @@ flowchart TD
 | `corpus` | the sample and the gate scripts | `tools/corpus/**` |   | `gates`, `index` | planned |
 | `bench` | latency and detection benches | `tools/bench/**`, `docs/bench/**` |   | `readme` | live |
 | `metrics` | public metrics, the profile | `tools/metrics/**`, `docs/metrics/**`, `docs/org/**` |   | `readme` | live |
+| `misses` | the wrong-verdict collector | `tools/misses/**` |   | `metrics`, `bench` | live |
 | `github` | CI workflows and CODEOWNERS | `.github/workflows/**`, `.github/CODEOWNERS` |   | `contract` | live |
 | `gates` | gate records and review sheets | `docs/gates/**` |   | `readme`, `releases` | live |
 | `index` | the weekly index | `docs/index/**` |   | `readme` | planned |
@@ -169,6 +173,7 @@ flowchart TD
     "corpus": {"planned": true, "paths": ["tools/corpus/**"], "update": [], "review": ["gates", "index"]},
     "bench": {"paths": ["tools/bench/**", "docs/bench/**"], "update": [], "review": ["readme"]},
     "metrics": {"paths": ["tools/metrics/**", "docs/metrics/**", "docs/org/**"], "update": [], "review": ["readme"]},
+    "misses": {"paths": ["tools/misses/**"], "update": [], "review": ["metrics", "bench"]},
     "github": {"paths": [".github/workflows/**", ".github/CODEOWNERS"], "update": [], "review": ["contract"]},
     "gates": {"paths": ["docs/gates/**"], "update": [], "review": ["readme", "releases"]},
     "index": {"planned": true, "paths": ["docs/index/**"], "update": [], "review": ["readme"]},

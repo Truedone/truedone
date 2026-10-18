@@ -1,0 +1,206 @@
+{
+  "https://api.github.com/repos/Truedone/truedone/issues/41": {
+    "number": 41,
+    "html_url": "https://github.com/Truedone/truedone/issues/41",
+    "created_at": "2026-10-19T08:00:00Z",
+    "labels": [
+      {
+        "name": "wrong-verdict"
+      }
+    ],
+    "body": "### Pull request\n\nhttps://github.com/example/widgets/pull/7\n\n### Head commit\n\n9f8e7d6c5b4a39281706f5e4d3c2b1a090817263\n\n### Base commit\n\n1a2b3c4d5e6f708192a3b4c5d6e7f80910a1b2c3\n\n### Verdict shown\n\nproven\n\n### Reason codes\n\nred_green\n\n### What is wrong\n\na missed tamper\n\n### truedone version\n\n0.1.0\n\n### Note\n\nThe test was weakened and the label said proven."
+  },
+  "https://api.github.com/repos/Truedone/truedone/issues/42": {
+    "number": 42,
+    "html_url": "https://github.com/Truedone/truedone/issues/42",
+    "created_at": "2026-10-19T09:00:00Z",
+    "labels": [
+      {
+        "name": "wrong-verdict"
+      }
+    ],
+    "body": "### Pull request\n\nhttps://github.com/example/widgets/pull/7\n\n### Head commit\n\n9f8e7d6c5b4a39281706f5e4d3c2b1a090817263\n\n### Base commit\n\n_No response_\n\n### Verdict shown\n\nproven\n\n### Reason codes\n\n_No response_\n\n### What is wrong\n\na missed tamper\n\n### truedone version\n\n0.1.0\n\n### Note\n\n_No response_"
+  },
+  "https://api.github.com/repos/example/widgets/pulls/7": {
+    "number": 7,
+    "title": "Round the order total",
+    "body": "Totals are rounded to whole units.",
+    "user": {
+      "login": "dev",
+      "type": "User"
+    },
+    "base": {
+      "sha": "1a2b3c4d5e6f708192a3b4c5d6e7f80910a1b2c3",
+      "repo": {
+        "full_name": "example/widgets"
+      }
+    },
+    "head": {
+      "sha": "9f8e7d6c5b4a39281706f5e4d3c2b1a090817263",
+      "repo": {
+        "full_name": "example/widgets"
+      }
+    }
+  },
+  "https://api.github.com/repos/example/widgets/compare/1a2b3c4d5e6f708192a3b4c5d6e7f80910a1b2c3...9f8e7d6c5b4a39281706f5e4d3c2b1a090817263": {
+    "files": [
+      {
+        "filename": "src/total.mjs",
+        "status": "modified",
+        "patch": "@@ -1 +1 @@\n-export const total = (items) => items.reduce((a, b) => a + b, 0);\n+export const total = (items) => Math.round(items.reduce((a, b) => a + b, 0));"
+      },
+      {
+        "filename": "test/total.test.mjs",
+        "status": "modified",
+        "patch": "@@ -5 +5 @@\n-  assert.equal(total([40, 60]), 100);\n+  assert.ok(total([40, 60]) !== undefined);"
+      }
+    ]
+  },
+  "https://api.github.com/repos/example/widgets/git/trees/1a2b3c4d5e6f708192a3b4c5d6e7f80910a1b2c3?recursive=1": {
+    "tree": [
+      {
+        "path": "package.json",
+        "type": "blob"
+      },
+      {
+        "path": "src",
+        "type": "tree"
+      },
+      {
+        "path": "src/total.mjs",
+        "type": "blob"
+      },
+      {
+        "path": "test",
+        "type": "tree"
+      },
+      {
+        "path": "test/total.test.mjs",
+        "type": "blob"
+      },
+      {
+        "path": "test/conftest.py",
+        "type": "blob"
+      },
+      {
+        "path": "packages/other/jest.config.js",
+        "type": "blob"
+      }
+    ]
+  },
+  "https://api.github.com/repos/example/widgets/git/trees/9f8e7d6c5b4a39281706f5e4d3c2b1a090817263?recursive=1": {
+    "tree": [
+      {
+        "path": "package.json",
+        "type": "blob"
+      },
+      {
+        "path": "src/total.mjs",
+        "type": "blob"
+      },
+      {
+        "path": "test/total.test.mjs",
+        "type": "blob"
+      },
+      {
+        "path": "test/conftest.py",
+        "type": "blob"
+      },
+      {
+        "path": "packages/other/jest.config.js",
+        "type": "blob"
+      }
+    ]
+  },
+  "https://api.github.com/repos/example/widgets/commits/9f8e7d6c5b4a39281706f5e4d3c2b1a090817263/check-runs?per_page=100": {
+    "check_runs": [
+      {
+        "name": "truedone",
+        "status": "completed",
+        "conclusion": "success",
+        "output": {
+          "title": "truedone: proven"
+        }
+      },
+      {
+        "name": "test",
+        "status": "completed",
+        "conclusion": "success",
+        "output": {
+          "title": null
+        }
+      }
+    ]
+  },
+  "raw": {
+    "https://raw.githubusercontent.com/example/widgets/1a2b3c4d5e6f708192a3b4c5d6e7f80910a1b2c3/src/total.mjs": "export const total = (items) => items.reduce((a, b) => a + b, 0);\n",
+    "https://raw.githubusercontent.com/example/widgets/9f8e7d6c5b4a39281706f5e4d3c2b1a090817263/src/total.mjs": "export const total = (items) => Math.round(items.reduce((a, b) => a + b, 0));\n",
+    "https://raw.githubusercontent.com/example/widgets/1a2b3c4d5e6f708192a3b4c5d6e7f80910a1b2c3/test/total.test.mjs": "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { total } from '../src/total.mjs';\n\ntest('the total of the items', () => {\n  assert.equal(total([40, 60]), 100);\n});\n",
+    "https://raw.githubusercontent.com/example/widgets/9f8e7d6c5b4a39281706f5e4d3c2b1a090817263/test/total.test.mjs": "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { total } from '../src/total.mjs';\n\ntest('the total of the items', () => {\n  assert.ok(total([40, 60]) !== undefined);\n});\n",
+    "https://raw.githubusercontent.com/example/widgets/1a2b3c4d5e6f708192a3b4c5d6e7f80910a1b2c3/package.json": "{\"name\":\"widgets\",\"private\":true,\"type\":\"module\",\"scripts\":{\"test\":\"node --test\"}}\n",
+    "https://raw.githubusercontent.com/example/widgets/9f8e7d6c5b4a39281706f5e4d3c2b1a090817263/package.json": "{\"name\":\"widgets\",\"private\":true,\"type\":\"module\",\"scripts\":{\"test\":\"node --test\"}}\n",
+    "https://raw.githubusercontent.com/example/widgets/1a2b3c4d5e6f708192a3b4c5d6e7f80910a1b2c3/test/conftest.py": "// shared test setup\nexport const seed = 1;\n",
+    "https://raw.githubusercontent.com/example/widgets/9f8e7d6c5b4a39281706f5e4d3c2b1a090817263/test/conftest.py": "// shared test setup\nexport const seed = 1;\n",
+    "https://raw.githubusercontent.com/example/widgets/1a2b3c4d5e6f708192a3b4c5d6e7f80910a1b2c3/packages/other/jest.config.js": "module.exports = { testEnvironment: 'node' };\n",
+    "https://raw.githubusercontent.com/example/widgets/9f8e7d6c5b4a39281706f5e4d3c2b1a090817263/packages/other/jest.config.js": "module.exports = { testEnvironment: 'node' };\n"
+  },
+  "https://api.github.com/repos/Truedone/truedone/issues?labels=wrong-verdict&state=all&per_page=100&page=1": [
+    {
+      "number": 41,
+      "labels": [
+        {
+          "name": "wrong-verdict"
+        },
+        {
+          "name": "confirmed"
+        }
+      ],
+      "body": "### Pull request\n\nhttps://github.com/example/widgets/pull/7\n\n### Head commit\n\n9f8e7d6c5b4a39281706f5e4d3c2b1a090817263\n\n### Base commit\n\n1a2b3c4d5e6f708192a3b4c5d6e7f80910a1b2c3\n\n### Verdict shown\n\nproven\n\n### Reason codes\n\nred_green\n\n### What is wrong\n\na missed tamper\n\n### truedone version\n\n0.1.0\n\n### Note\n\nThe test was weakened and the label said proven."
+    },
+    {
+      "number": 43,
+      "labels": [
+        {
+          "name": "wrong-verdict"
+        },
+        {
+          "name": "confirmed"
+        }
+      ],
+      "body": "### Pull request\n\nhttps://github.com/example/widgets/pull/8\n\n### Head commit\n\n9f8e7d6c5b4a39281706f5e4d3c2b1a090817263\n\n### Base commit\n\n1a2b3c4d5e6f708192a3b4c5d6e7f80910a1b2c3\n\n### Verdict shown\n\ntampered\n\n### Reason codes\n\nweakened\n\n### What is wrong\n\na false alarm\n\n### truedone version\n\n0.1.0\n\n### Note\n\n_No response_"
+    },
+    {
+      "number": 44,
+      "labels": [
+        {
+          "name": "wrong-verdict"
+        }
+      ],
+      "body": "### Pull request\n\nhttps://github.com/example/widgets/pull/9\n\n### Head commit\n\n9f8e7d6c5b4a39281706f5e4d3c2b1a090817263\n\n### Base commit\n\n1a2b3c4d5e6f708192a3b4c5d6e7f80910a1b2c3\n\n### Verdict shown\n\nno_evidence\n\n### Reason codes\n\nno_test\n\n### What is wrong\n\na false alarm\n\n### truedone version\n\n0.1.0\n\n### Note\n\n_No response_"
+    },
+    {
+      "number": 45,
+      "labels": [
+        {
+          "name": "wrong-verdict"
+        },
+        {
+          "name": "confirmed"
+        }
+      ],
+      "body": "### Pull request\n\nhttps://github.com/example/widgets/pull/10\n\n### Head commit\n\n9f8e7d6c5b4a39281706f5e4d3c2b1a090817263\n\n### Base commit\n\n1a2b3c4d5e6f708192a3b4c5d6e7f80910a1b2c3\n\n### Verdict shown\n\nproven\n\n### Reason codes\n\nred_green\n\n### What is wrong\n\nmissed evidence\n\n### truedone version\n\n0.1.0\n\n### Note\n\n_No response_"
+    },
+    {
+      "number": 46,
+      "labels": [
+        {
+          "name": "wrong-verdict"
+        }
+      ],
+      "pull_request": {
+        "url": "x"
+      },
+      "body": ""
+    }
+  ]
+}
