@@ -89,6 +89,8 @@ test('a PR over the 300-file limit reads 3 pages and is shown as partial', async
 test('a reason with no file is its message alone, and one with a file and a line says where', () => {
   const pr = { owner: 'octo', repo: 'demo', number: 7, title: 't', url: 'https://github.com/octo/demo/pull/7', changed_files: 1 };
   const tree = prView(verdict({ reasons: [{ check: 'partial', file: '', message: 'Only part of the change was read.' }, { check: 'skip_focus', file: 'src/a.test.js', line: 3, message: 'a test is skipped' }] }), pr);
-  const items = (function walk(n) { return [...(n.tag === 'li' ? [n.text] : []), ...(n.children || []).flatMap(walk)]; })(tree);
+  // the reasons lists' items (WEB-11 puts the ladder's rungs in li elements too)
+  const reasons = (n) => n.tag === 'ul' && /\breasons\b/.test(n.attrs?.class ?? '');
+  const items = (function walk(n, inside) { return [...(inside && n.tag === 'li' ? [n.text] : []), ...(n.children || []).flatMap((c) => walk(c, inside || reasons(n)))]; })(tree, false);
   assert.deepEqual(items, ['Only part of the change was read.', 'src/a.test.js:3: a test is skipped']);
 });

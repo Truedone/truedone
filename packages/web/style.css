@@ -190,6 +190,14 @@ a.verdict:hover { text-decoration: underline; text-decoration-thickness: 1px; }
 .examples { list-style: none; margin: 0 0 2rem; padding: 0; }
 .examples li { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem; padding: .35rem 0; }
 .examples .verdict { margin: 0; font-size: .85rem; }
+/* WEB-11: the verdict ladder under a PR's badge, Tampered up to a green Proven, this PR's rung in its badge */
+.ladder { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .5rem; list-style: none; margin: 0 0 .5rem; padding: 0; }
+.ladder li { display: inline-flex; align-items: center; }
+.ladder .verdict, .ladder .rung { margin: 0; padding: .1rem .55rem; font-size: .8rem; font-weight: 600; line-height: 1.5; border-radius: 999px; }
+.ladder .rung { color: var(--muted); border: 1px solid var(--line); }
+.ladder [aria-current] .verdict { box-shadow: 0 0 0 2px var(--fg); }
+.this-pr { margin-left: .35rem; font-size: .8rem; color: var(--muted); }
+.green-line { margin: 0 0 1rem; color: var(--muted); }
 .example-target { color: var(--muted); font-size: .9rem; }
 
 /* the reason lines, a plain list */
