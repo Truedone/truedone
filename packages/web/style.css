@@ -8,6 +8,8 @@
   --fg: #1f2328;
   --muted: #59636e;
   --line: #d1d9e0;
+  /* the field's border: its only boundary, 3:1 or more on --bg (WCAG 1.4.11, WEB-09) */
+  --field-bd: #818b98;
   --card: #f6f8fa;
   --accent: #0b63ce;
   --accent-fg: #ffffff;
@@ -31,6 +33,7 @@
     --fg: #e6edf3;
     --muted: #9198a1;
     --line: #30363d;
+    --field-bd: #6e7681;
     --card: #151b23;
     --accent: #4493f8;
     --accent-fg: #0d1117;
@@ -116,9 +119,11 @@ pre {
   font: inherit;
   color: var(--fg);
   background: var(--bg);
-  border: 1px solid var(--line);
+  border: 1px solid var(--field-bd);
   border-radius: 6px;
 }
+/* the example link format, at the muted token: 4.5:1 or more on --bg in both themes (WCAG 1.4.3, WEB-09) */
+#go input::placeholder { color: var(--muted); opacity: 1; }
 #go input:focus { border-color: var(--accent); outline: 2px solid var(--focus); outline-offset: 0; }
 button, .signin {
   display: inline-block;

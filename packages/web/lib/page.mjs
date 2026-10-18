@@ -2,16 +2,19 @@
 // renders core.analyse's result. core's analyse and classify are passed in, so the tests run this with recorded
 // GitHub responses and app.mjs runs it with ./core.mjs. WEB-08: a PR read that GitHub refuses with 401 while a token is
 // kept drops the token and reads the PR again anonymously; a failed sign-in callback is mounted with the kept page, so
-// its links return there.
+// its links return there. WEB-09: every mounted view sets document.title (view.mjs titleOf).
 import { route, parseTarget } from './route.mjs';
 import { API, RAW, loadPR, RateLimited, GitHubError } from './github.mjs';
-import { prView, precomputedView, homeView, rateLimitView, errorView, notFoundView, noListView, signinErrorView, shell } from './view.mjs';
+import { prView, precomputedView, homeView, rateLimitView, errorView, notFoundView, noListView, signinErrorView, shell, titleOf } from './view.mjs';
 import { mount } from './dom.mjs';
 import { start, finish, readToken, dropToken } from './signin.mjs';
 
 export async function page(loc, { fetch, doc, root, analyse, classify, storage = null, random = null, api = API, raw = RAW }) {
   const r = route(loc.pathname);
-  const show = (view, path = loc.pathname) => mount(shell(view, path), root, doc);
+  const show = (view, path = loc.pathname, title = titleOf(view)) => {
+    mount(shell(view, path), root, doc);
+    doc.title = title;
+  };
   let calls = 0;
   try {
     if (r.kind === 'home') {
@@ -35,7 +38,8 @@ export async function page(loc, { fetch, doc, root, analyse, classify, storage =
         got = await read(null);
       }
       calls = got.calls;
-      show(prView(analyse(got.input), got.pr, { truncated: got.truncated, analysed: got.input.files.length, expired }));
+      const result = analyse(got.input);
+      show(prView(result, got.pr, { truncated: got.truncated, analysed: got.input.files.length, expired }), loc.pathname, titleOf(null, { result, pr: got.pr }));
     } else if (r.kind === 'precomputed') {
       const res = await fetch(`/precomputed/${r.owner}--${r.repo}.json`);
       // a missing list is the site's single page, served 200 as text/html: only a JSON answer is a list (WEB-07)

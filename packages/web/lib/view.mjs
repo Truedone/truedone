@@ -7,6 +7,8 @@
 // WEB-08: no sign-in link returns to the sign-in pages; a sign-in that did not complete says why and links to start
 // again, back to the page the visitor came from; a PR read again after an expired sign-in says so; the rate-limit page
 // says when the limit resets, in the visitor's local time.
+// WEB-09: each reasons list has an accessible name, the first from a visually hidden label and the second from "Also
+// noted"; titleOf names a view for document.title.
 // A node is { tag, text?, attrs?, children? }.
 export const VERDICTS = {
   tampered: 'Tampered',
@@ -93,8 +95,8 @@ function reasonLists(reasons, verdict) {
   const also = shown.filter((r) => (r.verdict ?? verdict) !== verdict).map(item);
   if (reasons.length > shown.length) (also.length ? also : main).push(el('li', `${reasons.length - shown.length} more not shown`));
   const out = [];
-  if (main.length) out.push(el('ul', undefined, { class: 'reasons' }, main));
-  if (also.length) out.push(el('p', 'Also noted', { class: 'also' }), el('ul', undefined, { class: 'reasons also-list' }, also));
+  if (main.length) out.push(el('p', 'Reasons for the verdict', { class: 'visually-hidden', id: 'reasons-label' }), el('ul', undefined, { class: 'reasons', 'aria-labelledby': 'reasons-label' }, main));
+  if (also.length) out.push(el('p', 'Also noted', { class: 'also', id: 'also-noted' }), el('ul', undefined, { class: 'reasons also-list', 'aria-labelledby': 'also-noted' }, also));
   return out;
 }
 
@@ -122,6 +124,14 @@ export function prView(result, pr, { truncated = false, analysed = 0, expired = 
   children.push(el('p', undefined, undefined, [el('a', 'The PR on GitHub', { href: pr.url })]));
   children.push(nextRung(pr.url, { verdict: true }));
   return el('main', undefined, undefined, children);
+}
+
+// document.title for a view (WCAG 2.4.2): a PR page names its verdict and the PR; any other view, its heading
+export const SITE_TITLE = ' - truedone';
+export function titleOf(view, { result = null, pr = null } = {}) {
+  if (result && pr) return `${VERDICTS[result.verdict] ?? result.verdict}: ${pr.owner}/${pr.repo}#${pr.number}${SITE_TITLE}`;
+  const h1 = (function find(n) { return n.tag === 'h1' ? n : (n.children ?? []).map(find).find(Boolean); })(view);
+  return `${h1?.text ?? 'truedone'}${SITE_TITLE}`;
 }
 
 export function precomputedView(data, owner, repo) {
