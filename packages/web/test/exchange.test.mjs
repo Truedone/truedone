@@ -1,6 +1,6 @@
 // WEB-02-AC01 (PV-W02): the exchange Worker returns a token from a fake GitHub endpoint and keeps nothing: no state
 // between requests, no write to its env, no log line, and every answer is no-store. The Worker has its own origin and
-// answers the site's origin only (D26).
+// answers the site's origin only (D26). The client is CLIENT_ID and CLIENT_SECRET (WEB-06, exchange-env.test.mjs).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { handle } from '../exchange/worker.mjs';
@@ -9,7 +9,7 @@ const SITE = 'https://truedone.pages.dev';
 const WORKER = 'https://truedone-exchange.ledgerguard-global.workers.dev';
 const SECRET = 'secret-value-123';
 // env as a read-only record: any write the Worker tries throws
-const env = () => new Proxy({ GITHUB_CLIENT_ID: 'Iv1.client', GITHUB_CLIENT_SECRET: SECRET }, { set() { throw new Error('the Worker wrote to env'); }, defineProperty() { throw new Error('the Worker wrote to env'); } });
+const env = () => new Proxy({ CLIENT_ID: 'Iv1.client', CLIENT_SECRET: SECRET }, { set() { throw new Error('the Worker wrote to env'); }, defineProperty() { throw new Error('the Worker wrote to env'); } });
 function github(tokens) {
   const seen = [];
   const fetch = async (url, init) => {
