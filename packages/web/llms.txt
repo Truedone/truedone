@@ -1,0 +1,28 @@
+# truedone
+
+truedone checks whether a pull request's tests prove its change: a test should fail without the change and pass with it.
+It also flags tests that were skipped, focused or weakened, and gives each pull request one verdict.
+
+## Run it
+
+- npx truedone: checks the current branch against the merge-base with the default branch, from the diff.
+- npx truedone <PR link>: checks a pull request through the GitHub API; nothing is cloned.
+- npx truedone --json: prints the verdict as truedone.verdict/1.
+- npx truedone --pr-line: prints one line for the pull request description, with the verdict and the link to its public page.
+- npx truedone init: adds the agent snippet to AGENTS.md if it exists, else CLAUDE.md, else a new AGENTS.md.
+- npx truedone init --global: adds the snippet to your own global agent files (~/.claude/CLAUDE.md, ~/.codex/AGENTS.md).
+- npx truedone mcp: serves the check over the Model Context Protocol on stdio, as tools for a pull request and the current branch.
+- npx truedone report <PR link>: prints the link to report a verdict that is wrong, filled with the pull request and its commits.
+
+## For agents
+
+Before reporting a task done, run npx truedone on the branch. Never weaken, disable or delete a test to make it pass.
+Report the verdict word for word, and put the line npx truedone --pr-line prints in the pull request description.
+
+## Other ways in
+
+- Any public pull request, in the browser: https://truedone.pages.dev/<owner>/<repo>/pull/<number>
+- The GitHub App, one check run and at most one label per pull request: https://github.com/apps/truedone/installations/new
+- The GitHub Action, red-green in an existing test job: uses: Truedone/truedone-action@v0.1.0
+- What each verdict means: https://truedone.pages.dev/why
+- Source and issues: https://github.com/Truedone/truedone
