@@ -338,6 +338,10 @@
       ],
       "WEB-08": [
         "WEB-08-AC08"
+      ],
+      "REPO-03": [
+        "REPO-03-AC03",
+        "REPO-03-AC06"
       ]
     }
   },
@@ -10593,6 +10597,117 @@
         },
         {
           "id": "REPO-02-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "REPO-03",
+      "title": "[W2] The browser check finds a standard Chrome install, and CONTRIBUTING says how",
+      "phase": "implement",
+      "owner": "lane-d",
+      "depends_on": [
+        "REPO-02",
+        "WEB-01"
+      ],
+      "requirements": [
+        "PV-D04"
+      ],
+      "description": "Measured on macOS by a contributor's walk (issue #80): tools/check-browser.mjs resolves the browser as CHROMIUM_BIN, else chromium or chromium-browser on PATH (lines 55 and 145 to 147), and CONTRIBUTING.md:59 documents only those, so a standard Chrome install at /Applications/Google Chrome.app/Contents/MacOS/Google Chrome is never found: the tool prints \"chromium is not on PATH and CHROMIUM_BIN is unset\" and exits 1. The fix: one resolver, used by both places in the tool, tries CHROMIUM_BIN, then chromium, chromium-browser, google-chrome and google-chrome-stable on PATH, then the standard paths of macOS (Google Chrome.app and Chromium.app under /Applications) and Linux (/usr/bin/google-chrome, /usr/bin/chromium), and names every place it looked when nothing is found; the resolver takes its candidate list and PATH lookup as parameters so a test drives it without a browser. CONTRIBUTING names the macOS path and the export for an install elsewhere. npm test still needs no browser.",
+      "scope": {
+        "allow": [
+          "tools/check-browser.mjs",
+          "tools/test/check-browser-resolve.test.mjs",
+          "CONTRIBUTING.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "REPO-03-AC01",
+          "mandatory": true,
+          "statement": "the resolver finds a browser at a standard macOS or Linux path when CHROMIUM_BIN is unset and nothing is on PATH, prefers CHROMIUM_BIN, and names every place it looked when nothing is found",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/check-browser-resolve.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "REPO-03-AC02",
+          "mandatory": true,
+          "statement": "CONTRIBUTING names the macOS Chrome path and the CHROMIUM_BIN export",
+          "verifier": {
+            "type": "command",
+            "cmd": "grep -q \"Google Chrome.app\" CONTRIBUTING.md && grep -q \"CHROMIUM_BIN=\" CONTRIBUTING.md",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "REPO-03-AC03",
+          "mandatory": true,
+          "statement": "the browser check still passes with CHROMIUM_BIN set",
+          "verifier": {
+            "type": "command",
+            "cmd": "CHROMIUM_BIN=\"${CHROMIUM_BIN:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}\" node tools/check-browser.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REPO-03-AC04",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "REPO-03-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REPO-03-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REPO-03-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "REPO-03-AC08",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
