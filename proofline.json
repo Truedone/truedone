@@ -436,6 +436,9 @@
       ],
       "APP-21": [
         "APP-21-AC05"
+      ],
+      "APP-22": [
+        "APP-22-AC05"
       ]
     }
   },
@@ -7775,6 +7778,108 @@
       ]
     },
     {
+      "id": "APP-22",
+      "title": "[W2] The label trial ends: one REST route, with stale labels removed",
+      "phase": "implement",
+      "owner": "lane-d",
+      "depends_on": [
+        "APP-21"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "#108. APP-21's trial measured the label write by method on truedone-dev (90 deliveries): the GraphQL mutation p50 688 ms, the REST POST 785, the issue PATCH 806, all at GitHub's write time. The review of APP-21 as landed found that the GraphQL route never removes a stale truedone label, so a pull request whose verdict changes keeps two; that a queued retry re-picks the same route; and that the PATCH route does not define a missing label. Every delivery now writes the label as before APP-21: the stale truedone labels are removed, a missing label is defined with its colour and description, then the REST POST adds the wanted one. The GraphQL and PATCH routes and the per-delivery choice are removed. The phase line keeps label_write_ms. No test file is deleted and no assertion is dropped: the trial's tests are rewritten to the one route.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-22-AC01",
+          "mandatory": true,
+          "statement": "for any delivery id, an issue carrying a stale truedone label and a user label ends with the user label and exactly the new truedone label, written by the REST POST, with no GraphQL call and no issue PATCH",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/label-single.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-22-AC02",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-22-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-22-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-22-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-22-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-22-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "APP-03",
       "title": "[W3] Static stage: check run, one label, summary, config, logs",
       "phase": "implement",
@@ -8480,7 +8585,8 @@
         "APP-17",
         "APP-18",
         "APP-19",
-        "APP-20"
+        "APP-20",
+        "APP-22"
       ],
       "requirements": [
         "PV-A03",
