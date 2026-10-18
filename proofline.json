@@ -469,6 +469,21 @@
       ],
       "RUN-07": [
         "RUN-07-AC04"
+      ],
+      "AGENT-01": [
+        "AGENT-01-AC05"
+      ],
+      "MCP-01": [
+        "MCP-01-AC06"
+      ],
+      "WEB-14": [
+        "WEB-14-AC05"
+      ],
+      "COLLECT-01": [
+        "COLLECT-01-AC05"
+      ],
+      "COLLECT-02": [
+        "COLLECT-02-AC05"
       ]
     }
   },
@@ -5672,6 +5687,108 @@
       ]
     },
     {
+      "id": "COLLECT-01",
+      "title": "[W2] Wrong verdicts are collected: the form, a private snapshot of the pull request, and the counts",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "BENCH-01",
+        "MET-01"
+      ],
+      "requirements": [
+        "PV-G02"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D39. .github/ISSUE_TEMPLATE/wrong-verdict.yml is a structured form: the pull request link, its head and base commits, the verdict shown, what is wrong (a false alarm, a missed tamper, missed evidence, the wrong class), the truedone version and an optional note; it never asks for code. tools/misses/snapshot.mjs <issue number> reads a filed report, refuses one without both commits, fetches the public pull request at those commits (its file list and patches, the base and head contents of the changed files and of the test and runner configuration above them, and the check runs on the head) and writes one case directory for the private repository Truedone/truedone-misses, never into this repository, with the report's kind as the expected outcome and the verdict the current core gives. tools/misses/tally.mjs counts reports, confirmed ones (a maintainer label on the issue) and fixed ones (a BENCH-01 case names the issue), and writes the counts into the metrics snapshot's false-alarm and miss figures with their window and source. docs/ops/misses.md says how a confirmed report becomes a minimal BENCH-01 case written from the snapshot.",
+      "scope": {
+        "allow": [
+          ".github/ISSUE_TEMPLATE/wrong-verdict.yml",
+          "tools/misses/**",
+          "tools/test/misses.test.mjs",
+          "tools/test/fixtures/misses/**",
+          "tools/metrics/**",
+          "docs/ops/misses.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "COLLECT-01-AC01",
+          "mandatory": true,
+          "statement": "over a fake GitHub, the snapshot of a filed report fetches the pull request at its two commits and writes a case with the base and head files, the configuration above them and the report's kind, refuses a report without both commits, and the tally counts reported, confirmed and fixed reports into the metrics snapshot with window, source and size",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/misses.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "COLLECT-01-AC02",
+          "mandatory": true,
+          "statement": "the form asks for the pull request, both commits, the verdict, the kind of error and the version",
+          "verifier": {
+            "type": "grep",
+            "file": ".github/ISSUE_TEMPLATE/wrong-verdict.yml",
+            "pattern": "head commit[\\s\\S]*base commit[\\s\\S]*false alarm[\\s\\S]*missed tamper",
+            "must": "present"
+          }
+        },
+        {
+          "id": "COLLECT-01-AC03",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "COLLECT-01-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "COLLECT-01-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "COLLECT-01-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "COLLECT-01-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "phase": "implement",
       "owner": "lane-a",
       "requirements": [
@@ -8643,6 +8760,109 @@
         },
         {
           "id": "APP-26-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "COLLECT-02",
+      "title": "[W2] Every check run carries a link to report a wrong verdict",
+      "phase": "implement",
+      "owner": "lane-d",
+      "depends_on": [
+        "APP-26",
+        "COLLECT-01"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D39. The App's check run summary ends with \"This verdict is wrong\", linking the wrong-verdict issue form on Truedone/truedone filled with the repository, the pull request number, its head and base commits, the verdict, the reason codes and the App's version, and no pull request title, body or author. The link is built from the result and the pull request numbers the stage already holds, so no read is added and the label path is unchanged.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "COLLECT-02-AC01",
+          "mandatory": true,
+          "statement": "every check run summary ends with the wrong-verdict link filled with the repository, number, both commits, verdict, reason codes and version, and holds no pull request text",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/wrong-verdict-link.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "COLLECT-02-AC02",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "COLLECT-02-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "COLLECT-02-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "COLLECT-02-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "COLLECT-02-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "COLLECT-02-AC07",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
@@ -12194,6 +12414,102 @@
       ]
     },
     {
+      "id": "WEB-14",
+      "title": "[W2] The pull request page offers the install, takes a wrong-verdict report, and agents can read how to use truedone",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "WEB-12"
+      ],
+      "requirements": [
+        "PV-W02"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D38 and D39. The public pull request page shows \"Install on <owner>/<repo>\", linking the App's install page (https://github.com/apps/truedone/installations/new), and \"This verdict is wrong\", linking the wrong-verdict issue form on Truedone/truedone filled with the pull request, its head and base commits, the verdict, the reason codes and the version, and no pull request text. packages/web/llms.txt tells an agent, in plain text, what truedone checks and how to run it: npx truedone, --pr-line, init, init --global, mcp, the App and the action. The page loads nothing new from a third party, so the content security policy is unchanged.",
+      "scope": {
+        "allow": [
+          "packages/web/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "WEB-14-AC01",
+          "mandatory": true,
+          "statement": "a rendered pull request page carries the install link for its repository and the filled wrong-verdict link with no pull request text, and llms.txt names npx truedone, --pr-line, init --global and mcp",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/spread-links.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-14-AC02",
+          "mandatory": true,
+          "statement": "llms.txt is published with the site",
+          "verifier": {
+            "type": "grep",
+            "file": "packages/web/llms.txt",
+            "pattern": "npx truedone mcp",
+            "must": "present"
+          }
+        },
+        {
+          "id": "WEB-14-AC03",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-14-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-14-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-14-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "WEB-14-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "CLI-02",
       "title": "[W1] npx truedone init",
       "phase": "implement",
@@ -12602,6 +12918,231 @@
         "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "AGENT-01",
+      "title": "[W2] The verdict travels with the agent: a pull request line, a global init and a report command",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "CLI-03"
+      ],
+      "requirements": [
+        "PV-L02",
+        "PV-L07"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D38 and D39. `npx truedone --pr-line` (with a PR link, or on the current branch) prints exactly one line for a pull request description: \"truedone: <verdict>, <the one-sentence reason>. <link>\", where the link is https://truedone.pages.dev/<owner>/<repo>/pull/<n>?via=pr-line, or https://truedone.pages.dev/why?via=pr-line when no pull request exists yet. init writes a fourth snippet line: \"- Put the line `npx truedone --pr-line` prints in the pull request description.\" `init --global` writes the four lines to ~/.claude/CLAUDE.md, creating it when missing, and to ~/.codex/AGENTS.md when ~/.codex exists, by init's rule: never editing existing lines, never writing them twice, and printing what it wrote. `npx truedone report <PR link>` computes the verdict and prints the link to the wrong-verdict issue form on Truedone/truedone (COLLECT-01) with the pull request, its head and base commits, the verdict, the reason codes and the truedone version filled, and sends nothing. The command table and exit codes otherwise stay as they are.",
+      "scope": {
+        "allow": [
+          "packages/cli/**",
+          "tools/bundle.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/action/dist/index.mjs",
+          "docs/bench/cli-prs.txt",
+          "README.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "AGENT-01-AC01",
+          "mandatory": true,
+          "statement": "--pr-line prints one line with the verdict, its reason and the pull request page link (the why page when there is no pull request); init writes four lines, the fourth asking for that line in the pull request; init --global writes them to ~/.claude/CLAUDE.md and, when ~/.codex exists, ~/.codex/AGENTS.md under a scratch HOME, never editing or repeating lines; report prints the filled form link and makes no request but GitHub reads",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/cli/test/agent-spread.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "AGENT-01-AC02",
+          "mandatory": true,
+          "statement": "no package.json outside test fixtures declares any dependency, so npx truedone stays one file with none",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e 'const fs=require(\"fs\"),p=require(\"path\");const bad=[];const walk=d=>{for(const e of fs.readdirSync(d,{withFileTypes:true})){if([\".git\",\"node_modules\"].includes(e.name))continue;const f=p.join(d,e.name);if(e.isDirectory()){if(/test[\\\\/]fixtures$/.test(f))continue;walk(f)}else if(e.name===\"package.json\"){const j=JSON.parse(fs.readFileSync(f,\"utf8\"));for(const k of [\"dependencies\",\"devDependencies\",\"optionalDependencies\",\"peerDependencies\",\"bundledDependencies\",\"bundleDependencies\"])if(j[k]&&Object.keys(j[k]).length)bad.push(f+\" \"+k)}}};walk(\".\");if(bad.length){console.error(bad.join(\"\\n\"));process.exit(1)}'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "AGENT-01-AC03",
+          "mandatory": true,
+          "statement": "cli suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/cli/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 15,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "AGENT-01-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "AGENT-01-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "AGENT-01-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "AGENT-01-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "MCP-01",
+      "title": "[W2] npx truedone mcp: the check as a tool for any agent that speaks the Model Context Protocol",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "AGENT-01"
+      ],
+      "requirements": [
+        "PV-L01",
+        "PV-L02"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D38. `npx truedone mcp` serves JSON-RPC 2.0 over stdio by the Model Context Protocol, from the same single published file with no dependency: initialize (server name truedone, its version, the tools capability), tools/list with two tools, truedone_check_pr {url} and truedone_check_branch {path?}, each with a JSON input schema, and tools/call, which returns the verdict as text (the --pr-line line) and as structured content (truedone.verdict/1). An unknown method answers -32601; nothing but protocol messages goes to stdout. packages/cli/README.md shows the one-line setup for Claude Code, Cursor, VS Code and Codex. Listing in public MCP registries is an owner-proxy step after the npm release.",
+      "scope": {
+        "allow": [
+          "packages/cli/**",
+          "tools/bundle.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/action/dist/index.mjs",
+          "docs/bench/cli-prs.txt",
+          "README.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "MCP-01-AC01",
+          "mandatory": true,
+          "statement": "initialize, tools/list and tools/call answer by the protocol over a recorded GitHub fake: two tools with input schemas, the verdict as text and structured content, -32601 for an unknown method, and stdout holds protocol messages only",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/cli/test/mcp.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "MCP-01-AC02",
+          "mandatory": true,
+          "statement": "the published file answers initialize and lists both tools on stdio",
+          "verifier": {
+            "type": "command",
+            "cmd": "printf '%s\\n' '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-06-18\",\"capabilities\":{},\"clientInfo\":{\"name\":\"check\",\"version\":\"0\"}}}' '{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}' '{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\"}' | node packages/cli/truedone.mjs mcp | grep -q truedone_check_branch",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MCP-01-AC03",
+          "mandatory": true,
+          "statement": "no package.json outside test fixtures declares any dependency, so npx truedone stays one file with none",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e 'const fs=require(\"fs\"),p=require(\"path\");const bad=[];const walk=d=>{for(const e of fs.readdirSync(d,{withFileTypes:true})){if([\".git\",\"node_modules\"].includes(e.name))continue;const f=p.join(d,e.name);if(e.isDirectory()){if(/test[\\\\/]fixtures$/.test(f))continue;walk(f)}else if(e.name===\"package.json\"){const j=JSON.parse(fs.readFileSync(f,\"utf8\"));for(const k of [\"dependencies\",\"devDependencies\",\"optionalDependencies\",\"peerDependencies\",\"bundledDependencies\",\"bundleDependencies\"])if(j[k]&&Object.keys(j[k]).length)bad.push(f+\" \"+k)}}};walk(\".\");if(bad.length){console.error(bad.join(\"\\n\"));process.exit(1)}'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "MCP-01-AC04",
+          "mandatory": true,
+          "statement": "cli suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/cli/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 15,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "MCP-01-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MCP-01-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MCP-01-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "MCP-01-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
       ]
     },
     {
