@@ -414,6 +414,9 @@
       ],
       "APP-16": [
         "APP-16-AC05"
+      ],
+      "APP-17": [
+        "APP-17-AC06"
       ]
     }
   },
@@ -7098,6 +7101,118 @@
       ]
     },
     {
+      "id": "APP-17",
+      "title": "[W2] The App analyses in the intake, with the queue as the retry path, and reuses its installation token",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "APP-16"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "#108, the rest of it. After APP-15 and APP-16, APP-06-AC02 reads p50 4,000 ms (lead-verify-152731). The lead's wrangler tail on truedone-dev (2026-10-18 15:39Z, sandbox #42 reopened; bundles/truedone-audit-20261018/latency-split-1539.txt): GitHub's delivery 1.0 to 1.8 s, the queue hand-off 1.06 s with no batch wait, the consumer 1.2 s (mint, analysis, writes). Changes: for a pull_request delivery the intake keeps its order (signature, dedupe, the action filter) and answers 200, then runs the static stage in ctx.waitUntil; if that run throws, the delivery goes to the queue, whose consumer and retries stay as they are, so no delivery is lost; workflow_run deliveries stay on the queue. The installation token is kept in KV per installation until five minutes before its expires_at, and minted again after that; it is never logged. Every existing rule holds: the switch is read before any write, an opted-out repository has only its config read, and a dropped action makes no call.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-17-AC01",
+          "mandatory": true,
+          "statement": "an opened delivery is analysed inside the intake's waitUntil with no queue send; a run that throws sends the delivery to the queue; a duplicate delivery is analysed once",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/intake-direct.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-17-AC02",
+          "mandatory": true,
+          "statement": "a second delivery for the same installation within the token's life makes no mint call; a token within five minutes of expiry is minted again; the token appears in no log line",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/token-cache.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-17-AC03",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-17-AC04",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-17-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-17-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-17-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-17-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "APP-03",
       "title": "[W3] Static stage: check run, one label, summary, config, logs",
       "phase": "implement",
@@ -7799,7 +7914,8 @@
         "APP-11",
         "APP-13",
         "APP-15",
-        "APP-16"
+        "APP-16",
+        "APP-17"
       ],
       "requirements": [
         "PV-A03",
@@ -10525,7 +10641,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "#110, measured on 2026-10-18: https://truedone.pages.dev/no/such-page answers 200 with \"Not a truedone.pages.dev page\", because Cloudflare Pages serves the app shell for every path when the site has no 404.html, and packages/web/_redirects is empty; and /favicon.ico answers the HTML page, so tabs show no icon. Changes: _redirects rewrites only the routes the app serves (/:owner/:repo/pull/:number, /signin, /signin/callback) to /index.html with status 200, with no catch-all; packages/web/404.html is the not-found view in the site's shell, which Pages then serves with status 404 for every other path; the App's logo (packages/app/logo.svg after OPS-09, the red and green ring on #0d1117) is packages/web/favicon.svg, linked as rel=\"icon\" from index.html, why.html, 404.html and the privacy and terms pages tools/build-legal.mjs writes, within the CSP (img-src 'self'). After the deploy, the lead reads /no/such-page (404), a pull request page and /signin (200) and /favicon.svg (image/svg+xml) live.",
+      "description": "#110, measured on 2026-10-18: https://truedone.pages.dev/no/such-page answers 200 with \"Not a truedone.pages.dev page\", because Cloudflare Pages serves the app shell for every path when the site has no 404.html, and packages/web/_redirects is empty; and /favicon.ico answers the HTML page, so tabs show no icon. Changes: _redirects rewrites only the routes the app serves (/:owner/:repo/pull/:number, /signin, /signin/callback) to / with status 200 (Pages answers a /index.html target with 308 to /), with no catch-all; packages/web/404.html is the not-found view in the site's shell, which Pages then serves with status 404 for every other path; the App's logo (packages/app/logo.svg after OPS-09, the red and green ring on #0d1117) is packages/web/favicon.svg, linked as rel=\"icon\" from index.html, why.html, 404.html and the privacy and terms pages tools/build-legal.mjs writes, within the CSP (img-src 'self'). After the deploy, the lead reads /no/such-page (404), a pull request page and /signin (200) and /favicon.svg (image/svg+xml) live.",
       "scope": {
         "allow": [
           "packages/web/_redirects",
@@ -10546,7 +10662,7 @@
         {
           "id": "WEB-13-AC01",
           "mandatory": true,
-          "statement": "the routes file rewrites exactly the app's routes to /index.html with 200 and has no catch-all; 404.html is the not-found view in the site shell; every page links /favicon.svg, which exists",
+          "statement": "the routes file rewrites exactly the app's routes, with and without a trailing slash, to / with 200 (a target of /index.html answers 308 to / on Pages) and has no catch-all; 404.html is the not-found view in the site shell; every page links /favicon.svg, which exists",
           "verifier": {
             "type": "test_red_green",
             "test_file": "packages/web/test/site-routes.test.mjs",
