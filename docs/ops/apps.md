@@ -21,7 +21,10 @@ Cloudflare resources for the Workers (APP-08 declares them): KV namespaces `work
 `/health` with the deployed commit and the posting switch, the global KV key `posting_enabled` (APP-09): on for the development
 app, off for the production app.
 
-Open: the development app is installed only on `mgillr/truedone-sandbox`. Its first installation landed on this repository by
+The development app belongs to the Truedone organisation since 2026-10-18 (D36), with the repositories; its installation on
+the old account ended with the transfer.
+
+Open: the development app is installed only on `Truedone/truedone-sandbox`. Its first installation landed on this repository by
 mistake; I moved it to the sandbox on 2026-10-18, and the Worker logged the sandbox's deliveries from then on. The production app
 is installed nowhere, with posting off, until the app is offered (REL-W4). It is private, and GitHub lets only its owner authorize
 a private app, so the sign-in on truedone.pages.dev, which uses its client, works for me alone until it is public.

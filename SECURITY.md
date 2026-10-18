@@ -18,7 +18,7 @@ A weakness in truedone itself:
 
 - the site at https://truedone.pages.dev and its token exchange at https://truedone-exchange.ledgerguard-global.workers.dev;
 - the GitHub App and its Workers;
-- the action `mgillr/truedone-action`;
+- the action `Truedone/truedone-action`;
 - the `truedone` package on npm, which holds the CLI and the Claude Code plugin.
 
 A pull request that defeats the checks through the test code it controls is not a vulnerability in this sense. As the

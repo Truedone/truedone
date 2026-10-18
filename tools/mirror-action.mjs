@@ -1,5 +1,5 @@
 // Builds the action mirror: action.yml, dist/index.mjs, README.md and LICENSE.
-// A direct run sends that tree to mgillr/truedone-action with MIRROR_TOKEN.
+// A direct run sends that tree to Truedone/truedone-action with MIRROR_TOKEN.
 
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -7,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-export const MIRROR_REMOTE = 'https://github.com/mgillr/truedone-action.git';
+export const MIRROR_REMOTE = 'https://github.com/Truedone/truedone-action.git';
 
 const COPIES = [
   ['packages/action/action.yml', 'action.yml'],

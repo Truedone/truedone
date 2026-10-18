@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Do not report a security vulnerability here. Follow the security policy instead: https://github.com/mgillr/truedone/security/policy
+        Do not report a security vulnerability here. Follow the security policy instead: https://github.com/Truedone/truedone/security/policy
   - type: dropdown
     id: part
     attributes:

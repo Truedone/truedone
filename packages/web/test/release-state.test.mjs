@@ -31,7 +31,7 @@ function flip(t, surface) {
 
 test('every surface is unreleased today', () => {
   assert.deepEqual(RELEASED, { cli: false, action: false, app: false, plugin: false });
-  assert.equal(FOLLOW, 'https://github.com/mgillr/truedone');
+  assert.equal(FOLLOW, 'https://github.com/Truedone/truedone');
 });
 
 for (const [name, view] of Object.entries(VIEWS)) {
@@ -69,7 +69,7 @@ for (const surface of ['cli', 'plugin', 'action']) {
 
 test('/why says the four are not released, in one line, exactly while all four are false', () => {
   const html = fs.readFileSync(new URL('../why.html', import.meta.url), 'utf8');
-  const line = /<p class="not-released">The command line, the action, the App and the plugin are not released yet: <a href="https:\/\/github\.com\/mgillr\/truedone">follow the first release<\/a>\.<\/p>/;
+  const line = /<p class="not-released">The command line, the action, the App and the plugin are not released yet: <a href="https:\/\/github\.com\/Truedone\/truedone">follow the first release<\/a>\.<\/p>/;
   assert.equal(line.test(html), Object.values(RELEASED).every((v) => !v), 'update /why when a surface is released');
   assert.match(html, /add the truedone step \(not released yet\)/);
 });

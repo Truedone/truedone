@@ -12,7 +12,7 @@ import { fakeFetch, fakeDoc, find, classify, verdict, recorded } from './lib/fak
 
 const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const pr = { owner: 'octo', repo: 'demo', number: 7, title: 't', url: 'https://github.com/octo/demo/pull/7', changed_files: 1 };
-const FOOTER = [['Why', '/why'], ['Privacy', '/privacy'], ['Terms', '/terms'], ['GitHub', 'https://github.com/mgillr/truedone']];
+const FOOTER = [['Why', '/why'], ['Privacy', '/privacy'], ['Terms', '/terms'], ['GitHub', 'https://github.com/Truedone/truedone']];
 // each verdict, its label, and the badge class that label gives (Not applicable sets no label)
 const LABELS = {
   tampered: 'truedone:tampered', review: 'truedone:review', could_not_run: 'truedone:could-not-run', proven: 'truedone:yes',
