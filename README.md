@@ -95,15 +95,21 @@ When the first release ships, this quick start becomes `npx truedone` on your ow
 
 ## Status
 
-On main today:
+<!-- status: written by node tools/readme-status.mjs from the contract and main; do not edit -->
+truedone is pre-release: the npm package, the action, the plugin and the app have no published release, and the release decisions stay open until a record in docs/releases says "Decision: GO".
 
-- `packages/core`: file classification, the per-test checks for JavaScript, TypeScript and Python, `analyse()` with one static verdict for a whole change, and the `.github/truedone.yml` reader, built into one file, `packages/core/core.mjs`.
-- `packages/core/run`: runner detection for vitest, jest, mocha, `node --test` and pytest, the in-place base swap with a hash-checked restore, and the runs, base twice and head three times, that produce a `truedone.report/1`.
-- `packages/web`: the site for truedone.pages.dev, which shows the static verdict for a pull request link. It is not deployed yet.
-- `packages/cli`: the `init` step, not yet behind a command. `packages/app`: the app manifest.
-- [docs/design](docs/design/00-master.md): a design document for each section of the spec. [docs/plugin-hooks.md](docs/plugin-hooks.md): the Stop hook interface the plugin builds on.
+At main 595d2a24bb82 (2026-10-18), 23 of the 75 tasks in the signed contract, [proofline.json](proofline.json), are on main:
 
-Not built yet: the step that turns run reports into a red-green verdict, the `npx truedone` command, the plugin, the app's webhook and labels, and the action.
+- truedone.pages.dev: 1 of 4 (WEB-01).
+- `npx truedone`: 1 of 3 (CLI-02).
+- Claude Code plugin: 1 of 4 (PLG-00).
+- GitHub App: 1 of 6 (APP-02).
+- GitHub Action: 2 of 4 (ACT-01, ACT-02).
+- The engine they share: 9 of 14 (CORE-01, CORE-02, CORE-03, CORE-05, CORE-04, RUN-01, RUN-02, RUN-03, JUDGE-01).
+- Measurement gates and the index: 0 of 11.
+- Releases: 0 of 6.
+- Repository, CI, deploys and docs: 8 of 23 (OPS-04, OPS-01, OPS-03A, OPS-03B, ENG-01, SEC-01, REPO-01, DOC-00).
+<!-- status: end -->
 
 ## Contributing
 
