@@ -417,6 +417,10 @@
       ],
       "APP-17": [
         "APP-17-AC06"
+      ],
+      "ORG-01": [
+        "ORG-01-AC04",
+        "ORG-01-AC10"
       ]
     }
   },
@@ -542,7 +546,7 @@
       "requirements": [
         "PV-D02"
       ],
-      "description": "Before any lane starts (README step 1 created the public repository mgillr/truedone). In docs/spec.md confirm or change D1 to D31 and add \"Confirmed by Ryan Gillespie on <date>\" under the Decisions heading. Commit, signed with your SSH key, docs/spec.md, REQUIREMENTS.md, proofline.json, AGENTS.md, docs/contracts/proofline-fragment.json, docs/DEPENDENCY-MAP.md, the three checks gen-truedone.py writes (tools/depmap-check.mjs, tools/docs-check.mjs, tools/readme-check.mjs), a .gitignore listing .proofline/ and node_modules/, and .github/allowed_signers (your public key, principal mgillr). Run proofline setup to create guard/owner.pub, then proofline contract sign. Push directly: the ruleset does not exist yet (OPS-03B).",
+      "description": "Before any lane starts (README step 1 created the public repository Truedone/truedone). In docs/spec.md confirm or change D1 to D31 and add \"Confirmed by Ryan Gillespie on <date>\" under the Decisions heading. Commit, signed with your SSH key, docs/spec.md, REQUIREMENTS.md, proofline.json, AGENTS.md, docs/contracts/proofline-fragment.json, docs/DEPENDENCY-MAP.md, the three checks gen-truedone.py writes (tools/depmap-check.mjs, tools/docs-check.mjs, tools/readme-check.mjs), a .gitignore listing .proofline/ and node_modules/, and .github/allowed_signers (your public key, principal mgillr). Run proofline setup to create guard/owner.pub, then proofline contract sign. Push directly: the ruleset does not exist yet (OPS-03B).",
       "scope": {
         "allow": [
           "docs/spec.md",
@@ -673,7 +677,7 @@
       "requirements": [
         "PV-N01"
       ],
-      "description": "There is no domain (D26). Create the Cloudflare Pages project truedone, production branch main, on your Cloudflare account (its workers.dev subdomain is ledgerguard-global), so the deploy publishes the truedone site at https://truedone.pages.dev; set the repository homepage to that address and record it in docs/ops/repository.md, and name truedone.pages.dev in the bug report form. The public repository mgillr/truedone-sandbox already exists. Ryan decided on 2026-10-17 to run no trademark search for the name. The npm name is registered in OPS-07.",
+      "description": "There is no domain (D26). Create the Cloudflare Pages project truedone, production branch main, on your Cloudflare account (its workers.dev subdomain is ledgerguard-global), so the deploy publishes the truedone site at https://truedone.pages.dev; set the repository homepage to that address and record it in docs/ops/repository.md, and name truedone.pages.dev in the bug report form. The public repository Truedone/truedone-sandbox already exists. Ryan decided on 2026-10-17 to run no trademark search for the name. The npm name is registered in OPS-07.",
       "scope": {
         "allow": [
           "docs/ops/repository.md",
@@ -685,10 +689,10 @@
         {
           "id": "OPS-01-AC01",
           "mandatory": true,
-          "statement": "the repository mgillr/truedone is yours",
+          "statement": "the repository Truedone/truedone belongs to the Truedone organisation (D36)",
           "verifier": {
             "type": "command",
-            "cmd": "gh api repos/mgillr/truedone --jq .owner.login | grep -qx mgillr",
+            "cmd": "test \"$(gh api repos/Truedone/truedone --jq '.owner.login + \" \" + .owner.type')\" = \"Truedone Organization\"",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -699,7 +703,7 @@
           "statement": "the Cloudflare Pages project truedone on your account serves truedone.pages.dev, and the repository homepage, its record and the bug report form name it instead of a domain",
           "verifier": {
             "type": "command",
-            "cmd": "npx --yes wrangler@3.90.0 pages project list | grep -qE '(^|[^A-Za-z0-9.-])truedone\\.pages\\.dev([^A-Za-z0-9.-]|$)' && gh api repos/mgillr/truedone --jq .homepage | grep -qxF https://truedone.pages.dev && grep -qxF 'Homepage: https://truedone.pages.dev' docs/ops/repository.md && ! grep -nE 'truedone(\\\\)*\\.dev' .github/ISSUE_TEMPLATE/bug_report.yml docs/ops/repository.md",
+            "cmd": "npx --yes wrangler@3.90.0 pages project list | grep -qE '(^|[^A-Za-z0-9.-])truedone\\.pages\\.dev([^A-Za-z0-9.-]|$)' && gh api repos/Truedone/truedone --jq .homepage | grep -qxF https://truedone.pages.dev && grep -qxF 'Homepage: https://truedone.pages.dev' docs/ops/repository.md && ! grep -nE 'truedone(\\\\)*\\.dev' .github/ISSUE_TEMPLATE/bug_report.yml docs/ops/repository.md",
             "expect_exit": 0,
             "timeout_s": 300
           }
@@ -707,10 +711,10 @@
         {
           "id": "OPS-01-AC03",
           "mandatory": true,
-          "statement": "mgillr/truedone-sandbox exists",
+          "statement": "Truedone/truedone-sandbox exists",
           "verifier": {
             "type": "command",
-            "cmd": "gh api repos/mgillr/truedone-sandbox --jq .full_name | grep -qx mgillr/truedone-sandbox",
+            "cmd": "gh api repos/Truedone/truedone-sandbox --jq .full_name | grep -qx Truedone/truedone-sandbox",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -782,7 +786,7 @@
       "requirements": [
         "PV-N02"
       ],
-      "description": "Ryan decided on 2026-10-17: no organisation and no machine account. The lanes hold no GitHub credential and commit only in their own clones, under their lane names (git user.name truedone-lane-a to truedone-lane-d). The lead runner pushes each task branch to mgillr/truedone and opens its pull request with Ryan login; the CI gate re-runs the task from the signed contract on main. Record that in docs/ops/access.md and sign it.",
+      "description": "Ryan decided on 2026-10-17: no organisation and no machine account. The lanes hold no GitHub credential and commit only in their own clones, under their lane names (git user.name truedone-lane-a to truedone-lane-d). The lead runner pushes each task branch to Truedone/truedone and opens its pull request with Ryan login; the CI gate re-runs the task from the signed contract on main. Record that in docs/ops/access.md and sign it.",
       "scope": {
         "allow": [
           "docs/ops/access.md",
@@ -872,7 +876,7 @@
         "PV-A02",
         "PV-A09"
       ],
-      "description": "Register the GitHub App truedone from packages/app/app-manifest.json, whose webhook, redirect and setup URLs and first callback are on the production Worker https://truedone.ledgerguard-global.workers.dev and whose second callback is the site's sign-in, https://truedone.pages.dev/signin/callback (D26, WEB-02), and truedone-dev from the same manifest with the Worker URLs on https://truedone-dev.ledgerguard-global.workers.dev, installed only on mgillr/truedone-sandbox. Put each private key, webhook secret and OAuth client secret into Worker secrets (wrangler secret put) and delete the downloaded key files; no lane sees them (S5). The repository environments dev and production exist; production requires your approval and deploys from main only. Put a Cloudflare API token scoped to Workers and Pages, on the account whose workers.dev subdomain is ledgerguard-global, into both as CLOUDFLARE_API_TOKEN (D26); there is no DNS zone and no route. Record app ids, not secrets, in docs/ops/apps.md. The apps are private until the app is offered, so gh api apps/<slug> answers 404 with a user token; the registration is checked on the record and the Workers, and the permissions check runs at REL-W4 once the production app is public.",
+      "description": "Register the GitHub App truedone from packages/app/app-manifest.json, whose webhook, redirect and setup URLs and first callback are on the production Worker https://truedone.ledgerguard-global.workers.dev and whose second callback is the site's sign-in, https://truedone.pages.dev/signin/callback (D26, WEB-02), and truedone-dev from the same manifest with the Worker URLs on https://truedone-dev.ledgerguard-global.workers.dev, installed only on Truedone/truedone-sandbox. Put each private key, webhook secret and OAuth client secret into Worker secrets (wrangler secret put) and delete the downloaded key files; no lane sees them (S5). The repository environments dev and production exist; production requires your approval and deploys from main only. Put a Cloudflare API token scoped to Workers and Pages, on the account whose workers.dev subdomain is ledgerguard-global, into both as CLOUDFLARE_API_TOKEN (D26); there is no DNS zone and no route. Record app ids, not secrets, in docs/ops/apps.md. The apps are private until the app is offered, so gh api apps/<slug> answers 404 with a user token; the registration is checked on the record and the Workers, and the permissions check runs at REL-W4 once the production app is public.",
       "scope": {
         "allow": [
           "docs/ops/apps.md",
@@ -897,7 +901,7 @@
           "statement": "the development app is installed on the sandbox: the record says so and names no secret",
           "verifier": {
             "type": "command",
-            "cmd": "grep -q \"installed only on .mgillr/truedone-sandbox.\" docs/ops/apps.md && ! grep -rniE \"BEGIN (RSA )?PRIVATE KEY|client_secret\\\":|webhook_secret\\\":\" docs/ops/apps.md",
+            "cmd": "grep -q \"installed only on .Truedone/truedone-sandbox.\" docs/ops/apps.md && ! grep -rniE \"BEGIN (RSA )?PRIVATE KEY|client_secret\\\":|webhook_secret\\\":\" docs/ops/apps.md",
             "expect_exit": 0,
             "timeout_s": 300
           }
@@ -908,7 +912,7 @@
           "statement": "production deploys need Ryan's approval",
           "verifier": {
             "type": "command",
-            "cmd": "gh api repos/mgillr/truedone/environments/production --jq \".protection_rules[].reviewers[]?.reviewer.login\" | grep -qx mgillr",
+            "cmd": "gh api repos/Truedone/truedone/environments/production --jq \".protection_rules[].reviewers[]?.reviewer.login\" | grep -qx mgillr",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -919,7 +923,7 @@
           "statement": "both environments hold the Cloudflare token",
           "verifier": {
             "type": "command",
-            "cmd": "for e in dev production; do gh api repos/mgillr/truedone/environments/$e/secrets --jq \".secrets[].name\" | grep -qx CLOUDFLARE_API_TOKEN || exit 1; done",
+            "cmd": "for e in dev production; do gh api repos/Truedone/truedone/environments/$e/secrets --jq \".secrets[].name\" | grep -qx CLOUDFLARE_API_TOKEN || exit 1; done",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -1016,7 +1020,7 @@
           "statement": "main requires the truedone-gate check",
           "verifier": {
             "type": "command",
-            "cmd": "gh api repos/mgillr/truedone/rules/branches/main > /tmp/truedone-rules.json && node -e 'const r=require(\"/tmp/truedone-rules.json\");process.exit(r.some(x=>x.type===\"required_status_checks\"&&JSON.stringify(x).includes(\"truedone-gate\"))?0:1)'",
+            "cmd": "gh api repos/Truedone/truedone/rules/branches/main > /tmp/truedone-rules.json && node -e 'const r=require(\"/tmp/truedone-rules.json\");process.exit(r.some(x=>x.type===\"required_status_checks\"&&JSON.stringify(x).includes(\"truedone-gate\"))?0:1)'",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -1027,7 +1031,7 @@
           "statement": "main requires a pull request",
           "verifier": {
             "type": "command",
-            "cmd": "gh api repos/mgillr/truedone/rules/branches/main > /tmp/truedone-rules.json && node -e 'const r=require(\"/tmp/truedone-rules.json\");process.exit(r.some(x=>x.type===\"pull_request\")?0:1)'",
+            "cmd": "gh api repos/Truedone/truedone/rules/branches/main > /tmp/truedone-rules.json && node -e 'const r=require(\"/tmp/truedone-rules.json\");process.exit(r.some(x=>x.type===\"pull_request\")?0:1)'",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -1038,7 +1042,7 @@
           "statement": "force pushes to main are blocked",
           "verifier": {
             "type": "command",
-            "cmd": "gh api repos/mgillr/truedone/rules/branches/main --jq \".[].type\" | grep -qx non_fast_forward",
+            "cmd": "gh api repos/Truedone/truedone/rules/branches/main --jq \".[].type\" | grep -qx non_fast_forward",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -1049,7 +1053,7 @@
           "statement": "only merge commits are allowed",
           "verifier": {
             "type": "command",
-            "cmd": "gh api repos/mgillr/truedone --jq \".allow_squash_merge or .allow_rebase_merge\" | grep -qx false",
+            "cmd": "gh api repos/Truedone/truedone --jq \".allow_squash_merge or .allow_rebase_merge\" | grep -qx false",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -3818,7 +3822,7 @@
       "requirements": [
         "PV-G04"
       ],
-      "description": "A test that fails on base and passes on head can still pin one value: return 4 passes f(2) == 4, and that is Proven today; docs/spec.md has no mutation check. tools/spikes/mutate.mjs applies a few mutants to a PR's changed non-test lines, one at a time (a constant return, a negated condition, an off-by-one, a deleted statement), and runs the PR's tests on each. It runs only in the gate harness, .github/workflows/mutate.yml on GitHub-hosted runners in mgillr/truedone with permissions: {}, no secrets and no cache shared with releases (S3), over every Proven result of the GATE-04 sample (docs/gates/redgreen-data.jsonl). docs/spikes/mutation-data.jsonl holds one line per Proven result, {source: its GATE-04 run_url, file, test, run_url: the mutate run, mutants: [{kind, line, failed}], extra_runs, extra_seconds}, and nothing in it is typed by hand. docs/spikes/mutation.md records \"Proven results probed: <n>\", \"No mutant failed a PR test: <k> of <n> (<p>%)\" with <p> to one decimal, \"Extra runs per PR: <r>\", \"Extra seconds per PR: p50 <a>, p95 <b>\", and one of \"Decision: in Proven\", \"Decision: opt-in\" or \"Decision: harness only (a gate 3 false-Proven estimate)\". Ryan approves the decision by adding \"Approved: Ryan Gillespie on <date>\" in a commit he signs. No verdict change ships in this task: a decision that changes a verdict comes back as a spec change and a task of its own. Owner lane-d from 2026-10-18 06:17Z.",
+      "description": "A test that fails on base and passes on head can still pin one value: return 4 passes f(2) == 4, and that is Proven today; docs/spec.md has no mutation check. tools/spikes/mutate.mjs applies a few mutants to a PR's changed non-test lines, one at a time (a constant return, a negated condition, an off-by-one, a deleted statement), and runs the PR's tests on each. It runs only in the gate harness, .github/workflows/mutate.yml on GitHub-hosted runners in Truedone/truedone with permissions: {}, no secrets and no cache shared with releases (S3), over every Proven result of the GATE-04 sample (docs/gates/redgreen-data.jsonl). docs/spikes/mutation-data.jsonl holds one line per Proven result, {source: its GATE-04 run_url, file, test, run_url: the mutate run, mutants: [{kind, line, failed}], extra_runs, extra_seconds}, and nothing in it is typed by hand. docs/spikes/mutation.md records \"Proven results probed: <n>\", \"No mutant failed a PR test: <k> of <n> (<p>%)\" with <p> to one decimal, \"Extra runs per PR: <r>\", \"Extra seconds per PR: p50 <a>, p95 <b>\", and one of \"Decision: in Proven\", \"Decision: opt-in\" or \"Decision: harness only (a gate 3 false-Proven estimate)\". Ryan approves the decision by adding \"Approved: Ryan Gillespie on <date>\" in a commit he signs. No verdict change ships in this task: a decision that changes a verdict comes back as a spec change and a task of its own. Owner lane-d from 2026-10-18 06:17Z.",
       "scope": {
         "allow": [
           "tools/spikes/mutate.mjs",
@@ -3844,7 +3848,7 @@
         {
           "id": "RUN-05-AC02",
           "mandatory": true,
-          "statement": "the data covers every Proven result of the GATE-04 sample, each probed in a mutate run of mgillr/truedone",
+          "statement": "the data covers every Proven result of the GATE-04 sample, each probed in a mutate run of Truedone/truedone",
           "verifier": {
             "type": "command",
             "cmd": "node -e 'const fs=require(\"fs\");const rd=f=>fs.readFileSync(f,\"utf8\").trim().split(\"\\n\").map(JSON.parse);const G=rd(\"docs/gates/redgreen-data.jsonl\"),M=rd(\"docs/spikes/mutation-data.jsonl\");const want=new Set();for(const x of G)for(const t of x.tests||[])if(String(t.result).startsWith(\"proven\"))want.add(x.run_url+\"|\"+t.file+\"|\"+t.test);const got=new Set(M.map(m=>m.source+\"|\"+m.file+\"|\"+m.test));process.exit(want.size>0&&[...want].every(k=>got.has(k))&&M.every(m=>/^https:\\/\\/github\\.com\\/mgillr\\/truedone\\/actions\\/runs\\/\\d+/.test(m.run_url)&&Array.isArray(m.mutants)&&m.mutants.length>0)?0:1)'",
@@ -5122,7 +5126,7 @@
         {
           "id": "GATE-04-AC01",
           "mandatory": true,
-          "statement": "there are results for 200 PRs, each from a redgreen run of mgillr/truedone",
+          "statement": "there are results for 200 PRs, each from a redgreen run of Truedone/truedone",
           "verifier": {
             "type": "command",
             "cmd": "node -e 'const fs=require(\"fs\");const D=fs.readFileSync(\"docs/gates/redgreen-data.jsonl\",\"utf8\").trim().split(\"\\n\").map(JSON.parse);process.exit(D.length===200&&D.every(x=>/^https:\\/\\/github\\.com\\/mgillr\\/truedone\\/actions\\/runs\\/\\d+/.test(x.run_url))?0:1)'",
@@ -6663,7 +6667,7 @@
         "PV-A11",
         "PV-R06"
       ],
-      "description": "The development app's first live check run (2026-10-18 10:25Z, mgillr/truedone-sandbox#42) reads \"truedone: not applicable\" for a pull request that adds a test case, and links https://truedone.dev/..., which does not exist (D26: the site is truedone.pages.dev). Measured by lane-b with the Worker's own queue handler: packages/app/src/static.mjs:89 fetches a modified file's base from the literal ref \"base\", which answers 404, so core compares the head with an empty base and a deleted assertion in a modified test reads as unrun where core gives tampered on the real base; an added file's base is fetched at the head instead of left empty; static.mjs:149 reads .github/truedone.yml from the pull request's own branch, so a pull request can switch truedone off for itself; and entry-static.test.mjs passes with a core that always answers Proven, and with two check runs. Fixes: a modified or renamed file's base comes from payload.pull_request.base.sha (the previous path for a rename), an added file has no base; the configuration is read from the base branch at payload.pull_request.base.sha, never the head; the check run's link is https://truedone.pages.dev/<owner>/<repo>/pull/<n>; the entry test asserts exactly one check run and one label, and that their verdict equals core.analyse's own answer for the recorded files. The cause of #42's not applicable is measured and stated in the commit.",
+      "description": "The development app's first live check run (2026-10-18 10:25Z, Truedone/truedone-sandbox#42) reads \"truedone: not applicable\" for a pull request that adds a test case, and links https://truedone.dev/..., which does not exist (D26: the site is truedone.pages.dev). Measured by lane-b with the Worker's own queue handler: packages/app/src/static.mjs:89 fetches a modified file's base from the literal ref \"base\", which answers 404, so core compares the head with an empty base and a deleted assertion in a modified test reads as unrun where core gives tampered on the real base; an added file's base is fetched at the head instead of left empty; static.mjs:149 reads .github/truedone.yml from the pull request's own branch, so a pull request can switch truedone off for itself; and entry-static.test.mjs passes with a core that always answers Proven, and with two check runs. Fixes: a modified or renamed file's base comes from payload.pull_request.base.sha (the previous path for a rename), an added file has no base; the configuration is read from the base branch at payload.pull_request.base.sha, never the head; the check run's link is https://truedone.pages.dev/<owner>/<repo>/pull/<n>; the entry test asserts exactly one check run and one label, and that their verdict equals core.analyse's own answer for the recorded files. The cause of #42's not applicable is measured and stated in the commit.",
       "scope": {
         "allow": [
           "packages/app/src/**",
@@ -6796,7 +6800,7 @@
         "PV-A11",
         "PV-R06"
       ],
-      "description": "Seen live on 2026-10-18 at 11:35Z on mgillr/truedone-sandbox#31 and #42 with the development App on main 8d7349f8. (1) #103: the check run's details_url is https://truedone.pages.dev while its summary's Why line names the pull request's page; GitHub's Details button must open https://truedone.pages.dev/<owner>/<repo>/pull/<n>, for the static and the red-green check run alike. (2) #104: an update to an existing check run for the same head commit keeps its first started_at and completed_at (#42 shows 10:25:31Z for an 11:35 verdict); every write of a completed verdict sets completed_at to the time of that verdict. The test runs the Worker's default export with only fetch, KV and the message faked, as entry-verdict does.",
+      "description": "Seen live on 2026-10-18 at 11:35Z on Truedone/truedone-sandbox#31 and #42 with the development App on main 8d7349f8. (1) #103: the check run's details_url is https://truedone.pages.dev while its summary's Why line names the pull request's page; GitHub's Details button must open https://truedone.pages.dev/<owner>/<repo>/pull/<n>, for the static and the red-green check run alike. (2) #104: an update to an existing check run for the same head commit keeps its first started_at and completed_at (#42 shows 10:25:31Z for an 11:35 verdict); every write of a completed verdict sets completed_at to the time of that verdict. The test runs the Worker's default export with only fetch, KV and the message faked, as entry-verdict does.",
       "scope": {
         "allow": [
           "packages/app/src/**",
@@ -7017,7 +7021,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "#111, measured on 2026-10-18 from GitHub's records on mgillr/truedone-sandbox: the truedone check run of #190 was rewritten 81 s after it opened, after the pull request closed, and across 12 bench pull requests open to started_at was 77 to 199 s. packages/app/src/webhook.mjs:58 queues every delivery, and the static stage's onPullRequest checks no action, so the App posts on closed pull requests, and its own label write sends a pull_request.labeled delivery that runs a second analysis, as do edited, assigned and review_requested. Change: a pull_request delivery starts an analysis only for opened, synchronize and reopened; any other action is acknowledged and dropped before the queue, with no GitHub call; installation events keep their handling.",
+      "description": "#111, measured on 2026-10-18 from GitHub's records on Truedone/truedone-sandbox: the truedone check run of #190 was rewritten 81 s after it opened, after the pull request closed, and across 12 bench pull requests open to started_at was 77 to 199 s. packages/app/src/webhook.mjs:58 queues every delivery, and the static stage's onPullRequest checks no action, so the App posts on closed pull requests, and its own label write sends a pull_request.labeled delivery that runs a second analysis, as do edited, assigned and review_requested. Change: a pull_request delivery starts an analysis only for opened, synchronize and reopened; any other action is acknowledged and dropped before the queue, with no GitHub call; installation events keep their handling.",
       "scope": {
         "allow": [
           "packages/app/src/**",
@@ -7226,7 +7230,7 @@
         "PV-A04",
         "PV-A10"
       ],
-      "description": "packages/app/src/static.mjs: on pull_request opened, synchronize or reopened, fetch the PR files (paginated) and the base and head contents of test, setup, config and workflow files only, run core.analyse with the published release SHAs (D18: read from the tags of mgillr/truedone-action, cached), and post. One check run named truedone per head SHA, created then updated. Exactly one truedone:* label (src/labels.mjs: names, fixed colours, descriptions under 100 characters ending in truedone.pages.dev/why...); the old one is removed when the verdict changes, none for Not applicable. Summary: verdict, up to 10 reasons, what would change it, the truedone.pages.dev link; Markdown escaped, @mentions from PR content neutralised (S7). Config: conclusion neutral unless fail-on-tampered; one comment, edited in place, only with comments: on (D19). The logger accepts installation id, repository id, PR number, verdict and timings only (S8). README.md: the GitHub App row and the \"Not built yet\" line say what this task puts on main.",
+      "description": "packages/app/src/static.mjs: on pull_request opened, synchronize or reopened, fetch the PR files (paginated) and the base and head contents of test, setup, config and workflow files only, run core.analyse with the published release SHAs (D18: read from the tags of Truedone/truedone-action, cached), and post. One check run named truedone per head SHA, created then updated. Exactly one truedone:* label (src/labels.mjs: names, fixed colours, descriptions under 100 characters ending in truedone.pages.dev/why...); the old one is removed when the verdict changes, none for Not applicable. Summary: verdict, up to 10 reasons, what would change it, the truedone.pages.dev link; Markdown escaped, @mentions from PR content neutralised (S7). Config: conclusion neutral unless fail-on-tampered; one comment, edited in place, only with comments: on (D19). The logger accepts installation id, repository id, PR number, verdict and timings only (S8). README.md: the GitHub App row and the \"Not built yet\" line say what this task puts on main.",
       "scope": {
         "allow": [
           "packages/app/**",
@@ -7923,7 +7927,7 @@
         "PV-R04",
         "PV-R05"
       ],
-      "description": "With truedone-dev deployed from main: tools/smoke-app.mjs opens a seeded PR in mgillr/truedone-sandbox and waits for its label (this runs core.mjs in workerd); --switch-off-test turns posting_enabled off and checks that nothing is posted within one minute. tools/bench/app.mjs opens 30 sandbox PRs and prints {\"prs\": [numbers]}; the contract measures latency from GitHub's own issue events. Load test: a load environment of the Worker with a throwaway secret and a stub GitHub API; tools/bench/load.mjs replays 1,000 installations' webhook volume and prints {\"processed_ratio\", \"cost_usd_month\"}; docs/ops/load-test.md publishes it. Monitoring: webhook errors, queue age and label latency p50 and p95 to Workers Analytics Engine, alerts to Ryan by email, a dead-letter queue (R4); docs/ops/monitoring.md.",
+      "description": "With truedone-dev deployed from main: tools/smoke-app.mjs opens a seeded PR in Truedone/truedone-sandbox and waits for its label (this runs core.mjs in workerd); --switch-off-test turns posting_enabled off and checks that nothing is posted within one minute. tools/bench/app.mjs opens 30 sandbox PRs and prints {\"prs\": [numbers]}; the contract measures latency from GitHub's own issue events. Load test: a load environment of the Worker with a throwaway secret and a stub GitHub API; tools/bench/load.mjs replays 1,000 installations' webhook volume and prints {\"processed_ratio\", \"cost_usd_month\"}; docs/ops/load-test.md publishes it. Monitoring: webhook errors, queue age and label latency p50 and p95 to Workers Analytics Engine, alerts to Ryan by email, a dead-letter queue (R4); docs/ops/monitoring.md.",
       "scope": {
         "allow": [
           "tools/smoke-app.mjs",
@@ -7942,7 +7946,7 @@
           "statement": "a sandbox PR gets its label from the deployed Worker",
           "verifier": {
             "type": "command",
-            "cmd": "node tools/smoke-app.mjs --repo mgillr/truedone-sandbox",
+            "cmd": "node tools/smoke-app.mjs --repo Truedone/truedone-sandbox",
             "expect_exit": 0,
             "timeout_s": 600
           }
@@ -7953,7 +7957,7 @@
           "statement": "PR opened to label, measured from GitHub events: p50 under 3 s",
           "verifier": {
             "type": "metric",
-            "cmd": "node tools/bench/app.mjs --repo mgillr/truedone-sandbox --prs 30 > /tmp/app-bench.json && node -e 'const cp=require(\"child_process\");const {prs}=JSON.parse(require(\"fs\").readFileSync(\"/tmp/app-bench.json\",\"utf8\").trim().split(\"\\n\").pop());const d=prs.map(n=>{const pr=JSON.parse(cp.execSync(\"gh api repos/mgillr/truedone-sandbox/pulls/\"+n));const ev=JSON.parse(cp.execSync(\"gh api repos/mgillr/truedone-sandbox/issues/\"+n+\"/events\"));const l=ev.find(e=>e.event===\"labeled\"&&e.label.name.startsWith(\"truedone:\"));return l?Date.parse(l.created_at)-Date.parse(pr.created_at):Infinity}).sort((a,b)=>a-b);const q=p=>d[Math.min(d.length-1,Math.floor(p*d.length))];console.log(JSON.stringify({p50_ms:q(0.5),p95_ms:q(0.95)}))'",
+            "cmd": "node tools/bench/app.mjs --repo Truedone/truedone-sandbox --prs 30 > /tmp/app-bench.json && node -e 'const cp=require(\"child_process\");const {prs}=JSON.parse(require(\"fs\").readFileSync(\"/tmp/app-bench.json\",\"utf8\").trim().split(\"\\n\").pop());const d=prs.map(n=>{const pr=JSON.parse(cp.execSync(\"gh api repos/Truedone/truedone-sandbox/pulls/\"+n));const ev=JSON.parse(cp.execSync(\"gh api repos/Truedone/truedone-sandbox/issues/\"+n+\"/events\"));const l=ev.find(e=>e.event===\"labeled\"&&e.label.name.startsWith(\"truedone:\"));return l?Date.parse(l.created_at)-Date.parse(pr.created_at):Infinity}).sort((a,b)=>a-b);const q=p=>d[Math.min(d.length-1,Math.floor(p*d.length))];console.log(JSON.stringify({p50_ms:q(0.5),p95_ms:q(0.95)}))'",
             "key": "p50_ms",
             "op": "<",
             "value": 3000,
@@ -7967,7 +7971,7 @@
           "statement": "PR opened to label: p95 under 15 s",
           "verifier": {
             "type": "metric",
-            "cmd": "node tools/bench/app.mjs --repo mgillr/truedone-sandbox --prs 30 > /tmp/app-bench.json && node -e 'const cp=require(\"child_process\");const {prs}=JSON.parse(require(\"fs\").readFileSync(\"/tmp/app-bench.json\",\"utf8\").trim().split(\"\\n\").pop());const d=prs.map(n=>{const pr=JSON.parse(cp.execSync(\"gh api repos/mgillr/truedone-sandbox/pulls/\"+n));const ev=JSON.parse(cp.execSync(\"gh api repos/mgillr/truedone-sandbox/issues/\"+n+\"/events\"));const l=ev.find(e=>e.event===\"labeled\"&&e.label.name.startsWith(\"truedone:\"));return l?Date.parse(l.created_at)-Date.parse(pr.created_at):Infinity}).sort((a,b)=>a-b);const q=p=>d[Math.min(d.length-1,Math.floor(p*d.length))];console.log(JSON.stringify({p50_ms:q(0.5),p95_ms:q(0.95)}))'",
+            "cmd": "node tools/bench/app.mjs --repo Truedone/truedone-sandbox --prs 30 > /tmp/app-bench.json && node -e 'const cp=require(\"child_process\");const {prs}=JSON.parse(require(\"fs\").readFileSync(\"/tmp/app-bench.json\",\"utf8\").trim().split(\"\\n\").pop());const d=prs.map(n=>{const pr=JSON.parse(cp.execSync(\"gh api repos/Truedone/truedone-sandbox/pulls/\"+n));const ev=JSON.parse(cp.execSync(\"gh api repos/Truedone/truedone-sandbox/issues/\"+n+\"/events\"));const l=ev.find(e=>e.event===\"labeled\"&&e.label.name.startsWith(\"truedone:\"));return l?Date.parse(l.created_at)-Date.parse(pr.created_at):Infinity}).sort((a,b)=>a-b);const q=p=>d[Math.min(d.length-1,Math.floor(p*d.length))];console.log(JSON.stringify({p50_ms:q(0.5),p95_ms:q(0.95)}))'",
             "key": "p95_ms",
             "op": "<",
             "value": 15000,
@@ -8028,7 +8032,7 @@
           "statement": "turning posting_enabled off stops posting on the deployed Worker within one minute",
           "verifier": {
             "type": "command",
-            "cmd": "node tools/smoke-app.mjs --repo mgillr/truedone-sandbox --switch-off-test",
+            "cmd": "node tools/smoke-app.mjs --repo Truedone/truedone-sandbox --switch-off-test",
             "expect_exit": 0,
             "timeout_s": 600
           }
@@ -8093,7 +8097,7 @@
         "PV-A06",
         "PV-A07"
       ],
-      "description": "packages/app/src/redgreen.mjs on workflow_run completed: find the PR by head SHA and head repository (the payload lists no pull requests for forks); download the truedone-report artifacts of the latest attempt, refusing any over 256 KB or holding more than one file before unzipping; accept a report only if its head_sha is the PR's current head, the truedone step at that SHA matches the default branch or a published release SHA (tags of mgillr/truedone-action, D18), and it parses as truedone.report/1 within 500 tests. Then core.judge with D10 and D11, and update the check run and label. A run held for approval (conclusion action_required) gives Waiting for approval.",
+      "description": "packages/app/src/redgreen.mjs on workflow_run completed: find the PR by head SHA and head repository (the payload lists no pull requests for forks); download the truedone-report artifacts of the latest attempt, refusing any over 256 KB or holding more than one file before unzipping; accept a report only if its head_sha is the PR's current head, the truedone step at that SHA matches the default branch or a published release SHA (tags of Truedone/truedone-action, D18), and it parses as truedone.report/1 within 500 tests. Then core.judge with D10 and D11, and update the check run and label. A run held for approval (conclusion action_required) gives Waiting for approval.",
       "scope": {
         "allow": [
           "packages/app/**",
@@ -8364,7 +8368,7 @@
       "requirements": [
         "PV-X03"
       ],
-      "description": "Spike on mgillr/truedone-sandbox: upload one artifact through the Actions artifact service from a JavaScript action with ACTIONS_RUNTIME_TOKEN and ACTIONS_RESULTS_URL and a client written in the file. docs/spikes/artifact-client.md ends \"Decision: artifact\" or \"Decision: log-markers\". Implement it in packages/action/src/upload.mjs: artifact truedone-report-<job id>, one file, at most 256 KB; or the report between ::truedone-report-begin:: and ::truedone-report-end:: in the job log. The step uses no write token.",
+      "description": "Spike on Truedone/truedone-sandbox: upload one artifact through the Actions artifact service from a JavaScript action with ACTIONS_RUNTIME_TOKEN and ACTIONS_RESULTS_URL and a client written in the file. docs/spikes/artifact-client.md ends \"Decision: artifact\" or \"Decision: log-markers\". Implement it in packages/action/src/upload.mjs: artifact truedone-report-<job id>, one file, at most 256 KB; or the report between ::truedone-report-begin:: and ::truedone-report-end:: in the job log. The step uses no write token.",
       "scope": {
         "allow": [
           "packages/action/**",
@@ -8497,7 +8501,7 @@
         "PV-X02",
         "PV-X05"
       ],
-      "description": "packages/action/src/main.mjs: base is the first parent of the checked-out commit (D6); find the changed tests; run core/run (swap in place, base twice, head three times, coverage condition); write and upload truedone.report/1. Afterwards HEAD and git status --porcelain equal what they were before, or the step reports Could not run and fails (S2). End to end: mgillr/truedone-sandbox has a workflow using the action at a SHA; with APP-04 deployed to truedone-dev, tools/smoke-action.mjs opens a seeded PR whose test fails on base and prints {\"pr\": n}.",
+      "description": "packages/action/src/main.mjs: base is the first parent of the checked-out commit (D6); find the changed tests; run core/run (swap in place, base twice, head three times, coverage condition); write and upload truedone.report/1. Afterwards HEAD and git status --porcelain equal what they were before, or the step reports Could not run and fails (S2). End to end: Truedone/truedone-sandbox has a workflow using the action at a SHA; with APP-04 deployed to truedone-dev, tools/smoke-action.mjs opens a seeded PR whose test fails on base and prints {\"pr\": n}.",
       "scope": {
         "allow": [
           "packages/action/**",
@@ -8548,7 +8552,7 @@
           "statement": "the seeded sandbox PR carries truedone:yes on GitHub",
           "verifier": {
             "type": "command",
-            "cmd": "node tools/smoke-action.mjs --repo mgillr/truedone-sandbox > /tmp/smoke-action.json && gh pr view \"$(node -e 'console.log(JSON.parse(require(\"fs\").readFileSync(\"/tmp/smoke-action.json\",\"utf8\").trim().split(\"\\n\").pop()).pr)')\" -R mgillr/truedone-sandbox --json labels --jq \".labels[].name\" | grep -qx truedone:yes",
+            "cmd": "node tools/smoke-action.mjs --repo Truedone/truedone-sandbox > /tmp/smoke-action.json && gh pr view \"$(node -e 'console.log(JSON.parse(require(\"fs\").readFileSync(\"/tmp/smoke-action.json\",\"utf8\").trim().split(\"\\n\").pop()).pr)')\" -R Truedone/truedone-sandbox --json labels --jq \".labels[].name\" | grep -qx truedone:yes",
             "expect_exit": 0,
             "timeout_s": 1800
           }
@@ -8638,7 +8642,7 @@
       "requirements": [
         "PV-X04"
       ],
-      "description": "tools/bench/action.mjs runs 20 seeded PRs on mgillr/truedone-sandbox repositories (Node and Python, dependencies cached by the job) and prints {\"runs\": [run ids]}. The contract reads the truedone step's started_at and completed_at from the jobs API.",
+      "description": "tools/bench/action.mjs runs 20 seeded PRs on Truedone/truedone-sandbox repositories (Node and Python, dependencies cached by the job) and prints {\"runs\": [run ids]}. The contract reads the truedone step's started_at and completed_at from the jobs API.",
       "scope": {
         "allow": [
           "tools/bench/action.mjs",
@@ -8652,7 +8656,7 @@
           "statement": "the truedone step adds under 60 s at p50",
           "verifier": {
             "type": "metric",
-            "cmd": "node tools/bench/action.mjs --prs 20 > /tmp/act-bench.json && node -e 'const cp=require(\"child_process\");const {runs}=JSON.parse(require(\"fs\").readFileSync(\"/tmp/act-bench.json\",\"utf8\").trim().split(\"\\n\").pop());const d=runs.flatMap(r=>JSON.parse(cp.execSync(\"gh api repos/mgillr/truedone-sandbox/actions/runs/\"+r+\"/jobs\")).jobs.flatMap(j=>j.steps.filter(s=>/truedone/i.test(s.name)).map(s=>Date.parse(s.completed_at)-Date.parse(s.started_at)))).sort((a,b)=>a-b);const q=p=>d[Math.min(d.length-1,Math.floor(p*d.length))];console.log(JSON.stringify({p50_ms:q(0.5),p95_ms:q(0.95),n:d.length}))'",
+            "cmd": "node tools/bench/action.mjs --prs 20 > /tmp/act-bench.json && node -e 'const cp=require(\"child_process\");const {runs}=JSON.parse(require(\"fs\").readFileSync(\"/tmp/act-bench.json\",\"utf8\").trim().split(\"\\n\").pop());const d=runs.flatMap(r=>JSON.parse(cp.execSync(\"gh api repos/Truedone/truedone-sandbox/actions/runs/\"+r+\"/jobs\")).jobs.flatMap(j=>j.steps.filter(s=>/truedone/i.test(s.name)).map(s=>Date.parse(s.completed_at)-Date.parse(s.started_at)))).sort((a,b)=>a-b);const q=p=>d[Math.min(d.length-1,Math.floor(p*d.length))];console.log(JSON.stringify({p50_ms:q(0.5),p95_ms:q(0.95),n:d.length}))'",
             "key": "p50_ms",
             "op": "<",
             "value": 60000,
@@ -8666,7 +8670,7 @@
           "statement": "the truedone step adds under 4 min at p95",
           "verifier": {
             "type": "metric",
-            "cmd": "node -e 'const cp=require(\"child_process\");const {runs}=JSON.parse(require(\"fs\").readFileSync(\"/tmp/act-bench.json\",\"utf8\").trim().split(\"\\n\").pop());const d=runs.flatMap(r=>JSON.parse(cp.execSync(\"gh api repos/mgillr/truedone-sandbox/actions/runs/\"+r+\"/jobs\")).jobs.flatMap(j=>j.steps.filter(s=>/truedone/i.test(s.name)).map(s=>Date.parse(s.completed_at)-Date.parse(s.started_at)))).sort((a,b)=>a-b);const q=p=>d[Math.min(d.length-1,Math.floor(p*d.length))];console.log(JSON.stringify({p50_ms:q(0.5),p95_ms:q(0.95),n:d.length}))'",
+            "cmd": "node -e 'const cp=require(\"child_process\");const {runs}=JSON.parse(require(\"fs\").readFileSync(\"/tmp/act-bench.json\",\"utf8\").trim().split(\"\\n\").pop());const d=runs.flatMap(r=>JSON.parse(cp.execSync(\"gh api repos/Truedone/truedone-sandbox/actions/runs/\"+r+\"/jobs\")).jobs.flatMap(j=>j.steps.filter(s=>/truedone/i.test(s.name)).map(s=>Date.parse(s.completed_at)-Date.parse(s.started_at)))).sort((a,b)=>a-b);const q=p=>d[Math.min(d.length-1,Math.floor(p*d.length))];console.log(JSON.stringify({p50_ms:q(0.5),p95_ms:q(0.95),n:d.length}))'",
             "key": "p95_ms",
             "op": "<",
             "value": 240000,
@@ -8721,7 +8725,7 @@
     },
     {
       "id": "DEMO-01",
-      "title": "[W5] Public demonstration on mgillr/truedone-sandbox, from the published release",
+      "title": "[W5] Public demonstration on Truedone/truedone-sandbox, from the published release",
       "phase": "implement",
       "owner": "lane-b",
       "depends_on": [
@@ -8733,7 +8737,7 @@
         "PV-C04",
         "PV-C08"
       ],
-      "description": "A public, reproducible demonstration on mgillr/truedone-sandbox, run on the published release and not on main, so it also proves the installed product end to end: the sandbox workflow .github/workflows/truedone.yml pins mgillr/truedone-action at its published tag's SHA (R3), and the checker also runs npx truedone@<published version> on each case whose verdict comes from the diff alone. One sandbox pull request per case: proven, proven_new, proven_weak and no_evidence; flaky_base, flaky_head, errored and timed_out (Could not run); assertion_weakened, skip_added, focus_added and test_deleted (Tampered); setup_changed (a conftest or setup file) and runner_config_changed (Test changes: review); step_removed and step_repinned_other, to a SHA that is no release (Tampered), and step_repinned_release (Test changes: review); and, so that every verdict of the precedence list appears, pending (a pull request from a forked repository by an account with no earlier contribution, which GitHub holds for approval; Ryan provides that account, since no lane holds a credential), unrun (tests changed on a pull request whose base branch has no truedone step) and not_applicable (docs only). docs/demo/expected.json: {npm_version, action_tag, action_sha, cases: [{case, pr, verdict, label}]}. tools/demo/check.mjs reads each pull request's truedone check run and label from GitHub, compares them with the expected ones, exits 1 on any difference, and writes docs/demo.md: one line per case with its link as [#n](https://github.com/mgillr/truedone-sandbox/pull/n), the expected and the observed verdict. REL-W6 reads docs/demo.md. ACT-04's 20 seeded pull requests and APP-06's smoke can reuse these cases.",
+      "description": "A public, reproducible demonstration on Truedone/truedone-sandbox, run on the published release and not on main, so it also proves the installed product end to end: the sandbox workflow .github/workflows/truedone.yml pins Truedone/truedone-action at its published tag's SHA (R3), and the checker also runs npx truedone@<published version> on each case whose verdict comes from the diff alone. One sandbox pull request per case: proven, proven_new, proven_weak and no_evidence; flaky_base, flaky_head, errored and timed_out (Could not run); assertion_weakened, skip_added, focus_added and test_deleted (Tampered); setup_changed (a conftest or setup file) and runner_config_changed (Test changes: review); step_removed and step_repinned_other, to a SHA that is no release (Tampered), and step_repinned_release (Test changes: review); and, so that every verdict of the precedence list appears, pending (a pull request from a forked repository by an account with no earlier contribution, which GitHub holds for approval; Ryan provides that account, since no lane holds a credential), unrun (tests changed on a pull request whose base branch has no truedone step) and not_applicable (docs only). docs/demo/expected.json: {npm_version, action_tag, action_sha, cases: [{case, pr, verdict, label}]}. tools/demo/check.mjs reads each pull request's truedone check run and label from GitHub, compares them with the expected ones, exits 1 on any difference, and writes docs/demo.md: one line per case with its link as [#n](https://github.com/Truedone/truedone-sandbox/pull/n), the expected and the observed verdict. REL-W6 reads docs/demo.md. ACT-04's 20 seeded pull requests and APP-06's smoke can reuse these cases.",
       "scope": {
         "allow": [
           "tools/demo/check.mjs",
@@ -8783,7 +8787,7 @@
           "statement": "the demonstration ran the published npm version and the action's published tag, which the sandbox workflow pins",
           "verifier": {
             "type": "command",
-            "cmd": "node -e 'const cp=require(\"child_process\");const e=require(\"./docs/demo/expected.json\");const v=cp.execSync(\"npm view truedone@\"+e.npm_version+\" version\").toString().trim();const t=cp.execSync(\"git ls-remote --tags https://github.com/mgillr/truedone-action\").toString().split(\"\\n\");const y=Buffer.from(cp.execSync(\"gh api repos/mgillr/truedone-sandbox/contents/.github/workflows/truedone.yml --jq .content\").toString(),\"base64\").toString();process.exit(v===e.npm_version&&t.some(l=>l===e.action_sha+\"\\trefs/tags/\"+e.action_tag||l===e.action_sha+\"\\trefs/tags/\"+e.action_tag+\"^{}\")&&y.includes(\"mgillr/truedone-action@\"+e.action_sha)?0:1)'",
+            "cmd": "node -e 'const cp=require(\"child_process\");const e=require(\"./docs/demo/expected.json\");const v=cp.execSync(\"npm view truedone@\"+e.npm_version+\" version\").toString().trim();const t=cp.execSync(\"git ls-remote --tags https://github.com/Truedone/truedone-action\").toString().split(\"\\n\");const y=Buffer.from(cp.execSync(\"gh api repos/Truedone/truedone-sandbox/contents/.github/workflows/truedone.yml --jq .content\").toString(),\"base64\").toString();process.exit(v===e.npm_version&&t.some(l=>l===e.action_sha+\"\\trefs/tags/\"+e.action_tag||l===e.action_sha+\"\\trefs/tags/\"+e.action_tag+\"^{}\")&&y.includes(\"Truedone/truedone-action@\"+e.action_sha)?0:1)'",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -8794,7 +8798,7 @@
           "statement": "docs/demo.md lists every case with its pull request link and verdict",
           "verifier": {
             "type": "command",
-            "cmd": "node -e 'const t=require(\"fs\").readFileSync(\"docs/demo.md\",\"utf8\").split(\"\\n\");const e=require(\"./docs/demo/expected.json\");process.exit(e.cases.every(c=>t.some(l=>l.includes(\"(https://github.com/mgillr/truedone-sandbox/pull/\"+c.pr+\")\")&&l.includes(c.case)&&l.includes(c.verdict)))?0:1)'",
+            "cmd": "node -e 'const t=require(\"fs\").readFileSync(\"docs/demo.md\",\"utf8\").split(\"\\n\");const e=require(\"./docs/demo/expected.json\");process.exit(e.cases.every(c=>t.some(l=>l.includes(\"(https://github.com/Truedone/truedone-sandbox/pull/\"+c.pr+\")\")&&l.includes(c.case)&&l.includes(c.verdict)))?0:1)'",
             "expect_exit": 0,
             "timeout_s": 300
           }
@@ -8870,7 +8874,7 @@
         "PV-R02",
         "PV-R03"
       ],
-      "description": ".github/workflows/release.yml publishes truedone to npm through trusted publishing (id-token: write, npm publish --provenance) in environment release, which requires Ryan's approval. No NPM_TOKEN. tools/mirror-action.mjs builds a tree with action.yml at its root, dist/index.mjs, README.md and LICENSE only, and pushes it with the release tag to mgillr/truedone-action using the environment secret MIRROR_TOKEN (OPS-07). The app reads published release SHAs from those tags (D18).",
+      "description": ".github/workflows/release.yml publishes truedone to npm through trusted publishing (id-token: write, npm publish --provenance) in environment release, which requires Ryan's approval. No NPM_TOKEN. tools/mirror-action.mjs builds a tree with action.yml at its root, dist/index.mjs, README.md and LICENSE only, and pushes it with the release tag to Truedone/truedone-action using the environment secret MIRROR_TOKEN (OPS-07). The app reads published release SHAs from those tags (D18).",
       "scope": {
         "allow": [
           ".github/workflows/release.yml",
@@ -8959,7 +8963,7 @@
     },
     {
       "id": "OPS-07",
-      "title": "[W2] Release plumbing: mgillr/truedone-action, the release environment, the first npm publish",
+      "title": "[W2] Release plumbing: Truedone/truedone-action, the release environment, the first npm publish",
       "phase": "release",
       "owner": "ryan",
       "depends_on": [
@@ -8971,7 +8975,7 @@
         "PV-R02",
         "PV-R03"
       ],
-      "description": "Create mgillr/truedone-action. Create the environment release with yourself as required reviewer and put MIRROR_TOKEN (a fine-grained token for mgillr/truedone-action contents only) in it. Ryan reserved the npm name truedone on 2026-10-17 with the placeholder truedone@0.0.1, published by hand: it points at github.com/mgillr/truedone, and its bin says \"not released yet\" and exits 1. Publish the first build of the static CLI to npm by hand as the next version, then configure npm trusted publishing for mgillr/truedone, workflow release.yml, environment release; every later version goes through the workflow with provenance. Record it in docs/ops/release.md.",
+      "description": "Create Truedone/truedone-action. Create the environment release with yourself as required reviewer and put MIRROR_TOKEN (a fine-grained token for Truedone/truedone-action contents only) in it. Ryan reserved the npm name truedone on 2026-10-17 with the placeholder truedone@0.0.1, published by hand: it points at github.com/Truedone/truedone, and its bin says \"not released yet\" and exits 1. Publish the first build of the static CLI to npm by hand as the next version, then configure npm trusted publishing for Truedone/truedone, workflow release.yml, environment release; every later version goes through the workflow with provenance. Record it in docs/ops/release.md.",
       "scope": {
         "allow": [
           "docs/ops/release.md",
@@ -8982,10 +8986,10 @@
         {
           "id": "OPS-07-AC01",
           "mandatory": true,
-          "statement": "mgillr/truedone-action exists",
+          "statement": "Truedone/truedone-action exists",
           "verifier": {
             "type": "command",
-            "cmd": "gh api repos/mgillr/truedone-action --jq .full_name | grep -qx mgillr/truedone-action",
+            "cmd": "gh api repos/Truedone/truedone-action --jq .full_name | grep -qx Truedone/truedone-action",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -8996,7 +9000,7 @@
           "statement": "releases need Ryan's approval",
           "verifier": {
             "type": "command",
-            "cmd": "gh api repos/mgillr/truedone/environments/release --jq \".protection_rules[].reviewers[]?.reviewer.login\" | grep -qx mgillr",
+            "cmd": "gh api repos/Truedone/truedone/environments/release --jq \".protection_rules[].reviewers[]?.reviewer.login\" | grep -qx mgillr",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -9007,7 +9011,7 @@
           "statement": "the mirror token is in the release environment",
           "verifier": {
             "type": "command",
-            "cmd": "gh api repos/mgillr/truedone/environments/release/secrets --jq \".secrets[].name\" | grep -qx MIRROR_TOKEN",
+            "cmd": "gh api repos/Truedone/truedone/environments/release/secrets --jq \".secrets[].name\" | grep -qx MIRROR_TOKEN",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -9018,7 +9022,7 @@
           "statement": "the npm package truedone belongs to this repository",
           "verifier": {
             "type": "command",
-            "cmd": "npm view truedone repository.url | grep -q \"github.com/mgillr/truedone\"",
+            "cmd": "npm view truedone repository.url | grep -q \"github.com/Truedone/truedone\"",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -9177,7 +9181,7 @@
           "verifier": {
             "type": "grep",
             "file": "packages/web/_redirects",
-            "pattern": "^/privacy\\s+https://github\\.com/mgillr/truedone/blob/main/docs/privacy\\.md[\\s\\S]*^/terms\\s+https://github\\.com/mgillr/truedone/blob/main/docs/terms\\.md",
+            "pattern": "^/privacy\\s+https://github\\.com/Truedone/truedone/blob/main/docs/privacy\\.md[\\s\\S]*^/terms\\s+https://github\\.com/Truedone/truedone/blob/main/docs/terms\\.md",
             "must": "present",
             "flags": "m"
           }
@@ -9921,7 +9925,7 @@
       "requirements": [
         "PV-W02"
       ],
-      "description": "Measured on the live site on 2026-10-18 (issues #55, #57, #58, #59, #60, #61, #62, #63). (#58) /p/mgillr/truedone shows the pull request error because /precomputed/mgillr--truedone.json answers 200 text/html, the single-page fallback, so packages/web/lib/page.mjs:28 passes res.ok and res.json() throws: the page accepts only an application/json answer and otherwise says the repository has no list yet. (#60, #62) The verdict at packages/web/lib/view.mjs:74 is a p element reading \"Verdict: Tests changed: not run\": it becomes a link to /why#truedone-<label suffix> whose text is the verdict name alone, so one colon at most. (#55) The line \"Label: truedone:tampered\" at view.mjs:76 reads as a GitHub label while GitHub carries none: it reads \"Label the app would set: truedone:<x>\". (#57) view.mjs:63 prefixes every reason with its file while messages such as unrun already name it: a reason whose message names its file is printed without the prefix, and reasons whose verdict (CORE-09) differs from the result's are listed after the others under the line \"Also noted\". (#59) The next rung stays on every page (PV-W05, WEB-01-AC03), under the heading \"Next rung: run the PR's own tests on your machine\"; its first line claims a diff only where a verdict was shown. (#61) homeView gains one example link per verdict to a public pull request page on this site. (#63) The site footer offers \"Sign in with GitHub\" on every page, so sign-in is reachable before the rate limit. The content security policy and the exchange are unchanged.",
+      "description": "Measured on the live site on 2026-10-18 (issues #55, #57, #58, #59, #60, #61, #62, #63). (#58) /p/Truedone/truedone shows the pull request error because /precomputed/mgillr--truedone.json answers 200 text/html, the single-page fallback, so packages/web/lib/page.mjs:28 passes res.ok and res.json() throws: the page accepts only an application/json answer and otherwise says the repository has no list yet. (#60, #62) The verdict at packages/web/lib/view.mjs:74 is a p element reading \"Verdict: Tests changed: not run\": it becomes a link to /why#truedone-<label suffix> whose text is the verdict name alone, so one colon at most. (#55) The line \"Label: truedone:tampered\" at view.mjs:76 reads as a GitHub label while GitHub carries none: it reads \"Label the app would set: truedone:<x>\". (#57) view.mjs:63 prefixes every reason with its file while messages such as unrun already name it: a reason whose message names its file is printed without the prefix, and reasons whose verdict (CORE-09) differs from the result's are listed after the others under the line \"Also noted\". (#59) The next rung stays on every page (PV-W05, WEB-01-AC03), under the heading \"Next rung: run the PR's own tests on your machine\"; its first line claims a diff only where a verdict was shown. (#61) homeView gains one example link per verdict to a public pull request page on this site. (#63) The site footer offers \"Sign in with GitHub\" on every page, so sign-in is reachable before the rate limit. The content security policy and the exchange are unchanged.",
       "scope": {
         "allow": [
           "packages/web/lib/**",
@@ -10055,7 +10059,7 @@
       "requirements": [
         "PV-W02"
       ],
-      "description": "Measured on the live site on 2026-10-18 with no GitHub account (issues #74 to #79). (#74) Every error on /signin/callback renders the footer through shell(view, loc.pathname) (packages/web/lib/page.mjs:12), so its sign-in link returns to /signin/callback (view.mjs:36, :58); a visitor who follows it and signs in lands on the callback again with the state gone and reads \"The sign-in did not match this tab\", though the sign-in worked: signinHref never returns to /signin or /signin/callback, and the callback's error page offers sign-in back to the kept return value. (#75) finish() in lib/signin.mjs:29 puts a missing code in the state-mismatch branch, so GitHub's cancel (error=access_denied with the right state) reads as a mismatch: after the state check, an error parameter gets its own line, \"The sign-in was cancelled on GitHub.\", and the mismatch text stays for a wrong state. (#76) A token GitHub rejects makes every PR page read \"GitHub answered 401\" for the life of the tab (github.mjs:44, page.mjs:44), with no sign-out: on a 401 with a token the page drops the token, reads the PR again anonymously, and says the sign-in expired with a sign-in link. (#77) Every callback error line that says to start again carries the link to /signin with the kept return value. (#78) rateLimitView ignores RateLimited.reset (github.mjs:14): the page says when the limit resets, in the visitor's local time, when the header is present. (#79) The Tampered example exists only in the client-rendered home: /why's Tampered section carries the link to https://github.com/mgillr/truedone-sandbox/pull/31 in static HTML. The exchange Worker, the content security policy and the return-value rules are unchanged; the Worker walked clean (17 requests).",
+      "description": "Measured on the live site on 2026-10-18 with no GitHub account (issues #74 to #79). (#74) Every error on /signin/callback renders the footer through shell(view, loc.pathname) (packages/web/lib/page.mjs:12), so its sign-in link returns to /signin/callback (view.mjs:36, :58); a visitor who follows it and signs in lands on the callback again with the state gone and reads \"The sign-in did not match this tab\", though the sign-in worked: signinHref never returns to /signin or /signin/callback, and the callback's error page offers sign-in back to the kept return value. (#75) finish() in lib/signin.mjs:29 puts a missing code in the state-mismatch branch, so GitHub's cancel (error=access_denied with the right state) reads as a mismatch: after the state check, an error parameter gets its own line, \"The sign-in was cancelled on GitHub.\", and the mismatch text stays for a wrong state. (#76) A token GitHub rejects makes every PR page read \"GitHub answered 401\" for the life of the tab (github.mjs:44, page.mjs:44), with no sign-out: on a 401 with a token the page drops the token, reads the PR again anonymously, and says the sign-in expired with a sign-in link. (#77) Every callback error line that says to start again carries the link to /signin with the kept return value. (#78) rateLimitView ignores RateLimited.reset (github.mjs:14): the page says when the limit resets, in the visitor's local time, when the header is present. (#79) The Tampered example exists only in the client-rendered home: /why's Tampered section carries the link to https://github.com/Truedone/truedone-sandbox/pull/31 in static HTML. The exchange Worker, the content security policy and the return-value rules are unchanged; the Worker walked clean (17 requests).",
       "scope": {
         "allow": [
           "packages/web/lib/**",
@@ -10113,7 +10117,7 @@
           "statement": "why.html carries the Tampered example link in static HTML",
           "verifier": {
             "type": "command",
-            "cmd": "grep -q \"https://github.com/mgillr/truedone-sandbox/pull/31\" packages/web/why.html",
+            "cmd": "grep -q \"https://github.com/Truedone/truedone-sandbox/pull/31\" packages/web/why.html",
             "expect_exit": 0,
             "timeout_s": 300
           }
@@ -10187,7 +10191,7 @@
       "requirements": [
         "PV-W02"
       ],
-      "description": "Measured on the live site on 2026-10-18 (issues #82 to #85). (#82, WCAG 2.4.2) document.title is \"truedone\" on every client-rendered page; nothing in packages/web/lib sets it and index.html carries a fixed title: page.mjs sets a title per view, the verdict and owner/repo#n for a PR page (\"Tampered: mgillr/truedone-sandbox#31 - truedone\"), \"Check a pull request - truedone\" for home, the heading for the error, rate-limit, not-found and no-list pages, each ending \" - truedone\". (#83, 1.4.11) the field's only boundary is its 1px border, 1.43:1 on #ffffff and 1.55:1 on #0d1117 (style.css:112): the border colour reaches 3:1 or more against --bg in both themes. (#84, 1.4.3) no ::placeholder rule, so Chrome's default is 4.11:1 in dark: ::placeholder takes the muted token in both themes, 4.5:1 or more. (#85, 1.3.1) the two reasons lists (view.mjs:96 and :97) are unnamed: each carries an accessible name, the first \"Reasons for the verdict\" through a visually hidden label and the second tied to \"Also noted\" with aria-labelledby, so a screen reader moving by list tells them apart. Also: #app carries aria-busy=\"true\" while \"Loading\" shows and loses it when a view mounts. The tests compute the contrast ratios from the CSS tokens without a browser, check the title per route through page(), and read the names and aria-busy from the mounted DOM. The CSP is outside the scope and unchanged.",
+      "description": "Measured on the live site on 2026-10-18 (issues #82 to #85). (#82, WCAG 2.4.2) document.title is \"truedone\" on every client-rendered page; nothing in packages/web/lib sets it and index.html carries a fixed title: page.mjs sets a title per view, the verdict and owner/repo#n for a PR page (\"Tampered: Truedone/truedone-sandbox#31 - truedone\"), \"Check a pull request - truedone\" for home, the heading for the error, rate-limit, not-found and no-list pages, each ending \" - truedone\". (#83, 1.4.11) the field's only boundary is its 1px border, 1.43:1 on #ffffff and 1.55:1 on #0d1117 (style.css:112): the border colour reaches 3:1 or more against --bg in both themes. (#84, 1.4.3) no ::placeholder rule, so Chrome's default is 4.11:1 in dark: ::placeholder takes the muted token in both themes, 4.5:1 or more. (#85, 1.3.1) the two reasons lists (view.mjs:96 and :97) are unnamed: each carries an accessible name, the first \"Reasons for the verdict\" through a visually hidden label and the second tied to \"Also noted\" with aria-labelledby, so a screen reader moving by list tells them apart. Also: #app carries aria-busy=\"true\" while \"Loading\" shows and loses it when a view mounts. The tests compute the contrast ratios from the CSS tokens without a browser, check the title per route through page(), and read the names and aria-busy from the mounted DOM. The CSP is outside the scope and unchanged.",
       "scope": {
         "allow": [
           "packages/web/lib/**",
@@ -10525,7 +10529,7 @@
       "requirements": [
         "PV-W02"
       ],
-      "description": "Measured on 2026-10-18 08:55Z as a new user (issue #92): every page shows \"npx truedone <PR link> --run\", and npx truedone in a fresh HOME prints \"truedone is not released yet\" and exits 1; the green line says to add the truedone step while mgillr/truedone-action is empty and the production App is private; home names the Claude Code plugin, which has no install path. The site gives no word that these are not released. Changes: packages/web/lib/release.mjs holds one release state per surface (cli, action, app, plugin), all false now, the only place a release flips; the next rung, the green line and the plugin line read it and, for a surface not released, say \"Not released yet\" with a link to https://github.com/mgillr/truedone to follow the first release, keeping the red-green warning (PV-W05); home gains a short \"What works today\" list: this site checks any public pull request now, and the command line, the action, the App and the plugin come with the first release. /why says the same in one line.",
+      "description": "Measured on 2026-10-18 08:55Z as a new user (issue #92): every page shows \"npx truedone <PR link> --run\", and npx truedone in a fresh HOME prints \"truedone is not released yet\" and exits 1; the green line says to add the truedone step while Truedone/truedone-action is empty and the production App is private; home names the Claude Code plugin, which has no install path. The site gives no word that these are not released. Changes: packages/web/lib/release.mjs holds one release state per surface (cli, action, app, plugin), all false now, the only place a release flips; the next rung, the green line and the plugin line read it and, for a surface not released, say \"Not released yet\" with a link to https://github.com/Truedone/truedone to follow the first release, keeping the red-green warning (PV-W05); home gains a short \"What works today\" list: this site checks any public pull request now, and the command line, the action, the App and the plugin come with the first release. /why says the same in one line.",
       "scope": {
         "allow": [
           "packages/web/lib/**",
@@ -11900,7 +11904,7 @@
     },
     {
       "id": "REL-P2",
-      "title": "[W2] The action's tree for mgillr/truedone-action, built from main",
+      "title": "[W2] The action's tree for Truedone/truedone-action, built from main",
       "phase": "implement",
       "owner": "lane-d",
       "depends_on": [
@@ -11914,7 +11918,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "D35. tools/mirror-action.mjs <out dir> writes the tree mgillr/truedone-action carries, from main and nothing else: action.yml at the root, dist/index.mjs, README.md (its usage block says uses: mgillr/truedone-action@v0.1.0 and how to pin the commit the tag names), LICENSE and NOTICE; two runs give the same bytes. Ryan pushes the tree and the tag v0.1.0 with the commands the tool prints (REL-P5). The file list and each file's SHA-256 are in the \"## The action\" section of docs/releases/preview-0.1.0.md.",
+      "description": "D35. tools/mirror-action.mjs <out dir> writes the tree Truedone/truedone-action carries, from main and nothing else: action.yml at the root, dist/index.mjs, README.md (its usage block says uses: Truedone/truedone-action@v0.1.0 and how to pin the commit the tag names), LICENSE and NOTICE; two runs give the same bytes. Ryan pushes the tree and the tag v0.1.0 with the commands the tool prints (REL-P5). The file list and each file's SHA-256 are in the \"## The action\" section of docs/releases/preview-0.1.0.md.",
       "scope": {
         "allow": [
           "docs/DEPENDENCY-MAP.md",
@@ -12002,7 +12006,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "D35. tools/release-preview.mjs plugin adds the marketplace mgillr/truedone with the claude CLI in a scratch HOME, installs the plugin truedone from it, checks that its Stop hook is registered, and runs the installed hook on a recorded transcript, expecting the answer the plugin's own tests expect. It writes the commands and their output to the \"## The plugin\" section of docs/releases/preview-0.1.0.md. The official marketplace submission stays with REL-W3.",
+      "description": "D35. tools/release-preview.mjs plugin adds the marketplace Truedone/truedone with the claude CLI in a scratch HOME, installs the plugin truedone from it, checks that its Stop hook is registered, and runs the installed hook on a recorded transcript, expecting the answer the plugin's own tests expect. It writes the commands and their output to the \"## The plugin\" section of docs/releases/preview-0.1.0.md. The official marketplace submission stays with REL-W3.",
       "scope": {
         "allow": [
           ".claude-plugin/**",
@@ -12185,7 +12189,7 @@
     },
     {
       "id": "REL-P6",
-      "title": "[W2] Ryan pushes the action's tree to mgillr/truedone-action and tags it v0.1.0",
+      "title": "[W2] Ryan pushes the action's tree to Truedone/truedone-action and tags it v0.1.0",
       "phase": "implement",
       "owner": "ryan",
       "depends_on": [
@@ -12199,7 +12203,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "D35. After the billing lock on the account's GitHub Actions ends and REL-P2 lands, Ryan pushes REL-P2's tree to mgillr/truedone-action and tags it v0.1.0, with the commands REL-P2's tool prints. The lead reads it back.",
+      "description": "D35. After the billing lock on the account's GitHub Actions ends and REL-P2 lands, Ryan pushes REL-P2's tree to Truedone/truedone-action and tags it v0.1.0, with the commands REL-P2's tool prints. The lead reads it back.",
       "scope": {
         "allow": [
           "docs/DEPENDENCY-MAP.md",
@@ -12210,10 +12214,10 @@
         {
           "id": "REL-P6-AC01",
           "mandatory": true,
-          "statement": "mgillr/truedone-action has the tag v0.1.0 and action.yml at its root",
+          "statement": "Truedone/truedone-action has the tag v0.1.0 and action.yml at its root",
           "verifier": {
             "type": "command",
-            "cmd": "gh api repos/mgillr/truedone-action/git/ref/tags/v0.1.0 --jq .ref | grep -qx refs/tags/v0.1.0 && gh api repos/mgillr/truedone-action/contents/action.yml --jq .name | grep -qx action.yml",
+            "cmd": "gh api repos/Truedone/truedone-action/git/ref/tags/v0.1.0 --jq .ref | grep -qx refs/tags/v0.1.0 && gh api repos/Truedone/truedone-action/contents/action.yml --jq .name | grep -qx action.yml",
             "expect_exit": 0,
             "timeout_s": 300
           }
@@ -12221,10 +12225,10 @@
         {
           "id": "REL-P6-AC06",
           "mandatory": true,
-          "statement": "an anonymous reader sees the tag v0.1.0 on mgillr/truedone-action, and its action.yml and dist/index.mjs have the SHA-256s REL-P2 recorded in the notes",
+          "statement": "an anonymous reader sees the tag v0.1.0 on Truedone/truedone-action, and its action.yml and dist/index.mjs have the SHA-256s REL-P2 recorded in the notes",
           "verifier": {
             "type": "command",
-            "cmd": "node -e '(async()=>{const fs=require(\"fs\");const crypto=require(\"crypto\");const notes=fs.readFileSync(\"docs/releases/preview-0.1.0.md\",\"utf8\");for(const f of [\"action.yml\",\"dist/index.mjs\"]){const r=await fetch(\"https://raw.githubusercontent.com/mgillr/truedone-action/v0.1.0/\"+f);if(r.status!==200)process.exit(1);const h=crypto.createHash(\"sha256\").update(Buffer.from(await r.arrayBuffer())).digest(\"hex\");if(!notes.includes(h))process.exit(1)}})().catch(()=>process.exit(1))'",
+            "cmd": "node -e '(async()=>{const fs=require(\"fs\");const crypto=require(\"crypto\");const notes=fs.readFileSync(\"docs/releases/preview-0.1.0.md\",\"utf8\");for(const f of [\"action.yml\",\"dist/index.mjs\"]){const r=await fetch(\"https://raw.githubusercontent.com/Truedone/truedone-action/v0.1.0/\"+f);if(r.status!==200)process.exit(1);const h=crypto.createHash(\"sha256\").update(Buffer.from(await r.arrayBuffer())).digest(\"hex\");if(!notes.includes(h))process.exit(1)}})().catch(()=>process.exit(1))'",
             "expect_exit": 0,
             "timeout_s": 300
           }
@@ -12295,7 +12299,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "D35, the gold standard. From a fresh home, as a new user: the site on its five examples; npx truedone@0.1.0 from npm on the same five; the action from mgillr/truedone-action@v0.1.0 in the sandbox's workflow, its run and its label; the production App installed on the sandbox from its public page, its check run and its label, equal to the verdict core gives; the plugin from the marketplace. Each surface has a row in the \"## Acceptance\" table of docs/releases/preview-0.1.0.md, \"| <surface> | <command> | <output> | <UTC time> | Works |\" or the failure. Only a surface with a Works row flips in packages/web/lib/release.mjs, and node tools/readme-status.mjs rewrites the README in the same change. The production App's global posting flag turns on only after its sandbox row works. While the account's GitHub Actions are locked for billing (the owner, 2026-10-18), the action's row records that it could not run, and its entry in release.mjs stays false; the walk does not wait for it. Each row names the build it ran (the site: the Pages deployment; the CLI: npm's dist.integrity for the version; the App: the production Worker's /health version; the plugin: the installed commit) and its evidence. The site row reads the five examples' verdicts from the live site. The CLI row runs npx truedone with no version, as the README shows, and records its version line. The App row names the check run id, its app slug (truedone, never truedone-dev) and the label event's actor (truedone[bot]), after the production App is installed on the sandbox from its public page; the lead first reads the App's installations on its settings page and records them, then turns the production global posting flag on and walks the sandbox row at once, since a global off stops every installation.",
+      "description": "D35, the gold standard. From a fresh home, as a new user: the site on its five examples; npx truedone@0.1.0 from npm on the same five; the action from Truedone/truedone-action@v0.1.0 in the sandbox's workflow, its run and its label; the production App installed on the sandbox from its public page, its check run and its label, equal to the verdict core gives; the plugin from the marketplace. Each surface has a row in the \"## Acceptance\" table of docs/releases/preview-0.1.0.md, \"| <surface> | <command> | <output> | <UTC time> | Works |\" or the failure. Only a surface with a Works row flips in packages/web/lib/release.mjs, and node tools/readme-status.mjs rewrites the README in the same change. The production App's global posting flag turns on only after its sandbox row works. While the account's GitHub Actions are locked for billing (the owner, 2026-10-18), the action's row records that it could not run, and its entry in release.mjs stays false; the walk does not wait for it. Each row names the build it ran (the site: the Pages deployment; the CLI: npm's dist.integrity for the version; the App: the production Worker's /health version; the plugin: the installed commit) and its evidence. The site row reads the five examples' verdicts from the live site. The CLI row runs npx truedone with no version, as the README shows, and records its version line. The App row names the check run id, its app slug (truedone, never truedone-dev) and the label event's actor (truedone[bot]), after the production App is installed on the sandbox from its public page; the lead first reads the App's installations on its settings page and records them, then turns the production global posting flag on and walks the sandbox row at once, since a global off stops every installation.",
       "scope": {
         "allow": [
           "README.md",
@@ -12721,7 +12725,7 @@
           "statement": "the repository settings carry the description, the homepage and three topics",
           "verifier": {
             "type": "command",
-            "cmd": "test -n \"$(gh api repos/mgillr/truedone --jq .description)\" && test \"$(gh api repos/mgillr/truedone --jq .homepage)\" = https://truedone.pages.dev && test \"$(gh api repos/mgillr/truedone --jq .topics[] | wc -l)\" -ge 3",
+            "cmd": "test -n \"$(gh api repos/Truedone/truedone --jq .description)\" && test \"$(gh api repos/Truedone/truedone --jq .homepage)\" = https://truedone.pages.dev && test \"$(gh api repos/Truedone/truedone --jq .topics[] | wc -l)\" -ge 3",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -13002,6 +13006,169 @@
         "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "ORG-01",
+      "title": "[W2] The tree names the Truedone organisation, and the README status reads its merge commits",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "REPO-01",
+        "README-03"
+      ],
+      "requirements": [
+        "PV-D04"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D36. On 2026-10-18 the repositories moved to the GitHub organisation Truedone: Truedone/truedone, Truedone/truedone-action and Truedone/truedone-sandbox; the development App belongs to the organisation and is installed only on the sandbox. Every file in the tree that names a repository names its Truedone address, except the owner's files (the contract, the spec and the design pages, amended by the owner) and test inputs that only stand for a repository. tools/readme-status.mjs reads GitHub's merge commit \"Merge pull request #n from <owner>/<id>\" for both owners, since commits before the move name mgillr and commits after it name Truedone. tools/mirror-action.mjs pushes to Truedone/truedone-action. The site's links, the legal pages' source links, the issue templates, the docs and the README name the organisation. docs/ops/apps.md says the development App belongs to the organisation and is installed only on Truedone/truedone-sandbox. The live repository keeps its ruleset (the container gate as the required check) and its production reviewer after the move.",
+      "scope": {
+        "allow": [
+          "README.md",
+          "CONTRIBUTING.md",
+          "SECURITY.md",
+          ".github/ISSUE_TEMPLATE/**",
+          "docs/ops/**",
+          "docs/privacy.md",
+          "docs/terms.md",
+          "packages/web/**",
+          "tools/build-legal.mjs",
+          "tools/mirror-action.mjs",
+          "tools/readme-status.mjs",
+          "tools/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "ORG-01-AC01",
+          "mandatory": true,
+          "statement": "a merge commit \"Merge pull request #n from Truedone/<id>\" lands its task in the README status, as one from mgillr/<id> still does",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/readme-status-org.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "ORG-01-AC02",
+          "mandatory": true,
+          "statement": "no file outside the owner's files and the test inputs names mgillr/truedone, mgillr/truedone-action or mgillr/truedone-sandbox",
+          "verifier": {
+            "type": "command",
+            "cmd": "! git grep -nE 'mgillr/truedone' -- . ':(exclude)proofline.json' ':(exclude)REQUIREMENTS.md' ':(exclude)docs/spec.md' ':(exclude,glob)docs/design/**' ':(exclude,glob)docs/contracts/**' ':(exclude,glob)**/test/**'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "ORG-01-AC03",
+          "mandatory": true,
+          "statement": "docs/ops/apps.md says the development App is installed only on Truedone/truedone-sandbox",
+          "verifier": {
+            "type": "command",
+            "cmd": "grep -q \"installed only on .Truedone/truedone-sandbox.\" docs/ops/apps.md",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "ORG-01-AC04",
+          "mandatory": true,
+          "statement": "the live repository is Truedone/truedone, an organisation repository, with the container gate as the required check, history protection, and Ryan as the production reviewer",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api repos/Truedone/truedone --jq '.full_name + \" \" + .owner.type')\" = \"Truedone/truedone Organization\" && gh api repos/Truedone/truedone/rules/branches/main --jq '.[] | select(.type == \"required_status_checks\") | .parameters.required_status_checks[].context' | grep -qxF \"truedone-gate (lead runner, docker)\" && gh api repos/Truedone/truedone/rules/branches/main --jq \".[].type\" | grep -qx non_fast_forward && gh api repos/Truedone/truedone/environments/production --jq \".protection_rules[].reviewers[]?.reviewer.login\" | grep -qx mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "ORG-01-AC05",
+          "mandatory": true,
+          "statement": "the README status is current",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/readme-status.mjs --check",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "ORG-01-AC06",
+          "mandatory": true,
+          "statement": "the docs and README checks pass",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/docs-check.mjs && node tools/readme-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "ORG-01-AC07",
+          "mandatory": true,
+          "statement": "site suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "ORG-01-AC08",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "ORG-01-AC09",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "ORG-01-AC10",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "ORG-01-AC11",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "ORG-01-AC12",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
       ]
     },
     {
@@ -13314,7 +13481,7 @@
       "requirements": [
         "PV-D03"
       ],
-      "description": "Read on main c7530340 as a first-time visitor (2026-10-18 09:54Z): README.md's \"Ways to use it\" table says truedone.pages.dev is \"In development, planned for week 2\" while the site checks any public pull request; its App row says the app posts on every pull_request event and its action row says \"On main\", which read as working, while neither is released (production App private and installed nowhere, mgillr/truedone-action empty); the line above says nothing is released. The prerequisites line says one test needs pytest (run-live-pytest and run-coverage-py both do) and names curl, which the quick start does not use. Changes: tools/readme-status.mjs also writes the table's Status column between its own marker lines, from packages/web/lib/release.mjs (the site row \"Live\" always; each released surface \"Released\", each other \"Not released yet\"); the line above the table says the site is live and the rest come with the first release; the prerequisites line names git, Node 22 or later and Python 3 with pytest, which two tests use. --check fails when the table and release.mjs disagree.",
+      "description": "Read on main c7530340 as a first-time visitor (2026-10-18 09:54Z): README.md's \"Ways to use it\" table says truedone.pages.dev is \"In development, planned for week 2\" while the site checks any public pull request; its App row says the app posts on every pull_request event and its action row says \"On main\", which read as working, while neither is released (production App private and installed nowhere, Truedone/truedone-action empty); the line above says nothing is released. The prerequisites line says one test needs pytest (run-live-pytest and run-coverage-py both do) and names curl, which the quick start does not use. Changes: tools/readme-status.mjs also writes the table's Status column between its own marker lines, from packages/web/lib/release.mjs (the site row \"Live\" always; each released surface \"Released\", each other \"Not released yet\"); the line above the table says the site is live and the rest come with the first release; the prerequisites line names git, Node 22 or later and Python 3 with pytest, which two tests use. --check fails when the table and release.mjs disagree.",
       "scope": {
         "allow": [
           "tools/readme-status.mjs",
@@ -13713,7 +13880,7 @@
           "statement": "the published npm package carries provenance from this repository (on GO)",
           "verifier": {
             "type": "command",
-            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w2.md || (npm view truedone repository.url | grep -q github.com/mgillr/truedone && npm view truedone dist.attestations.provenance.predicateType | grep -q slsa)",
+            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w2.md || (npm view truedone repository.url | grep -q github.com/Truedone/truedone && npm view truedone dist.attestations.provenance.predicateType | grep -q slsa)",
             "expect_exit": 0,
             "timeout_s": 1800
           }
@@ -13735,7 +13902,7 @@
           "statement": "index #1 is on the index-data branch (on GO)",
           "verifier": {
             "type": "command",
-            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w2.md || (git fetch -q https://github.com/mgillr/truedone index-data && git ls-tree -r --name-only FETCH_HEAD | grep -qE \"2026-w[0-9]{2}\\.md$\")",
+            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w2.md || (git fetch -q https://github.com/Truedone/truedone index-data && git ls-tree -r --name-only FETCH_HEAD | grep -qE \"2026-w[0-9]{2}\\.md$\")",
             "expect_exit": 0,
             "timeout_s": 1800
           }
@@ -13867,10 +14034,10 @@
         {
           "id": "REL-W3-AC04",
           "mandatory": true,
-          "statement": "the plugin installs from GitHub into a throwaway home: the marketplace mgillr/truedone, then truedone@truedone (on GO)",
+          "statement": "the plugin installs from GitHub into a throwaway home: the marketplace Truedone/truedone, then truedone@truedone (on GO)",
           "verifier": {
             "type": "command",
-            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w3.md || (H=$(mktemp -d) && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin marketplace add mgillr/truedone && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin install truedone@truedone)",
+            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w3.md || (H=$(mktemp -d) && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin marketplace add Truedone/truedone && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin install truedone@truedone)",
             "expect_exit": 0,
             "timeout_s": 1800
           }
@@ -14009,7 +14176,7 @@
           "statement": "privacy and terms are reachable from truedone.pages.dev (on GO)",
           "verifier": {
             "type": "command",
-            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w4.md || (curl -sfI https://truedone.pages.dev/privacy | grep -qiE \"^location: https://github.com/mgillr/truedone/blob/main/docs/privacy.md\" && curl -sfI https://truedone.pages.dev/terms | grep -qiE \"^location: https://github.com/mgillr/truedone/blob/main/docs/terms.md\")",
+            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w4.md || (curl -sfI https://truedone.pages.dev/privacy | grep -qiE \"^location: https://github.com/Truedone/truedone/blob/main/docs/privacy.md\" && curl -sfI https://truedone.pages.dev/terms | grep -qiE \"^location: https://github.com/Truedone/truedone/blob/main/docs/terms.md\")",
             "expect_exit": 0,
             "timeout_s": 1800
           }
@@ -14300,7 +14467,7 @@
           "statement": "proofline on main vendors the released core.mjs byte for byte, routes its forbidden checks through it, and its suite passes (PV-C14, on GO)",
           "verifier": {
             "type": "command",
-            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w6.md || (V=$(curl -sf https://raw.githubusercontent.com/mgillr/proofline/main/src/vendor/TRUEDONE_VERSION | head -1) && test -n \"$V\" && curl -sf \"https://raw.githubusercontent.com/mgillr/truedone/v$V/packages/core/core.mjs\" > /tmp/truedone-core-tag.mjs && curl -sf https://raw.githubusercontent.com/mgillr/proofline/main/src/vendor/truedone-core.mjs | cmp - /tmp/truedone-core-tag.mjs && curl -sf https://raw.githubusercontent.com/mgillr/proofline/main/src/forbidden.mjs | grep -q truedone-core && rm -rf /tmp/truedone-proofline && git clone -q --depth 1 https://github.com/mgillr/proofline /tmp/truedone-proofline && cd /tmp/truedone-proofline && npm ci --ignore-scripts && npm test)",
+            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w6.md || (V=$(curl -sf https://raw.githubusercontent.com/mgillr/proofline/main/src/vendor/TRUEDONE_VERSION | head -1) && test -n \"$V\" && curl -sf \"https://raw.githubusercontent.com/Truedone/truedone/v$V/packages/core/core.mjs\" > /tmp/truedone-core-tag.mjs && curl -sf https://raw.githubusercontent.com/mgillr/proofline/main/src/vendor/truedone-core.mjs | cmp - /tmp/truedone-core-tag.mjs && curl -sf https://raw.githubusercontent.com/mgillr/proofline/main/src/forbidden.mjs | grep -q truedone-core && rm -rf /tmp/truedone-proofline && git clone -q --depth 1 https://github.com/mgillr/proofline /tmp/truedone-proofline && cd /tmp/truedone-proofline && npm ci --ignore-scripts && npm test)",
             "expect_exit": 0,
             "timeout_s": 1800
           }

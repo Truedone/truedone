@@ -29,7 +29,7 @@
 - PV-P01: The plugin is one Stop hook file with core bundled and no network calls
 - PV-P02: The plugin blocks in exactly the three blocking cases of the plugin table and in no other
 - PV-P03: A refactor with no test is never blocked and is shown once to the user
-- PV-P04: /plugin marketplace add mgillr/truedone, then /plugin install truedone@truedone, installs the plugin on Claude Code 2.1.275 or later
+- PV-P04: /plugin marketplace add Truedone/truedone, then /plugin install truedone@truedone, installs the plugin on Claude Code 2.1.275 or later
 - PV-P05: The plugin never blocks more than three times in a row
 - PV-A01: The app verifies webhook signatures in constant time and handles each delivery once
 - PV-A02: The app requests exactly checks write, pull requests write, contents read, actions read and metadata read
@@ -59,12 +59,12 @@
 - PV-I03: The index has a published method, data and corrections log
 - PV-R01: LICENSE, SECURITY.md, the privacy note and the terms exist before the app is offered
 - PV-R02: Releases use npm trusted publishing with provenance and need Ryan's approval
-- PV-R03: The action is mirrored to mgillr/truedone-action on release with a single root action.yml
+- PV-R03: The action is mirrored to Truedone/truedone-action on release with a single root action.yml
 - PV-R04: Monitoring and alerts cover webhook errors, queue age and label latency
 - PV-R05: The load test at 1,000 installs' volume ran and its cost is published
 - PV-R06: Uninstall deletes the installation's stored data within 24 hours
 - PV-B01: truedone's CI re-runs every task's criteria from the default-branch contract, and branch protection requires it (D22)
-- PV-N01: The npm name, the repository mgillr/truedone and the Cloudflare Pages project truedone are registered
+- PV-N01: The npm name, the repository Truedone/truedone and the Cloudflare Pages project truedone are registered
 - PV-N02: The lanes hold no GitHub credential; only the lead runner pushes branches and opens pull requests, with Ryan's login, and every pull request passes the CI gate
 - PV-D01: Every section of docs/spec.md, the decisions and the requirements list excepted, has a design document with a Mermaid flow diagram and a Mermaid schematic, joined in one master schematic (D29)
 - PV-D02: docs/DEPENDENCY-MAP.md puts every file in a node, and a change to a node includes every node it must update; every task checks it (D28)
