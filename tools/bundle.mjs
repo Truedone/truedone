@@ -311,14 +311,18 @@ if (opt.copy) {
 // that object, so two modules may export the same name. node: imports are hoisted once to the top; two modules may
 // not bind one local name to different built-ins. core.mjs, already one file, is taken as it is. A shebang on the entry
 // stays the first line. The entry's own lines stay at the top level, so a line such as const REDGREEN_ENABLED = false;
-// keeps its exact text (PLG-03 sets it from docs/gates/redgreen.json, D17).
+// keeps its exact text (PLG-03 sets it from docs/gates/redgreen.json, D17). The release's version, packages/cli/
+// package.json's (REL-P1), is written into every bundle: the CLI's line const VERSION = '...'; and, in each bundle that
+// carries core/run's report writer, its line const TRUEDONE_VERSION = '...';, so the CLI, the plugin's Stop hook and the
+// action report the release they are.
+const RELEASE = 'packages/cli/package.json';
 const ENTRIES = [
-  { entry: 'packages/cli/src/bin.mjs', out: 'packages/cli/truedone.mjs' },
+  { entry: 'packages/cli/src/bin.mjs', out: 'packages/cli/truedone.mjs', version: true },
   { entry: 'packages/cli/src/plugin/entry.mjs', out: 'packages/cli/plugin/hooks/stop.mjs', redgreen: 'docs/gates/redgreen.json' },
   { entry: 'packages/action/src/index.mjs', out: 'packages/action/dist/index.mjs' }, // the action entry (ACT-01)
 ];
 
-function entryBundle(entryRel, { redgreen } = {}) {
+function entryBundle(entryRel, { redgreen, version } = {}) {
   const entry = path.join(repo, entryRel);
   const builtins = new Map();   // local name -> import statement
   const order = [];
@@ -398,6 +402,17 @@ function entryBundle(entryRel, { redgreen } = {}) {
     if (!line.test(out)) { console.error(`${entryRel}: no line const REDGREEN_ENABLED = false; to set`); process.exit(1); }
     out = out.replace(line, `const REDGREEN_ENABLED = ${on};`);
   }
+  const v = JSON.parse(fs.readFileSync(path.join(repo, RELEASE), 'utf8')).version;
+  if (!/^\d+\.\d+\.\d+$/.test(String(v))) { console.error(`${RELEASE}: version ${v} is not major.minor.patch`); process.exit(1); }
+  const set = (name, required) => {
+    const line = new RegExp(`^const ${name} = '[^']*';$`, 'gm');
+    const n = (out.match(line) || []).length;
+    if (n > 1 || (required && n !== 1)) { console.error(`${entryRel}: ${n} lines const ${name} = '...'; to set, not one`); process.exit(1); }
+    out = out.replace(line, `const ${name} = '${v}';`);
+  };
+  if (version) set('VERSION', true);
+  // a bundle that carries core/run's report writer carries its version line
+  set('TRUEDONE_VERSION', out.includes('truedone_version: TRUEDONE_VERSION'));
   return `${out.replace(/\n{3,}/g, '\n\n').trim()}\n`;
 }
 

@@ -3,6 +3,5 @@
 // the local reader, carries none either.
 export const LIMITS = { files: 300, lines: 20000, fetched: 100 };   // docs/spec.md, Limits (static)
 export const CONTENT = new Set(['test', 'setup', 'runner_config', 'workflow', 'truedone_config']);   // core's class names
-// The version npx truedone reports (D39's wrong-verdict form, and the MCP server's name and version); it is the
-// version in packages/cli/package.json, which test/agent-spread.test.mjs holds it to.
-export const VERSION = '0.1.0';
+// The version npx truedone reports (D39's wrong-verdict form, and the MCP server's name and version) is version.mjs's
+// VERSION (REL-P1): one line, which tools/bundle.mjs writes from packages/cli/package.json.
