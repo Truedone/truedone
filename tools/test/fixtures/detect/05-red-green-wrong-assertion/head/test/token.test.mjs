@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { isValid } from '../src/token.mjs';
+
+test('a live token is accepted', () => {
+  assert.equal(isValid({ expires: 30 }, 20), true);
+});
+
+test('an expired token is accepted', () => {
+  assert.equal(isValid({ expires: 10 }, 20), true);
+});

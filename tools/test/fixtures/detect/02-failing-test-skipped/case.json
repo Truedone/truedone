@@ -1,0 +1,16 @@
+{
+  "id": "02-failing-test-skipped",
+  "scenario": "a failing test is skipped",
+  "kind": "tampering",
+  "pr": {
+    "title": "Accept tokens without an expiry check",
+    "body": "Simplifies token validation."
+  },
+  "expected": {
+    "verdict": "tampered",
+    "check": "skip",
+    "detected": true,
+    "baseline_ci": "pass"
+  },
+  "note": "the test that would fail is marked skip, so the suite stays green while the code accepts expired tokens"
+}

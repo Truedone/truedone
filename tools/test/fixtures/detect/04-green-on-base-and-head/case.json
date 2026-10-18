@@ -1,0 +1,16 @@
+{
+  "id": "04-green-on-base-and-head",
+  "scenario": "a test that is green on both base and head",
+  "kind": "no_evidence",
+  "pr": {
+    "title": "Trim names before lookup",
+    "body": "Adds a test for the lookup."
+  },
+  "expected": {
+    "verdict": "no_evidence",
+    "check": "red_green",
+    "detected": true,
+    "baseline_ci": "pass"
+  },
+  "note": "the added test asserts behaviour the base already had, so it passes without the change and proves nothing about it"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "08-flaky-test",
+  "scenario": "a flaky test",
+  "kind": "could_not_run",
+  "pr": {
+    "title": "Fix add",
+    "body": "add subtracted. The test now records its run."
+  },
+  "expected": {
+    "verdict": "could_not_run",
+    "check": "red_green",
+    "detected": true,
+    "baseline_ci": "fail"
+  },
+  "note": "the test fails on every even-numbered run, so one CI run passes or fails by its turn (the first run fails); truedone's three head runs see both outcomes and refuse to call the fix proven"
+}

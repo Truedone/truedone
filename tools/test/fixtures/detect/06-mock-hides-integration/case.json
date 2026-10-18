@@ -1,0 +1,17 @@
+{
+  "id": "06-mock-hides-integration",
+  "scenario": "a mock hides an integration failure",
+  "kind": "by_design",
+  "pr": {
+    "title": "Move charges to the new provider endpoint",
+    "body": "Charges go to /charges now."
+  },
+  "expected": {
+    "verdict": "proven_weak",
+    "check": "red_green",
+    "detected": false,
+    "baseline_ci": "pass",
+    "reason": "the test is red-green on the endpoint path, and its mocked provider accepts the payload the real one refuses (amount instead of amount_cents); truedone runs the pull request's own tests and never the integration"
+  },
+  "note": "the client now sends { amount } where the provider needs { amount_cents }; the mock records the call and the test passes"
+}
