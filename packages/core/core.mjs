@@ -335,7 +335,38 @@ const step = 'The truedone step in {name} was removed or edited.';
 const claim = 'The text claims tests were added.';
 const no_test = 'Source file {name} changed with no test change.';
 
-return {tampered,review,unrun,no_evidence,not_applicable,language,skip_focus,partial,bot,skip,focus,weakened,deleted,snapshot,parametrised,timeout,runner_config,step_release,step,claim,no_test};
+const NEXT = {
+tampered: 'Restore an equivalent test, or pin the step to a published release.',
+review: 'Confirm the test change is intended.',
+could_not_run: 'Fix the named reason and run again.',
+proven: 'Review the rest of the change as usual.',
+proven_new: 'Review the rest of the change as usual.',
+proven_weak: 'Make the test run the changed lines and assert on them.',
+no_evidence: 'Add a test that fails before the change and passes after it.',
+pending: 'Approve the run on GitHub.',
+unrun: 'Run the changed tests: the next rung.',
+not_applicable: 'Nothing.',
+};
+
+const GROUPS = [
+[['skip', 'focus', 'weakened', 'deleted', 'parametrised', 'timeout', 'snapshot'], 'Restore an equivalent test.', 'Confirm the test change is intended.'],
+[['step', 'step_release'], 'Pin the truedone step to a published release.', 'Confirm the step change is intended.'],
+[['runner_config'], null, 'Confirm the runner config change is intended.'],
+[['unrun'], null, 'Run the changed tests: the next rung.'],
+];
+
+function nextStep(verdict, reasons) {
+
+const giving = (reasons || []).filter((r) => (r.verdict ?? verdict) === verdict);
+const out = [];
+for (const [checks, ifTampered, otherwise] of GROUPS) {
+if (!giving.some((r) => checks.includes(r.check))) continue;
+out.push(verdict === 'tampered' && ifTampered ? ifTampered : otherwise);
+}
+return out.length ? out.join(' ') : NEXT[verdict] || '';
+}
+
+return {tampered,review,unrun,no_evidence,not_applicable,language,skip_focus,partial,bot,skip,focus,weakened,deleted,snapshot,parametrised,timeout,runner_config,step_release,step,claim,no_test,NEXT,nextStep};
 })();
 export const tampered=__bundle_messages.tampered;
 export const review=__bundle_messages.review;
@@ -358,6 +389,8 @@ export const step_release=__bundle_messages.step_release;
 export const step=__bundle_messages.step;
 export const claim=__bundle_messages.claim;
 export const no_test=__bundle_messages.no_test;
+export const NEXT=__bundle_messages.NEXT;
+export function nextStep(...a){return __bundle_messages.nextStep(...a)}
 const __bundle_checks=(()=>{
 const weakenedMsg = weakened;
 const snapshotMsg = snapshot;
@@ -797,7 +830,8 @@ if (!findings.length) findings.push(reason('unrun', testPath, testPath, 'unrun')
 
 findings.sort((a, b) => CHECK_ORDER.indexOf(a.check) - CHECK_ORDER.indexOf(b.check) || a.file.localeCompare(b.file) || a.message.localeCompare(b.message));
 const verdict = findings.reduce((win, f) => (VERDICT_RANK.indexOf(f.verdict) < VERDICT_RANK.indexOf(win) ? f.verdict : win), 'not_applicable');
-return { verdict, reasons: findings.map(({ check, file, message }) => ({ check, file, message })) };
+
+return { verdict, reasons: findings.map(({ check, file, message, verdict: own }) => ({ check, file, message, verdict: own })) };
 }
 
 function staticVerdict(input = {}) {
@@ -822,19 +856,6 @@ no_evidence: 'truedone:no-evidence',
 pending: 'truedone:pending',
 unrun: 'truedone:unrun',
 not_applicable: null,
-};
-
-const NEXT = {
-tampered: 'Restore an equivalent test, or pin the step to a published release.',
-review: 'Confirm the test change is intended.',
-could_not_run: 'Fix the named reason and run again.',
-proven: 'Review the rest of the change as usual.',
-proven_new: 'Review the rest of the change as usual.',
-proven_weak: 'Make the test run the changed lines and assert on them.',
-no_evidence: 'Add a test that fails before the change and passes after it.',
-pending: 'Approve the run on GitHub.',
-unrun: 'Run the changed tests: the next rung.',
-not_applicable: 'Nothing.',
 };
 
 const UNSUPPORTED = new Set(['go', 'rs', 'java']);
@@ -892,21 +913,21 @@ return { base: '', head: '' };
 function pack(verdict, reasons, partial) {
 const lines = reasons.filter((r) => r.check !== 'partial');
 const out = lines.slice(0, partial ? 9 : 10);
-if (partial) out.push({ check: 'partial', file: '', message: partialMessage });
+if (partial) out.push({ check: 'partial', file: '', message: partialMessage, verdict: 'review' });
 return {
 schema: 'truedone.verdict/1',
 verdict,
 label: LABELS[verdict] ?? null,
 partial: Boolean(partial),
 reasons: out,
-next: NEXT[verdict] || '',
+next: nextStep(verdict, lines),
 };
 }
 
 function analyse(input = {}) {
 const who = loginOf(input.pr);
 if (who && isListedBot(who) && !isAgent(who)) {
-return pack('not_applicable', [{ check: 'bot', file: '', message: bot.replace('{name}', who) }], false);
+return pack('not_applicable', [{ check: 'bot', file: '', message: bot.replace('{name}', who), verdict: 'not_applicable' }], false);
 }
 const files = (Array.isArray(input.files) ? input.files : [])
 .map((f) => ({ path: f.path || f.filename || '', ...fileTexts(f) }))
@@ -917,12 +938,12 @@ const reasons = [];
 const unsupported = slice.filter((f) => UNSUPPORTED.has(extOf(f.path)));
 for (const f of unsupported) {
 if (hasMarker(`${f.base}\n${f.head}`)) {
-reasons.push({ check: 'skip_focus', file: f.path, message: skip_focus.replace('{name}', f.path) });
+reasons.push({ check: 'skip_focus', file: f.path, message: skip_focus.replace('{name}', f.path), verdict: 'not_applicable' });
 }
 }
 const supported = slice.filter((f) => !UNSUPPORTED.has(extOf(f.path)));
 if (unsupported.length && supported.length === 0) {
-if (!reasons.length) reasons.push({ check: 'language', file: unsupported[0].path, message: language });
+if (!reasons.length) reasons.push({ check: 'language', file: unsupported[0].path, message: language, verdict: 'not_applicable' });
 return pack('not_applicable', reasons, false);
 }
 const found = staticFindings({
@@ -1066,28 +1087,15 @@ unrun: 'truedone:unrun',
 not_applicable: null,
 };
 
-const NEXT = {
-tampered: 'Restore an equivalent test, or pin the step to a published release.',
-review: 'Confirm the test change is intended.',
-could_not_run: 'Fix the named reason and run again.',
-proven: 'Review the rest of the change as usual.',
-proven_new: 'Review the rest of the change as usual.',
-proven_weak: 'Make the test run the changed lines and assert on them.',
-no_evidence: 'Add a test that fails before the change and passes after it.',
-pending: 'Approve the run on GitHub.',
-unrun: 'Run the changed tests: the next rung.',
-not_applicable: 'Nothing.',
-};
-
 function result(verdict, reasons, partial) {
-const lines = (reasons || []).filter((r) => r && r.check !== 'partial').slice(0, 10);
+const all = (reasons || []).filter((r) => r && r.check !== 'partial');
 return {
 schema: 'truedone.verdict/1',
 verdict,
 label: LABELS[verdict] ?? null,
 partial: Boolean(partial),
-reasons: lines,
-next: NEXT[verdict] || '',
+reasons: all.slice(0, 10),
+next: nextStep(verdict, all),
 };
 }
 
@@ -1100,6 +1108,7 @@ return {
 check: 'red_green',
 file: test.file || '',
 message: `Test ${name} is ${id} on head ${head} with coverage ${cond}.`,
+verdict: id,
 };
 }
 
@@ -1111,22 +1120,24 @@ if (STAND.has(standing)) return result(standing, staticReasons, partial);
 const report = pick(reports);
 if (!report) {
 const fallback = standing || 'no_evidence';
-const lines = staticReasons.length ? staticReasons : [{ check: 'no_test', file: '', message: 'No report reached a result.' }];
+const lines = staticReasons.length ? staticReasons : [{ check: 'no_test', file: '', message: 'No report reached a result.', verdict: fallback }];
 return result(fallback, lines, partial);
 }
 if (report.could_not_run && report.tests.length === 0) {
 const why = report.could_not_run.reason || 'unknown';
 const detail = report.could_not_run.detail || '';
 const message = detail ? `${why}: ${detail}` : String(why);
-return result('could_not_run', [{ check: 'could_not_run', file: '', message }], partial);
+return result('could_not_run', [{ check: 'could_not_run', file: '', message, verdict: 'could_not_run' }], partial);
 }
 const lines = report.tests.map(redGreen);
+const verdict = best(report.tests.map(verdictId));
 const attempt = report.attempt ?? 0;
 const same = (Array.isArray(reports) ? reports : []).filter((r) => (r.attempt ?? 0) === attempt && r !== report);
+
 for (const other of same) {
-lines.push({ check: 'report', file: '', message: `Report ${other.job || 'a job'} is on the same attempt.` });
+lines.push({ check: 'report', file: '', message: `Report ${other.job || 'a job'} is on the same attempt.`, verdict });
 }
-return result(best(report.tests.map(verdictId)), lines, partial);
+return result(verdict, lines, partial);
 }
 
 return {judge};

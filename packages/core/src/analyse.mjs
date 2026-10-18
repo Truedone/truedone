@@ -2,7 +2,7 @@ import { staticFindings } from './checks.mjs';
 import { isListedBot } from './bots.mjs';
 import { isAgent } from './agents.mjs';
 import { FILES, LINES, FETCHED } from './limits.mjs';
-import { bot, language, partial as partialMessage, skip_focus } from './messages.mjs';
+import { bot, language, partial as partialMessage, skip_focus, nextStep } from './messages.mjs';
 
 const LABELS = {
   tampered: 'truedone:tampered',
@@ -15,19 +15,6 @@ const LABELS = {
   pending: 'truedone:pending',
   unrun: 'truedone:unrun',
   not_applicable: null,
-};
-
-const NEXT = {
-  tampered: 'Restore an equivalent test, or pin the step to a published release.',
-  review: 'Confirm the test change is intended.',
-  could_not_run: 'Fix the named reason and run again.',
-  proven: 'Review the rest of the change as usual.',
-  proven_new: 'Review the rest of the change as usual.',
-  proven_weak: 'Make the test run the changed lines and assert on them.',
-  no_evidence: 'Add a test that fails before the change and passes after it.',
-  pending: 'Approve the run on GitHub.',
-  unrun: 'Run the changed tests: the next rung.',
-  not_applicable: 'Nothing.',
 };
 
 const UNSUPPORTED = new Set(['go', 'rs', 'java']);
@@ -85,21 +72,21 @@ function fileTexts(f) {
 function pack(verdict, reasons, partial) {
   const lines = reasons.filter((r) => r.check !== 'partial');
   const out = lines.slice(0, partial ? 9 : 10);
-  if (partial) out.push({ check: 'partial', file: '', message: partialMessage });
+  if (partial) out.push({ check: 'partial', file: '', message: partialMessage, verdict: 'review' });
   return {
     schema: 'truedone.verdict/1',
     verdict,
     label: LABELS[verdict] ?? null,
     partial: Boolean(partial),
     reasons: out,
-    next: NEXT[verdict] || '',
+    next: nextStep(verdict, lines),
   };
 }
 
 export function analyse(input = {}) {
   const who = loginOf(input.pr);
   if (who && isListedBot(who) && !isAgent(who)) {
-    return pack('not_applicable', [{ check: 'bot', file: '', message: bot.replace('{name}', who) }], false);
+    return pack('not_applicable', [{ check: 'bot', file: '', message: bot.replace('{name}', who), verdict: 'not_applicable' }], false);
   }
   const files = (Array.isArray(input.files) ? input.files : [])
     .map((f) => ({ path: f.path || f.filename || '', ...fileTexts(f) }))
@@ -110,12 +97,12 @@ export function analyse(input = {}) {
   const unsupported = slice.filter((f) => UNSUPPORTED.has(extOf(f.path)));
   for (const f of unsupported) {
     if (hasMarker(`${f.base}\n${f.head}`)) {
-      reasons.push({ check: 'skip_focus', file: f.path, message: skip_focus.replace('{name}', f.path) });
+      reasons.push({ check: 'skip_focus', file: f.path, message: skip_focus.replace('{name}', f.path), verdict: 'not_applicable' });
     }
   }
   const supported = slice.filter((f) => !UNSUPPORTED.has(extOf(f.path)));
   if (unsupported.length && supported.length === 0) {
-    if (!reasons.length) reasons.push({ check: 'language', file: unsupported[0].path, message: language });
+    if (!reasons.length) reasons.push({ check: 'language', file: unsupported[0].path, message: language, verdict: 'not_applicable' });
     return pack('not_applicable', reasons, false);
   }
   const found = staticFindings({
