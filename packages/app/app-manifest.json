@@ -10,7 +10,7 @@
   "setup_url": "https://truedone.ledgerguard-global.workers.dev/api/github/setup",
   "setup_on_update": true,
   "public": false,
-  "default_events": ["installation", "installation_repositories", "pull_request", "workflow_run"],
+  "default_events": ["pull_request", "workflow_run"],
   "default_permissions": {
     "actions": "read",
     "checks": "write",
