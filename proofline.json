@@ -335,6 +335,9 @@
       ],
       "CORE-11": [
         "CORE-11-AC09"
+      ],
+      "WEB-08": [
+        "WEB-08-AC08"
       ]
     }
   },
@@ -8923,6 +8926,138 @@
         },
         {
           "id": "WEB-07-AC10",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "WEB-08",
+      "title": "[W2] The sign-in walk: the callback loop, a cancel, an expired token, the start-again link, the reset time, the static example",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "WEB-07"
+      ],
+      "requirements": [
+        "PV-W02"
+      ],
+      "description": "Measured on the live site on 2026-10-18 with no GitHub account (issues #74 to #79). (#74) Every error on /signin/callback renders the footer through shell(view, loc.pathname) (packages/web/lib/page.mjs:12), so its sign-in link returns to /signin/callback (view.mjs:36, :58); a visitor who follows it and signs in lands on the callback again with the state gone and reads \"The sign-in did not match this tab\", though the sign-in worked: signinHref never returns to /signin or /signin/callback, and the callback's error page offers sign-in back to the kept return value. (#75) finish() in lib/signin.mjs:29 puts a missing code in the state-mismatch branch, so GitHub's cancel (error=access_denied with the right state) reads as a mismatch: after the state check, an error parameter gets its own line, \"The sign-in was cancelled on GitHub.\", and the mismatch text stays for a wrong state. (#76) A token GitHub rejects makes every PR page read \"GitHub answered 401\" for the life of the tab (github.mjs:44, page.mjs:44), with no sign-out: on a 401 with a token the page drops the token, reads the PR again anonymously, and says the sign-in expired with a sign-in link. (#77) Every callback error line that says to start again carries the link to /signin with the kept return value. (#78) rateLimitView ignores RateLimited.reset (github.mjs:14): the page says when the limit resets, in the visitor's local time, when the header is present. (#79) The Tampered example exists only in the client-rendered home: /why's Tampered section carries the link to https://github.com/mgillr/truedone-sandbox/pull/31 in static HTML. The exchange Worker, the content security policy and the return-value rules are unchanged; the Worker walked clean (17 requests).",
+      "scope": {
+        "allow": [
+          "packages/web/lib/**",
+          "packages/web/why.html",
+          "packages/web/style.css",
+          "packages/web/README.md",
+          "packages/web/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "WEB-08-AC01",
+          "mandatory": true,
+          "statement": "no sign-in link returns to /signin or /signin/callback, and the callback error page offers sign-in back to the kept return value",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/signin-return.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-08-AC02",
+          "mandatory": true,
+          "statement": "a cancel on GitHub (error=access_denied, right state) shows the cancelled line with a start-again link; a wrong state keeps the mismatch line; every callback error line carries the start-again link",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/signin-cancel.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-08-AC03",
+          "mandatory": true,
+          "statement": "a recorded 401 with a token drops the token, reads the PR again anonymously, and says the sign-in expired with a sign-in link",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/token-expired.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-08-AC04",
+          "mandatory": true,
+          "statement": "the rate-limit page says when the limit resets when x-ratelimit-reset was present",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/ratelimit-reset.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-08-AC05",
+          "mandatory": true,
+          "statement": "why.html carries the Tampered example link in static HTML",
+          "verifier": {
+            "type": "command",
+            "cmd": "grep -q \"https://github.com/mgillr/truedone-sandbox/pull/31\" packages/web/why.html",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "WEB-08-AC06",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 63,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "WEB-08-AC07",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-08-AC08",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-08-AC09",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "WEB-08-AC10",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
