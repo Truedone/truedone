@@ -455,7 +455,7 @@ export function staticFindings(input = {}) {
     const replacement = (unmatchedByPath.get(b.path) || []).find((u) => !consumedEquivalents.has(u) && assertionsCover(b.assertions, u.assertions));
     if (replacement) {
       consumedEquivalents.add(replacement);
-      findings.push(reason('unrun', b.path, b.name, 'unrun'));
+      findings.push(reason('unrun', b.path, b.path, 'unrun'));
       continue;
     }
     const kept = (b.imports || []).every((spec) => sourceStillThere(files, spec));
