@@ -13,6 +13,9 @@
 // PR's rung marked, and the line on where green comes from; home carries the line beside its examples.
 // WEB-12: a surface not yet released (lib/release.mjs) says so wherever a page names it, with the link to follow the
 // first release; home lists what works today.
+// WEB-14 (D38, D39): a PR page offers the App's install for its repository, marked not released until release.mjs flips,
+// and "This verdict is wrong", a link to the wrong-verdict form filled with the PR, its commits, the verdict, the reason
+// codes and this site as the version, with no PR text.
 // A node is { tag, text?, attrs?, children? }.
 import { RELEASED, FOLLOW, SURFACES } from './release.mjs';
 
@@ -52,6 +55,16 @@ export const resetTime = (reset) => new Date(reset * 1000).toLocaleTimeString(un
 export const TAGLINE = 'Checks whether a pull request\'s tests prove its change: red without it, green with it.';
 export const FOOTER_LINKS = [['Why', '/why'], ['Privacy', '/privacy'], ['Terms', '/terms'], ['GitHub', 'https://github.com/Truedone/truedone']];
 export const MAX_REASONS = 10;
+export const INSTALL_HREF = 'https://github.com/apps/truedone/installations/new';
+export const REPORT_FORM = 'https://github.com/Truedone/truedone/issues/new';
+export const SITE_VERSION = 'truedone.pages.dev';
+// the wrong-verdict form (COLLECT-01) filled from what this page read: the PR's link, its commits, the verdict and the
+// reasons' check codes, never a title, body, author or message
+export function reportHref(result, pr) {
+  const reasons = [...new Set((result.reasons ?? []).map((r) => r.check).filter(Boolean))].join(',');
+  const q = new URLSearchParams({ template: 'wrong-verdict.yml', pr: pr.url, head: pr.head ?? '', base: pr.base ?? '', verdict: result.verdict, reasons, version: SITE_VERSION });
+  return `${REPORT_FORM}?${q}`;
+}
 // the rungs the diff and a red-green run can give, from Tampered up to Proven; Proven (new behaviour) shares Proven's
 // label and rung, and a verdict on no rung (No red-green evidence, Could not run, Waiting, Proven (weak)) marks none
 export const LADDER = ['tampered', 'review', 'unrun', 'proven'];
@@ -159,6 +172,8 @@ export function prView(result, pr, { truncated = false, analysed = 0, expired = 
   if (result.reasons?.length) children.push(...reasonLists(result.reasons, result.verdict));
   if (result.next) children.push(el('p', `What would change the verdict: ${result.next}`, { class: 'change' }));
   children.push(el('p', undefined, undefined, [el('a', 'The PR on GitHub', { href: pr.url })]));
+  children.push(el('p', undefined, { class: 'install' }, [el('a', `Install on ${pr.owner}/${pr.repo}`, { href: INSTALL_HREF })]), ...notReleased('app'));
+  children.push(el('p', undefined, { class: 'report' }, [el('a', 'This verdict is wrong', { href: reportHref(result, pr) })]));
   children.push(nextRung(pr.url, { verdict: true }));
   return el('main', undefined, undefined, children);
 }

@@ -77,7 +77,8 @@ export async function loadPR({ owner, repo, number }, { fetch, classify, token =
   };
   return {
     input,
-    pr: { owner, repo, number, title: pr.title ?? '', author: pr.user?.login ?? '', url: `https://github.com/${owner}/${repo}/pull/${number}`, changed_files: total },
+    // head and base: the commits this verdict was read at, for the wrong-verdict link (WEB-14, D39)
+    pr: { owner, repo, number, title: pr.title ?? '', author: pr.user?.login ?? '', url: `https://github.com/${owner}/${repo}/pull/${number}`, changed_files: total, head: pr.head?.sha ?? '', base: pr.base?.sha ?? '' },
     calls,
     truncated: total > files.length,
   };
