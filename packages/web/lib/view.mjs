@@ -4,6 +4,9 @@
 // WEB-07: the verdict is a link to its section of /why; the label line says the app would set it; a reason that names
 // its file is not prefixed with it, and reasons whose verdict is not the result's come after the others under "Also
 // noted"; home links one example per verdict this static site can show; every footer offers sign-in.
+// WEB-08: no sign-in link returns to the sign-in pages; a sign-in that did not complete says why and links to start
+// again, back to the page the visitor came from; a PR read again after an expired sign-in says so; the rate-limit page
+// says when the limit resets, in the visitor's local time.
 // A node is { tag, text?, attrs?, children? }.
 export const VERDICTS = {
   tampered: 'Tampered',
@@ -33,7 +36,11 @@ export const EXAMPLES = [
   ['unrun', '/mgillr/truedone/pull/54'],
   ['not_applicable', '/mgillr/truedone/pull/43'],
 ];
-export const signinHref = (path) => `/signin?return=${encodeURIComponent(path || '/')}`;
+// a visitor sent back to /signin/callback would finish a state already used, so the sign-in pages return to /
+const signinPage = (path) => path === '/signin' || path.startsWith('/signin/');
+export const signinHref = (path) => `/signin?return=${encodeURIComponent(path && !signinPage(path) ? path : '/')}`;
+// x-ratelimit-reset, seconds since the epoch, as the visitor's local hour and minute
+export const resetTime = (reset) => new Date(reset * 1000).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 export const TAGLINE = 'Checks whether a pull request\'s tests prove its change: red without it, green with it.';
 export const FOOTER_LINKS = [['Why', '/why'], ['Privacy', '/privacy'], ['Terms', '/terms'], ['GitHub', 'https://github.com/mgillr/truedone']];
 export const MAX_REASONS = 10;
@@ -91,9 +98,14 @@ function reasonLists(reasons, verdict) {
   return out;
 }
 
-export function prView(result, pr, { truncated = false, analysed = 0 } = {}) {
+// expired: the PR's path when the page dropped a token GitHub no longer accepts and read the PR without it
+export function prView(result, pr, { truncated = false, analysed = 0, expired = null } = {}) {
   const name = VERDICTS[result.verdict] ?? result.verdict;
   const children = [
+    ...(expired ? [el('p', undefined, { class: 'notice' }, [
+      el('span', 'Your GitHub sign-in has expired, so this page was read without it. '),
+      el('a', 'Sign in with GitHub', { href: signinHref(expired), class: 'signin' }),
+    ])] : []),
     el('p', `${pr.owner}/${pr.repo}#${pr.number}`, { class: 'target' }),
     el('h1', pr.title, { class: 'title' }),
     // the badge is the verdict's name alone, a link to what it means; "Verdict: " is there for screen readers and the
@@ -152,11 +164,22 @@ export function homeView() {
   ]);
 }
 
-export function rateLimitView(returnPath) {
+// reset: x-ratelimit-reset when GitHub sent it (RateLimited.reset), else null
+export function rateLimitView(returnPath, reset = null) {
   return el('main', undefined, undefined, [
     el('h1', 'GitHub\'s hourly limit for anonymous reads is used up'),
     el('p', 'Sign in with GitHub to keep going. The sign-in asks for no scopes, and the token stays in this tab.'),
-    el('p', undefined, undefined, [el('a', 'Sign in with GitHub', { href: `/signin?return=${encodeURIComponent(returnPath)}`, class: 'signin' })]),
+    ...(Number.isFinite(reset) ? [el('p', `The limit resets at ${resetTime(reset)}, your local time.`, { class: 'reset' })] : []),
+    el('p', undefined, undefined, [el('a', 'Sign in with GitHub', { href: signinHref(returnPath), class: 'signin' })]),
+    nextRung(null),
+  ]);
+}
+
+// a sign-in that did not complete: its line, and in the same paragraph the link to start again, back to the kept page
+export function signinErrorView(line, back) {
+  return el('main', undefined, undefined, [
+    el('h1', 'The sign-in did not complete'),
+    el('p', undefined, { class: 'signin-error' }, [el('span', `${line} `), el('a', 'Start it again', { href: signinHref(back), class: 'signin' }), el('span', '.')]),
     nextRung(null),
   ]);
 }

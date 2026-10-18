@@ -195,6 +195,10 @@ a.verdict:hover { text-decoration: underline; text-decoration-thickness: 1px; }
 .reasons li { margin: .25rem 0; }
 
 .change { margin-bottom: 1.5rem; }
+/* WEB-08: an expired sign-in's notice above a PR, the rate limit's reset time, the start-again line, /why's example */
+.notice { padding: .6rem .8rem; background: var(--card); border: 1px solid var(--line); border-radius: 6px; }
+.reset, .example { color: var(--muted); }
+.signin-error a { font-weight: 600; }
 
 /* the precomputed list of a repository's PRs */
 .prs { list-style: none; margin: 0 0 2rem; padding: 0; }
