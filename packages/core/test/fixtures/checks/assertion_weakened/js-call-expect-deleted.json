@@ -1,0 +1,9 @@
+{
+  "files": [
+    {
+      "path": "add.test.js",
+      "base": "import { test, expect } from 'vitest';\nimport assert from 'node:assert/strict';\nimport { add, list } from './add.js';\n\ntest('adds', () => {\n  expect(list()).toEqual([1]);\n  expect(add(1, 1)).toBe(2);\n});\n",
+      "head": "import { test, expect } from 'vitest';\nimport assert from 'node:assert/strict';\nimport { add, list } from './add.js';\n\ntest('adds', () => {\n  expect(add(1, 1)).toBe(2);\n});\n"
+    }
+  ]
+}

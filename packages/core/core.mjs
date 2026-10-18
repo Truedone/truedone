@@ -426,19 +426,81 @@ const cut = text.search(/(^|[;{}])\s*return\s*;/);
 return cut < 0 ? text : text.slice(0, cut);
 }
 
+function skipQuoted(text, i) {
+const q = text[i];
+for (let j = i + 1; j < text.length; j += 1) {
+if (text[j] === '\\') j += 1;
+else if (text[j] === q) return j;
+}
+return text.length - 1;
+}
+
+function regexAt(text, i) {
+let k = i - 1;
+while (k >= 0 && /\s/.test(text[k])) k -= 1;
+if (k >= 0 && !/[(,=:[!&|?{};+\-*%<>~^]/.test(text[k])) return -1;
+let inClass = false;
+for (let j = i + 1; j < text.length; j += 1) {
+const c = text[j];
+if (c === '\n') return -1;
+if (c === '\\') j += 1;
+else if (c === '[') inClass = true;
+else if (c === ']') inClass = false;
+else if (c === '/' && !inClass) return j;
+}
+return -1;
+}
+
+function argsAt(text, open) {
+let depth = 0;
+for (let i = open; i < text.length; i += 1) {
+const c = text[i];
+if (c === '"' || c === "'" || c === '`') { i = skipQuoted(text, i); continue; }
+if (c === '/') { const end = regexAt(text, i); if (end > 0) { i = end; continue; } }
+if (c === '(' || c === '[' || c === '{') depth += 1;
+else if (c === ')' || c === ']' || c === '}') {
+depth -= 1;
+if (depth === 0) return { inner: text.slice(open + 1, i), end: i };
+}
+}
+return null;
+}
+
+function splitArgs(inner) {
+const out = [];
+let depth = 0;
+let from = 0;
+for (let i = 0; i < inner.length; i += 1) {
+const c = inner[i];
+if (c === '"' || c === "'" || c === '`') { i = skipQuoted(inner, i); continue; }
+if (c === '/') { const end = regexAt(inner, i); if (end > 0) { i = end; continue; } }
+if (c === '(' || c === '[' || c === '{') depth += 1;
+else if (c === ')' || c === ']' || c === '}') depth -= 1;
+else if (c === ',' && depth === 0) { out.push(inner.slice(from, i).trim()); from = i + 1; }
+}
+out.push(inner.slice(from).trim());
+return out;
+}
+
 function jsAssertions(body) {
 const text = liveText(body);
 const out = [];
-const re = /expect\s*\(\s*([^()]*)\)\s*\.\s*(not\.)?(toBeDefined|toBeTruthy|toBeTypeOf|toStrictEqual|toEqual|toBeNull|toBe)\s*\(\s*([^()]*)\)/g;
-for (const m of text.matchAll(re)) {
-const kind = m[3];
-if ((kind === 'toBe' || kind === 'toEqual' || kind === 'toStrictEqual') && boolLit(m[1]) && boolLit(m[4])) continue;
+for (const m of text.matchAll(/expect\s*\(/g)) {
+const subject = argsAt(text, m.index + m[0].length - 1);
+if (!subject) continue;
+const call = text.slice(subject.end + 1).match(/^\s*\.\s*(not\.)?(toBeDefined|toBeTruthy|toBeTypeOf|toStrictEqual|toEqual|toBeNull|toBe)\s*\(/);
+if (!call) continue;
+const expected = argsAt(text, subject.end + call[0].length);
+if (!expected) continue;
+const kind = call[2];
+if ((kind === 'toBe' || kind === 'toEqual' || kind === 'toStrictEqual') && boolLit(subject.inner) && boolLit(expected.inner)) continue;
 out.push(kind);
 }
-const nodeRe = /\bassert\s*(?:\.(\w+))?\s*\(\s*([^()]*)\)/g;
-for (const m of text.matchAll(nodeRe)) {
+for (const m of text.matchAll(/\bassert\s*(?:\.(\w+))?\s*\(/g)) {
+const got = argsAt(text, m.index + m[0].length - 1);
+if (!got) continue;
 const method = m[1] || '';
-const args = m[2].split(',').map((part) => part.trim());
+const args = splitArgs(got.inner);
 if (!method || method === 'ok') {
 if (boolLit(args[0] || '')) continue;
 out.push(method === 'ok' ? 'assertOk' : 'assertBare');
