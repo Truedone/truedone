@@ -1,0 +1,6 @@
+/signin / 200
+/signin/callback / 200
+/:owner/:repo/pull/:number / 200
+/:owner/:repo/pull/:number/ / 200
+/p/:owner/:repo / 200
+/p/:owner/:repo/ / 200
