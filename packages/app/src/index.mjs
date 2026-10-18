@@ -83,10 +83,13 @@ export function makeConsumers(deps = {}) {
           const token = await mint(env, installationId);
           const stageEnv = { ...env, INSTALLATION_TOKEN: token };
           stage = event === "workflow_run" ? "red-green" : "static";
+          // The stage gets the whole message body ({event, delivery, payload};
+          // APP-10): the handlers read delivery.payload, and the bare id
+          // string reaching them failed every real delivery.
           if (event === "pull_request") {
-            await (deps.staticStage ?? makeStatic(stageEnv))(delivery);
+            await (deps.staticStage ?? makeStatic(stageEnv))(message.body);
           } else if (event === "workflow_run") {
-            await (deps.redGreenStage ?? makeRedGreen(stageEnv))(delivery);
+            await (deps.redGreenStage ?? makeRedGreen(stageEnv))(message.body);
           }
           message.ack();
         } catch (error) {
