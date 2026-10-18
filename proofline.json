@@ -258,7 +258,8 @@
       "REL-W4": [
         "REL-W4-AC04",
         "REL-W4-AC05",
-        "REL-W4-AC08"
+        "REL-W4-AC08",
+        "REL-W4-AC11"
       ],
       "GATE-05R": [
         "GATE-05R-AC03",
@@ -316,6 +317,9 @@
       ],
       "APP-08": [
         "APP-08-AC08"
+      ],
+      "WEB-06": [
+        "WEB-06-AC08"
       ]
     }
   },
@@ -771,7 +775,7 @@
         "PV-A02",
         "PV-A09"
       ],
-      "description": "Register the GitHub App truedone from packages/app/app-manifest.json, whose webhook, redirect and setup URLs and first callback are on the production Worker https://truedone.ledgerguard-global.workers.dev and whose second callback is the site's sign-in, https://truedone.pages.dev/signin/callback (D26, WEB-02), and truedone-dev from the same manifest with the Worker URLs on https://truedone-dev.ledgerguard-global.workers.dev, installed only on mgillr/truedone-sandbox. Put each private key, webhook secret and OAuth client secret into Worker secrets (wrangler secret put) and delete the downloaded key files; no lane sees them (S5). The repository environments dev and production exist; production requires your approval and deploys from main only. Put a Cloudflare API token scoped to Workers and Pages, on the account whose workers.dev subdomain is ledgerguard-global, into both as CLOUDFLARE_API_TOKEN (D26); there is no DNS zone and no route. Record app ids, not secrets, in docs/ops/apps.md.",
+      "description": "Register the GitHub App truedone from packages/app/app-manifest.json, whose webhook, redirect and setup URLs and first callback are on the production Worker https://truedone.ledgerguard-global.workers.dev and whose second callback is the site's sign-in, https://truedone.pages.dev/signin/callback (D26, WEB-02), and truedone-dev from the same manifest with the Worker URLs on https://truedone-dev.ledgerguard-global.workers.dev, installed only on mgillr/truedone-sandbox. Put each private key, webhook secret and OAuth client secret into Worker secrets (wrangler secret put) and delete the downloaded key files; no lane sees them (S5). The repository environments dev and production exist; production requires your approval and deploys from main only. Put a Cloudflare API token scoped to Workers and Pages, on the account whose workers.dev subdomain is ledgerguard-global, into both as CLOUDFLARE_API_TOKEN (D26); there is no DNS zone and no route. Record app ids, not secrets, in docs/ops/apps.md. The apps are private until the app is offered, so gh api apps/<slug> answers 404 with a user token; the registration is checked on the record and the Workers, and the permissions check runs at REL-W4 once the production app is public.",
       "scope": {
         "allow": [
           "docs/ops/apps.md",
@@ -782,23 +786,23 @@
         {
           "id": "OPS-02-AC01",
           "mandatory": true,
-          "statement": "the registered app has exactly the manifest permissions",
+          "statement": "both apps are recorded with their ids, and each Worker answers /health",
           "verifier": {
             "type": "command",
-            "cmd": "gh api apps/truedone --jq .permissions > /tmp/truedone-perms.json && node -e 'const a=require(\"/tmp/truedone-perms.json\"),m=require(\"./packages/app/app-manifest.json\").default_permissions;const s=o=>JSON.stringify(Object.keys(o).sort().map(k=>[k,o[k]]));process.exit(s(a)===s(m)?0:1)'",
+            "cmd": "grep -qE \"^\\| truedone-dev \\(development\\) \\| 5363933 \\|\" docs/ops/apps.md && grep -qE \"^\\| truedone \\(production\\) \\| 5364032 \\|\" docs/ops/apps.md && curl -fsS https://truedone-dev.ledgerguard-global.workers.dev/health | grep -q posting_enabled && curl -fsS https://truedone.ledgerguard-global.workers.dev/health | grep -q posting_enabled",
             "expect_exit": 0,
-            "timeout_s": 900
+            "timeout_s": 300
           }
         },
         {
           "id": "OPS-02-AC02",
           "mandatory": true,
-          "statement": "the development app exists",
+          "statement": "the development app is installed on the sandbox: the record says so and names no secret",
           "verifier": {
             "type": "command",
-            "cmd": "gh api apps/truedone-dev --jq .slug | grep -qx truedone-dev",
+            "cmd": "grep -q \"installed only on .mgillr/truedone-sandbox.\" docs/ops/apps.md && ! grep -rniE \"BEGIN (RSA )?PRIVATE KEY|client_secret\\\":|webhook_secret\\\":\" docs/ops/apps.md",
             "expect_exit": 0,
-            "timeout_s": 900
+            "timeout_s": 300
           }
         },
         {
@@ -2755,7 +2759,7 @@
       "id": "RUN-06",
       "title": "[W3] Runner rows keyed by the real test file and name; a test with incomplete runs is Could not run (issue #30)",
       "phase": "implement",
-      "owner": "lane-c",
+      "owner": "lane-b",
       "depends_on": [
         "RUN-03",
         "JUDGE-01",
@@ -2766,7 +2770,7 @@
         "PV-C09",
         "PV-X02"
       ],
-      "description": "Measured by lane-b and confirmed in main's code (truedone issue #30): packages/core/run/parse.mjs:130 keys a parsed row by meta.file || meta.classname, and node --test's JUnit report has no file attribute, so every node --test row gets the file \"test\"; run/run.mjs:89 blankRun() keys timeout rows by the test file's path; and redGreen pairs base and head rows on file and name. So (1) a test that hangs on base and passes on head never pairs, and judge() ranks the head-only row No red-green evidence instead of Could not run: timed out; and (2) two test files with a same-named test merge into one row, a false-Proven route. Rows are keyed by the real test file path and the test name for vitest, jest, mocha, node --test and pytest; a base timeout pairs with that file's head rows; two files with a same-named test stay two rows; and, as docs/spec.md now says, a test without two base runs and three head runs is Could not run with the reason \"incomplete runs\", never No red-green evidence, a row of the one table in packages/core/src/outcome.mjs. judge.mjs is shared with CORE-06 and CORE-07: lane-c lands CORE-06, then CORE-07, which moves the table to src/outcome.mjs, then RUN-06. The bundles are rebuilt with tools/bundle.mjs. Every committed bundle must build from this tree and match: CORE-07 9aa5b9d4 passed its own bundle criterion while an export-from line broke the cli and plugin bundle builds (lane-b, 2026-10-18 00:31Z).",
+      "description": "Measured by lane-b and confirmed in main's code (truedone issue #30): packages/core/run/parse.mjs:130 keys a parsed row by meta.file || meta.classname, and node --test's JUnit report has no file attribute, so every node --test row gets the file \"test\"; run/run.mjs:89 blankRun() keys timeout rows by the test file's path; and redGreen pairs base and head rows on file and name. So (1) a test that hangs on base and passes on head never pairs, and judge() ranks the head-only row No red-green evidence instead of Could not run: timed out; and (2) two test files with a same-named test merge into one row, a false-Proven route. Rows are keyed by the real test file path and the test name for vitest, jest, mocha, node --test and pytest; a base timeout pairs with that file's head rows; two files with a same-named test stay two rows; and, as docs/spec.md now says, a test without two base runs and three head runs is Could not run with the reason \"incomplete runs\", never No red-green evidence, a row of the one table in packages/core/src/outcome.mjs. judge.mjs is shared with CORE-06 and CORE-07: lane-c lands CORE-06, then CORE-07, which moves the table to src/outcome.mjs, then RUN-06. The bundles are rebuilt with tools/bundle.mjs. Every committed bundle must build from this tree and match: CORE-07 9aa5b9d4 passed its own bundle criterion while an export-from line broke the cli and plugin bundle builds (lane-b, 2026-10-18 00:31Z). Owner lane-b from 2026-10-18 02:17Z.",
       "scope": {
         "allow": [
           "packages/core/run/**",
@@ -8003,6 +8007,141 @@
       ]
     },
     {
+      "id": "WEB-06",
+      "title": "[W2] The exchange reads the client as CLIENT_ID and CLIENT_SECRET, answers 404 off its routes; hardening headers and robots.txt",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "WEB-02",
+        "WEB-05"
+      ],
+      "requirements": [
+        "PV-W02"
+      ],
+      "description": "Measured on 2026-10-18 at 02:21Z: truedone-exchange, deployed from main c83b24bb, answered 500 {\"error\":\"not configured\"} on every route, because packages/web/exchange/worker.mjs:26 reads env.GITHUB_CLIENT_ID and env.GITHUB_CLIENT_SECRET, while the manifest exchange of OPS-02 set the production app's client on that Worker as CLIENT_ID and CLIENT_SECRET, the names the app Workers use (docs/ops/apps.md). A Worker secret cannot be read back, so the code changes: the exchange reads env.CLIENT_ID and env.CLIENT_SECRET; it keeps the fail-closed 500 only when either is missing; a request off /exchange and /exchange/start answers 404. The same task hardens the site's headers, which the live check showed missing: packages/web/_headers adds X-Content-Type-Options: nosniff and Permissions-Policy: camera=(), microphone=(), geolocation=() beside the content security policy, which is unchanged (S7, WEB-01-AC05, WEB-01-AC06); and packages/web/robots.txt allows every crawler and names https://truedone.pages.dev/why. The tests drive the Worker with a fake fetch and read the headers file.",
+      "scope": {
+        "allow": [
+          "packages/web/exchange/**",
+          "packages/web/_headers",
+          "packages/web/robots.txt",
+          "packages/web/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "WEB-06-AC01",
+          "mandatory": true,
+          "statement": "the exchange reads CLIENT_ID and CLIENT_SECRET, fails closed with 500 when either is missing, and answers 404 off its routes",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/exchange-env.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-06-AC02",
+          "mandatory": true,
+          "statement": "the exchange names no GITHUB_CLIENT_ variable",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rn \"GITHUB_CLIENT_\" packages/web/exchange",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "WEB-06-AC03",
+          "mandatory": true,
+          "statement": "the site sends X-Content-Type-Options and Permissions-Policy",
+          "verifier": {
+            "type": "command",
+            "cmd": "grep -q \"X-Content-Type-Options: nosniff\" packages/web/_headers && grep -qE \"Permissions-Policy: .*camera=\\(\\)\" packages/web/_headers",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "WEB-06-AC04",
+          "mandatory": true,
+          "statement": "the content security policy is unchanged",
+          "verifier": {
+            "type": "grep",
+            "file": "packages/web/_headers",
+            "pattern": "Content-Security-Policy:.*script-src 'self';.*connect-src 'self' https://api\\.github\\.com https://raw\\.githubusercontent\\.com( https://truedone-exchange\\.ledgerguard-global\\.workers\\.dev)?;",
+            "must": "present"
+          }
+        },
+        {
+          "id": "WEB-06-AC05",
+          "mandatory": true,
+          "statement": "robots.txt allows every crawler and names the why page",
+          "verifier": {
+            "type": "command",
+            "cmd": "grep -q \"User-agent: \\*\" packages/web/robots.txt && grep -q \"Allow: /\" packages/web/robots.txt && grep -q \"truedone.pages.dev/why\" packages/web/robots.txt",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "WEB-06-AC06",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 36,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "WEB-06-AC07",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-06-AC08",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-06-AC09",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "WEB-06-AC10",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
       "id": "CLI-02",
       "title": "[W1] npx truedone init",
       "phase": "implement",
@@ -10336,6 +10475,17 @@
           "statement": "Changes stay in scope",
           "verifier": {
             "type": "scope"
+          }
+        },
+        {
+          "id": "REL-W4-AC11",
+          "mandatory": true,
+          "statement": "the public production app has exactly the manifest permissions (on GO)",
+          "verifier": {
+            "type": "command",
+            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w4.md || (gh api apps/truedone --jq .permissions > /tmp/truedone-perms.json && node -e 'const a=require(\"/tmp/truedone-perms.json\"),m=require(\"./packages/app/app-manifest.json\").default_permissions;const s=o=>JSON.stringify(Object.keys(o).sort().map(k=>[k,o[k]]));process.exit(s(a)===s(m)?0:1)')",
+            "expect_exit": 0,
+            "timeout_s": 900
           }
         },
         {
