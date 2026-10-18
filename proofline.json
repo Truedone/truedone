@@ -448,6 +448,9 @@
       ],
       "APP-25": [
         "APP-25-AC05"
+      ],
+      "APP-26": [
+        "APP-26-AC05"
       ]
     }
   },
@@ -8112,7 +8115,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "Truedone/truedone#125. The intake queues the whole GitHub payload (packages/app/src/webhook.mjs, the late or failed direct run and every queued event), with the pull request title, body and author login, and after max_retries = 3 the message goes to a dead-letter queue (truedone-dev-dlq, truedone-dlq) that has no consumer, where Cloudflare keeps it for four days. Measured on 2026-10-18 at 20:58Z: truedone-dev-dlq held 386 messages, 6,633,339 bytes, and truedone-dlq 1. No stage reads that text: the analyser loads the pull request from GitHub and the check summary uses only owner, repo and number. The intake now queues, for each event, only the fields its stage reads (ids, shas, the action, the repository owner and name), and the stages read only those, so a message already queued in the old shape is still handled. Each dead-letter queue gets a consumer in packages/app/wrangler.toml that logs one line of identifiers (delivery, event, attempts) and acknowledges the message, so nothing waits there for four days. docs/privacy.md stays true.",
+      "description": "Truedone/truedone#125. The intake queues the whole GitHub payload (packages/app/src/webhook.mjs, the late or failed direct run and every queued event), with the pull request title, body and author login, and after max_retries = 3 the message goes to a dead-letter queue (truedone-dev-dlq, truedone-dlq) that has no consumer, where Cloudflare keeps it for four days. Measured on 2026-10-18 at 20:58Z: truedone-dev-dlq held 386 messages, 6,633,339 bytes, and truedone-dlq 1. The analysis does read the title, body and author: the analyser's fetch answers the pull request URL with the payload's pull_request (packages/app/src/static.mjs), and the bot verdict and the claim finding read them. The intake now queues, for each event, only ids, shas, the action and the repository owner and name. The direct run keeps the payload in memory and makes no extra call; a queued run reads the pull request from GitHub when it runs, at the queued base and head shas. The stage reduces whatever it is given to those fields, so a message already queued in the old shape is still handled. Each dead-letter queue gets a consumer in packages/app/wrangler.toml that logs one line of identifiers (delivery, event, attempts) and acknowledges the message, so nothing waits there for four days. docs/privacy.md stays true.",
       "scope": {
         "allow": [
           "packages/app/src/**",
@@ -8120,7 +8123,9 @@
           "packages/app/wrangler.toml",
           "docs/ops/apps.md",
           "docs/privacy.md",
-          "docs/DEPENDENCY-MAP.md"
+          "docs/DEPENDENCY-MAP.md",
+          "packages/web/privacy.html",
+          "tools/bench/load.mjs"
         ]
       },
       "criteria": [
@@ -8190,6 +8195,109 @@
         },
         {
           "id": "APP-25-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "APP-26",
+      "title": "[W2] The dedupe runs beside the stage's reads, and only its writes wait for it",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "APP-25"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Measured on the live App (2026-10-18, 30 analysed deliveries): each kept delivery waits 296 ms at p50 before the stage starts, because the intake awaits the KV read of delivery:<id> and then the KV write before it hands the delivery to the stage; the rest of the intake takes at most 4 ms (120 dropped deliveries at p50 1 ms). That wait is inside the pull request opened to label time that GitHub measures (PV-A03). For a pull_request delivery run directly, the intake now starts the stage at once and runs the dedupe read beside the stage's switch and read phases; the stage's writes (the check run and the label) wait for the dedupe verdict, and a duplicate makes no write. The record is still written once for a new delivery and still lasts 24 hours (S6); the APP-17 handover still deletes it when the queue send fails, so a redeliver is analysed. A queued delivery is deduped before its send, as before.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/ops/apps.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-26-AC01",
+          "mandatory": true,
+          "statement": "for a direct pull_request delivery the stage's first GitHub read is sent before the dedupe read answers; a duplicate makes no check run or label write; a new delivery writes its record once and its check run and label only after the dedupe read answered; a failed queue handover still deletes the record; a queued delivery is deduped before its send",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/dedupe-overlap.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-26-AC02",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-26-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-26-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-26-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-26-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-26-AC07",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
