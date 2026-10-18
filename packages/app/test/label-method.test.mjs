@@ -10,7 +10,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import { makeApp } from "../src/index.mjs";
-import { labelWrites } from "./lib/github.mjs";
+import { labelWrites, flagsDB } from "./lib/github.mjs";
 
 const SECRET = "method-secret";
 
@@ -79,7 +79,7 @@ async function runDelivery(t, { deliveryId, issueLabels }) {
   stub.calls = calls;
   globalThis.fetch = stub;
   t.after(() => { console.log = origLog; globalThis.fetch = orig; });
-  const env = { WEBHOOK_SECRET: SECRET, KV: kv, APP_ID: "1", PRIVATE_KEY: await generatedPkcs1Pem(), VERSION: "test" };
+  const env = { WEBHOOK_SECRET: SECRET, KV: kv, FLAGS: flagsDB(), APP_ID: "1", PRIVATE_KEY: await generatedPkcs1Pem(), VERSION: "test" };
   const app = makeApp(env);
   let waited;
   const ctx = { waitUntil: (p) => { waited = p; } };
@@ -129,8 +129,8 @@ test("the phase line carries label_write_ms and no label_method", async (t) => {
 test("a switch-off GraphQL-routed delivery reaches no /graphql call, and labelWrites sees a GraphQL write when one happens", async (t) => {
   const off = { WEBHOOK_SECRET: SECRET };
   const kvOff = memoryKV();
-  kvOff.put("posting_enabled", "off");
-  kvOff.put("posting_enabled:13", "on");
+  // the switch is the D1 row posting_enabled (APP-19)
+  const flagsOff = flagsDB({ posting_enabled: "off", "posting_enabled:13": "on" });
   const seenOff = { graphqlCalls: 0 };
   const body = new TextEncoder().encode(JSON.stringify({
     action: "opened", installation: { id: 13 },
@@ -144,7 +144,7 @@ test("a switch-off GraphQL-routed delivery reaches no /graphql call, and labelWr
     return new Response("{}", { status: 200 });
   };
   try {
-    const app = makeApp({ ...off, KV: kvOff, APP_ID: "1", PRIVATE_KEY: await generatedPkcs1Pem(), VERSION: "test" });
+    const app = makeApp({ ...off, KV: kvOff, FLAGS: flagsOff, APP_ID: "1", PRIVATE_KEY: await generatedPkcs1Pem(), VERSION: "test" });
     let waited;
     const ctx = { waitUntil: (p) => { waited = p; } };
     const request = new Request("https://worker.example/api/github/webhook", {

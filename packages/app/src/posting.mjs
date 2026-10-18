@@ -1,16 +1,27 @@
-// The posting switch (R5, PV-A11): every write to GitHub reads the flag uncached,
-// so turning it off stops all posting within one minute with no deploy.
+// The posting switch (R5, PV-A11; APP-19, #107): every write to GitHub reads the switch from the D1 table
+// flags (key TEXT PRIMARY KEY, value TEXT NOT NULL). D1 sends every query to its one primary, with no replicas, so the
+// read after a write sees it at every location: turning the switch off stops all posting from the next read, with no
+// deploy. Workers KV could not promise that: a write reaches other locations "up to 60 seconds or more" later, and a
+// get is cached where it is read for 60 s, so /health could read off while a delivery elsewhere still read on (#107).
+export const SWITCH = "posting_enabled";
 
-// Reads .github/truedone.yml's enabled key for the repository (default true), the
-// installation-wide KV flag posting_enabled:<id> (default on) and the one global
-// KV key posting_enabled (default on; APP-09), each read uncached. Any that is
-// off stops the write.
-// configText may be the text or the promise of its read: the two flags and the config are read together (APP-15),
-// and their answers are taken in the same order as before.
+// The switch's rows: the global row posting_enabled is on only when it reads "on", so a missing row is off and an
+// unseeded database never posts; the installation's row posting_enabled:<id> is off only when it reads "off". A read
+// that fails throws, so a run fails closed and its delivery waits in the queue.
+export async function readSwitch(db, installationId) {
+  const keys = installationId === undefined ? [SWITCH] : [SWITCH, `${SWITCH}:${installationId}`];
+  const { results } = await db.prepare(`SELECT key, value FROM flags WHERE key IN (${keys.map(() => "?").join(", ")})`).bind(...keys).all();
+  const row = (key) => results.find((r) => r.key === key)?.value;
+  return { global: row(SWITCH) === "on", installation: row(`${SWITCH}:${installationId}`) !== "off" };
+}
+
+// Reads .github/truedone.yml's enabled key for the repository (default true) and the switch's two rows. Any that is
+// off stops the write. configText may be the text or the promise of its read: the switch and the config are read
+// together (APP-15), and their answers are taken in the same order as before.
 export async function postingAllowed(env, { installationId, repository, configText }) {
-  const [global, perInstall, text] = await Promise.all([env.KV.get("posting_enabled"), env.KV.get(`posting_enabled:${installationId}`), configText]);
-  if (global === "off") return { allowed: false, reason: "posting_disabled" };
-  if (perInstall === "off") return { allowed: false, reason: "posting_disabled" };
+  const [flags, text] = await Promise.all([readSwitch(env.FLAGS, installationId), configText]);
+  if (!flags.global) return { allowed: false, reason: "posting_disabled" };
+  if (!flags.installation) return { allowed: false, reason: "posting_disabled" };
   const cfg = parseConfig(text);
   if (cfg.enabled === "false") return { allowed: false, reason: "repo_disabled" };
   return { allowed: true };
@@ -59,12 +70,13 @@ export async function listKeys(kv, opts) {
   return out;
 }
 
-// installation.deleted: delete the installation's KV keys at once (R6, PV-R06).
+// installation.deleted: delete the installation's KV keys and its switch row at once (R6, PV-R06).
 // The daily sweep (a Worker cron) removes anything left; both share listDelete.
 export async function deleteInstallationData(env, installationId) {
   const prefix = `${installationId}:`;
   const names = await listKeys(env.KV, { prefix });
   for (const name of names) await env.KV.delete(name);
-  await env.KV.delete(`posting_enabled:${installationId}`);
+  // the installation's switch row (APP-19)
+  await env.FLAGS.prepare("DELETE FROM flags WHERE key = ?").bind(`${SWITCH}:${installationId}`).run();
   return names.length;
 }

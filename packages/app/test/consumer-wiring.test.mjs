@@ -6,6 +6,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeConsumers } from "../src/index.mjs";
+import { flagsDB } from "./lib/github.mjs";
 
 const API = "https://api.github.com";
 const esc = (s) => s.replace(/[./]/g, "\\$&");
@@ -67,7 +68,7 @@ test("a pull_request delivery drives the real static stage to its first GitHub w
       installation: { id: 3 },
     },
   });
-  await consumers.queue({ messages: [m] }, { KV: memoryKV(), core: { analyse: async () => ({ verdict: "no_evidence", reasons: [] }) } });
+  await consumers.queue({ messages: [m] }, { KV: memoryKV(), FLAGS: flagsDB(), core: { analyse: async () => ({ verdict: "no_evidence", reasons: [] }) } });
   assert.equal(m.acked, 1, `the delivery is handled, retried ${m.retried}`);
   const check = calls.find((c) => c.method === "POST" && /\/repos\/mgillr\/truedone-sandbox\/check-runs$/.test(c.url));
   assert.ok(check, `the static stage posts the check run on the payload's repository; calls: ${calls.map((c) => `${c.method} ${c.url}`).join(" | ")}`);
@@ -85,6 +86,7 @@ test("a workflow_run delivery drives the real red-green stage to its first GitHu
   const postChecks = [];
   const env = {
     KV: memoryKV(),
+    FLAGS: flagsDB(),
     UNZIP: async () => ({ entries: [{ data: new TextEncoder().encode(report) }] }),
     defaultStepSha: async () => "step1",
     publishedShas: async () => [],

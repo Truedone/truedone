@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeStatic } from "../src/static.mjs";
+import { flagsDB } from "./lib/github.mjs";
 
-// APP-05-AC01 (R5): with posting_enabled off nothing is posted, and
+// APP-05-AC01 (R5): with posting_enabled off nothing is posted (the D1 rows since APP-19), and
 // enabled: false stops one repository.
 
 function memoryKV() {
@@ -56,12 +57,12 @@ const PAYLOAD = { payload: { repository: { owner: { login: "o" }, name: "r", id:
 
 test("with posting_enabled off nothing is posted and nothing is fetched", async () => {
   const kv = memoryKV();
-  await kv.put("posting_enabled:3", "off");
+  const db = flagsDB({ posting_enabled: "on", "posting_enabled:3": "off" });
   const fetch = fakeFetch(routesFor({}));
   const oldFetch = globalThis.fetch;
   globalThis.fetch = fetch;
   try {
-    const env = { INSTALLATION_TOKEN: "t", KV: kv, core: { analyse: async () => result() } };
+    const env = { INSTALLATION_TOKEN: "t", KV: kv, FLAGS: db, core: { analyse: async () => result() } };
     const out = await makeStatic(env)(PAYLOAD);
     assert.deepEqual(out, { skipped: "posting_disabled" });
     assert.equal(fetch.calls.filter((c) => c.method !== "GET").length, 0, "nothing was posted, edited or deleted");
@@ -74,7 +75,7 @@ test("enabled: false in the repo config stops that repository alone", async () =
   const oldFetch = globalThis.fetch;
   globalThis.fetch = fetch;
   try {
-    const env = { INSTALLATION_TOKEN: "t", KV: kv, core: { analyse: async () => result() } };
+    const env = { INSTALLATION_TOKEN: "t", KV: kv, FLAGS: flagsDB(), core: { analyse: async () => result() } };
     const out = await makeStatic(env)(PAYLOAD);
     assert.deepEqual(out, { skipped: "repo_disabled" });
     assert.equal(fetch.calls.length, 1, "only the config file was read");
@@ -88,7 +89,7 @@ test("flag on and config silent: the run posts", async () => {
   const oldFetch = globalThis.fetch;
   globalThis.fetch = fetch;
   try {
-    const env = { INSTALLATION_TOKEN: "t", KV: kv, core: { analyse: async () => result() } };
+    const env = { INSTALLATION_TOKEN: "t", KV: kv, FLAGS: flagsDB(), core: { analyse: async () => result() } };
     const out = await makeStatic(env)(PAYLOAD);
     assert.equal(out.verdict, "proven");
     assert.ok(fetch.calls.some((c) => c.method === "POST" && c.url.includes("/check-runs")), "the check run was posted");

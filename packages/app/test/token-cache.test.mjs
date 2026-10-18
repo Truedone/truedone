@@ -10,7 +10,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import worker from "../src/index.mjs";
 import { LABELS } from "../src/labels.mjs";
-import { fakeGitHub, writeRoutes, pkcs1Pem } from "./lib/github.mjs";
+import { fakeGitHub, writeRoutes, pkcs1Pem, flagsDB } from "./lib/github.mjs";
 
 const SECRET = "test-secret";
 const NEW = "ghs_minted_now_token";
@@ -64,7 +64,7 @@ function kv() {
 const KEY = await pkcs1Pem();
 function environment(store = kv()) {
   const sent = [];
-  return { sent, env: { WEBHOOK_SECRET: SECRET, KV: store, QUEUE: { async send(b, opts) { sent.push({ body: b, opts }); } }, APP_ID: "12345", PRIVATE_KEY: KEY, VERSION: "v" } };
+  return { sent, env: { WEBHOOK_SECRET: SECRET, KV: store, FLAGS: flagsDB(), QUEUE: { async send(b, opts) { sent.push({ body: b, opts }); } }, APP_ID: "12345", PRIVATE_KEY: KEY, VERSION: "v" } };
 }
 const payload = () => ({ action: "opened", number: 6, pull_request: PULL, repository: { id: 7, name: "r", owner: { login: "o" } }, installation: { id: 3 } });
 async function signed(delivery) {

@@ -7,6 +7,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import worker from "../src/index.mjs";
+import { flagsDB } from "./lib/github.mjs";
 
 const API = "https://api.github.com";
 const esc = (s) => s.replace(/[./]/g, "\\$&");
@@ -73,7 +74,7 @@ test("the entry's queue handler posts one check run and one label for a recorded
       installation: { id: 3 },
     },
   });
-  await worker.queue({ messages: [m] }, { APP_ID: "12345", PRIVATE_KEY: pem, KV: memoryKV(), VERSION: "v" });
+  await worker.queue({ messages: [m] }, { APP_ID: "12345", PRIVATE_KEY: pem, KV: memoryKV(), FLAGS: flagsDB(), VERSION: "v" });
   assert.equal(m.acked, 1, `the delivery is handled, retried ${m.retried}`);
   const check = calls.find((c) => c.method === "POST" && /\/repos\/mgillr\/truedone-sandbox\/check-runs$/.test(c.url));
   assert.ok(check, `one check run is posted; calls: ${calls.map((c) => `${c.method} ${c.url}`).join(" | ")}`);

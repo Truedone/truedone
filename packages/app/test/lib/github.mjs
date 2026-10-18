@@ -131,3 +131,38 @@ export function storedZip(text, name = "r") {
   out.set(local, 0); out.set(central, local.length); out.set(eocd, local.length + central.length);
   return out;
 }
+
+// APP-19: the posting switch's D1 table flags(key, value), answering as D1 does. The shapes are the ones wrangler 3.90's
+// local D1 returned on 2026-10-18 (bundles/wip-claude-b/proved/app19-d1shape.out): .all() gives { results: [{ key, value
+// }], success: true, meta }, and a write's results are []. Only the statements the Worker runs are known; any other
+// throws. rows defaults to the global row on, so a test about something else can post; fail makes every query throw, as
+// an unreachable database does.
+export function flagsDB(rows = { posting_enabled: "on" }, { fail = false } = {}) {
+  const store = new Map(Object.entries(rows));
+  const statements = [];
+  const answer = (results) => ({ results, success: true, meta: { duration: 0 } });
+  const db = {
+    store,
+    statements,
+    prepare(sql) {
+      return {
+        bind(...values) {
+          const run = async () => {
+            statements.push({ sql, values });
+            if (fail) throw new Error("D1_ERROR: the database could not be reached");
+            if (/^SELECT key, value FROM flags WHERE key IN \(\?(, \?)*\)$/.test(sql) && (sql.match(/\?/g) || []).length === values.length) {
+              return answer(values.filter((k) => store.has(k)).map((k) => ({ key: k, value: store.get(k) })));
+            }
+            if (sql === "DELETE FROM flags WHERE key = ?" && values.length === 1) {
+              store.delete(values[0]);
+              return answer([]);
+            }
+            throw new Error(`flagsDB: an unknown statement ${JSON.stringify(sql)}`);
+          };
+          return { all: run, run, first: async () => (await run()).results[0] ?? null };
+        },
+      };
+    },
+  };
+  return db;
+}

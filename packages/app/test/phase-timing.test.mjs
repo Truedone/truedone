@@ -6,6 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import { makeApp } from "../src/index.mjs";
+import { flagsDB } from "./lib/github.mjs";
 
 const SECRET = "phase-secret";
 
@@ -65,7 +66,7 @@ test("one analysed delivery logs exactly one phase-timing line", async () => {
     return json({});
   };
   try {
-    const env = { WEBHOOK_SECRET: SECRET, KV: kv, APP_ID: "1", PRIVATE_KEY: await generatedPkcs1Pem(), VERSION: "test" };
+    const env = { WEBHOOK_SECRET: SECRET, KV: kv, FLAGS: flagsDB(), APP_ID: "1", PRIVATE_KEY: await generatedPkcs1Pem(), VERSION: "test" };
     const app = makeApp(env);
     let waited;
     const ctx = { waitUntil: (p) => { waited = p; } };

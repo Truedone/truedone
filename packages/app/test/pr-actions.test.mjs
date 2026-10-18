@@ -9,7 +9,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import worker from "../src/index.mjs";
 import { LABELS } from "../src/labels.mjs";
-import { fakeGitHub, memoryKV, writeRoutes, pkcs1Pem } from "./lib/github.mjs";
+import { fakeGitHub, memoryKV, writeRoutes, pkcs1Pem, flagsDB } from "./lib/github.mjs";
 
 const SECRET = "test-secret";
 const B = "cccccccccccccccccccccccccccccccccccccccc";
@@ -59,14 +59,14 @@ function useFetch(t, fake) {
 // one delivery through the Worker's fetch handler: its answer, and what it sent to the queue
 async function deliver(event, action) {
   const sent = [];
-  const env = { WEBHOOK_SECRET: SECRET, KV: memoryKV(), QUEUE: { async send(m) { sent.push(m); } }, VERSION: "v" };
+  const env = { WEBHOOK_SECRET: SECRET, KV: memoryKV(), FLAGS: flagsDB(), QUEUE: { async send(m) { sent.push(m); } }, VERSION: "v" };
   const r = await worker.fetch(await signed(payloadFor(event, action), event, `d-${event}-${action}`), env);
   return { status: r.status, body: await r.json(), sent };
 }
 // one queued message through the Worker's queue handler
 async function consume(body) {
   const m = { body, acked: 0, retried: 0, ack() { this.acked += 1; }, retry() { this.retried += 1; } };
-  await worker.queue({ messages: [m] }, { APP_ID: "12345", PRIVATE_KEY: await pkcs1Pem(), KV: memoryKV(), VERSION: "v" });
+  await worker.queue({ messages: [m] }, { APP_ID: "12345", PRIVATE_KEY: await pkcs1Pem(), KV: memoryKV(), FLAGS: flagsDB(), VERSION: "v" });
   assert.equal(m.acked, 1, `handled, retried ${m.retried}`);
 }
 const route = (c) => `${c.method} ${c.url.replace("https://api.github.com", "").replace(/\?.*$/, "")}`;

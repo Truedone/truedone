@@ -7,6 +7,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import { makeApp } from "../src/index.mjs";
+import { flagsDB } from "./lib/github.mjs";
 
 const SECRET = "overlap-secret";
 
@@ -73,6 +74,7 @@ test("the config read starts while the mint is still in flight", async () => {
     const env = {
       WEBHOOK_SECRET: SECRET,
       KV: kv,
+      FLAGS: flagsDB(),
       APP_ID: "1",
       PRIVATE_KEY: await generatedPkcs1Pem(),
       VERSION: "test",

@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseConfig } from "../src/posting.mjs";
 import { makeStatic } from "../src/static.mjs";
+import { flagsDB } from "./lib/github.mjs";
 
 function fakeFetch(routes) {
   const calls = [];
@@ -63,7 +64,7 @@ test("enabled: false stops the run before anything is fetched or posted", async 
   const oldFetch = globalThis.fetch;
   globalThis.fetch = fetch;
   try {
-    const { env } = { env: { INSTALLATION_TOKEN: "t", KV: memoryKV(), core: { analyse: async () => { throw new Error("must not run"); } } } };
+    const { env } = { env: { INSTALLATION_TOKEN: "t", KV: memoryKV(), FLAGS: flagsDB(), core: { analyse: async () => { throw new Error("must not run"); } } } };
     const r = await makeStatic(env)(delivery());
     assert.equal(r.skipped, "repo_disabled");
     assert.equal(fetch.calls.filter((c) => c.url.includes("/check-runs")).length, 0, "nothing is posted");

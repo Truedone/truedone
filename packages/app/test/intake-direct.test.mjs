@@ -15,7 +15,7 @@ import worker from "../src/index.mjs";
 // a namespace import, so each test fails on its own outcome where the intake has no budget yet
 import * as webhook from "../src/webhook.mjs";
 import { LABELS } from "../src/labels.mjs";
-import { fakeGitHub, memoryKV, writeRoutes, pkcs1Pem } from "./lib/github.mjs";
+import { fakeGitHub, memoryKV, writeRoutes, pkcs1Pem, flagsDB } from "./lib/github.mjs";
 
 const SECRET = "test-secret";
 const TOKEN = "ghs_intake_direct_token";
@@ -65,7 +65,7 @@ const KEY = await pkcs1Pem();
 function environment({ failSend = false } = {}) {
   const sent = [];
   const QUEUE = { async send(body, opts) { if (failSend) throw new Error("queue unavailable"); sent.push(opts === undefined ? [body] : [body, opts]); } };
-  return { sent, env: { WEBHOOK_SECRET: SECRET, KV: memoryKV(), QUEUE, APP_ID: "12345", PRIVATE_KEY: KEY, VERSION: "v" } };
+  return { sent, env: { WEBHOOK_SECRET: SECRET, KV: memoryKV(), FLAGS: flagsDB(), QUEUE, APP_ID: "12345", PRIVATE_KEY: KEY, VERSION: "v" } };
 }
 const context = () => { const waits = []; return { waits, waitUntil(p) { waits.push(p); } }; };
 function useFetch(t, fake) {
