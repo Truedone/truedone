@@ -1,4 +1,4 @@
-// The truedone GitHub App webhook intake: verify, dedupe, drop, acknowledge, then analyse or queue.
+// The truedone GitHub App webhook intake: verify, drop, dedupe, acknowledge, then analyse or queue.
 // Runs on Workers: Web Crypto only, no node: imports (APP-01-AC03).
 
 const WEBHOOK_SECRET_HEADER = "x-hub-signature-256";
@@ -91,12 +91,10 @@ export function makeIntake(env, { run, budgetMs = DIRECT_BUDGET_MS } = {}) {
     const event = request.headers.get(EVENT_HEADER) || "";
     if (!delivery) return new Response("delivery", { status: 400 });
 
-    // Each delivery id is handled once (S6): the KV record expires after 24 hours.
-    const seenKey = `delivery:${delivery}`;
-    const seen = await env.KV.get(seenKey);
-    if (seen) return new Response("duplicate", { status: 200 });
-    await env.KV.put(seenKey, "1", { expirationTtl: DEDUPE_TTL_S });
-
+    // The drops come before the dedupe (APP-23): a dropped delivery makes no KV call, and another copy of it is
+    // dropped again with the same answer. Most deliveries are drops: the App's own label write sends a labeled one for
+    // every pull request, and each CI run sends requested and in_progress. The payload is parsed first, so a body that
+    // does not parse leaves no record and a redeliver of it is handled.
     const payload = JSON.parse(new TextDecoder().decode(body));
 
     // Events for removed installations are dropped (S6), not queued.
@@ -109,6 +107,12 @@ export function makeIntake(env, { run, budgetMs = DIRECT_BUDGET_MS } = {}) {
     if (Object.hasOwn(ACTIONS, event) && !ACTIONS[event].has(payload.action)) {
       return Response.json({ dropped: `${event}.${payload.action}` }, { status: 200 });
     }
+
+    // Each kept delivery id is handled once (S6): the KV record expires after 24 hours.
+    const seenKey = `delivery:${delivery}`;
+    const seen = await env.KV.get(seenKey);
+    if (seen) return new Response("duplicate", { status: 200 });
+    await env.KV.put(seenKey, "1", { expirationTtl: DEDUPE_TTL_S });
 
     if (event === "pull_request" && run && typeof ctx?.waitUntil === "function") {
       ctx.waitUntil(direct({ event, delivery, payload }, seenKey));

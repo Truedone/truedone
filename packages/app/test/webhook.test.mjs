@@ -95,7 +95,8 @@ test("a repeated delivery id is dropped and queues once", async () => {
 test("the dedupe record carries the 24 hour ttl", async () => {
   const e = env();
   const intake = makeIntake(e);
-  await intake(await signedRequest({ a: 1 }));
+  // a kept delivery: since APP-23 an action-less pull_request is dropped before the dedupe
+  await intake(await signedRequest({ action: "opened" }));
   const rec = [...e.KV.store.values()][0];
   assert.equal(rec.ttl, 24 * 60 * 60);
 });
@@ -106,7 +107,7 @@ test("an installation deleted event is dropped without queuing", async () => {
   const r = await intake(await signedRequest({ action: "deleted" }, { event: "installation", delivery: "d-del" }));
   assert.equal(r.status, 200);
   assert.equal(e.QUEUE.messages.length, 0);
-  assert.ok([...e.KV.store.keys()][0].startsWith("delivery:"));
+  assert.equal(e.KV.store.size, 0, "a dropped delivery leaves no dedupe record (APP-23)");
 });
 
 test("an installation_repositories removed event is dropped without queuing", async () => {
