@@ -5,12 +5,13 @@
 // installation-wide KV flag posting_enabled:<id> (default on) and the one global
 // KV key posting_enabled (default on; APP-09), each read uncached. Any that is
 // off stops the write.
+// configText may be the text or the promise of its read: the two flags and the config are read together (APP-15),
+// and their answers are taken in the same order as before.
 export async function postingAllowed(env, { installationId, repository, configText }) {
-  const global = await env.KV.get("posting_enabled");
+  const [global, perInstall, text] = await Promise.all([env.KV.get("posting_enabled"), env.KV.get(`posting_enabled:${installationId}`), configText]);
   if (global === "off") return { allowed: false, reason: "posting_disabled" };
-  const perInstall = await env.KV.get(`posting_enabled:${installationId}`);
   if (perInstall === "off") return { allowed: false, reason: "posting_disabled" };
-  const cfg = parseConfig(configText);
+  const cfg = parseConfig(text);
   if (cfg.enabled === "false") return { allowed: false, reason: "repo_disabled" };
   return { allowed: true };
 }

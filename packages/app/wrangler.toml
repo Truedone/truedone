@@ -19,6 +19,9 @@ queue = "truedone-dev"
 [[queues.consumers]]
 queue = "truedone-dev"
 max_batch_size = 10
+# APP-15 (#108): hand each delivery over at once. Without this, Cloudflare waits up to its default 5 s for a batch to
+# fill before a lone delivery reaches the consumer.
+max_batch_timeout = 0
 max_retries = 3
 dead_letter_queue = "truedone-dev-dlq"
 
@@ -39,6 +42,9 @@ queue = "truedone"
 [[env.production.queues.consumers]]
 queue = "truedone"
 max_batch_size = 10
+# APP-15 (#108): hand each delivery over at once. Without this, Cloudflare waits up to its default 5 s for a batch to
+# fill before a lone delivery reaches the consumer.
+max_batch_timeout = 0
 max_retries = 3
 dead_letter_queue = "truedone-dlq"
 

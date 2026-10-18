@@ -45,7 +45,21 @@ export function makeGitHub(env) {
   // when its analysis began (prMeta.startedAt, from the stage) and completed_at now, on a
   // new run and on an update alike, since GitHub keeps an updated run's first times
   // unless they are sent again (APP-14).
-  async function postCheck(owner, repo, head, result, prMeta) {
+  // The reads a check run write and a label write need, so a stage can start them with its other reads (APP-15): the
+  // truedone run already on this head, or null; the labels on the pull request and those the repository defines.
+  function checkRunFor(owner, repo, head) {
+    return api(`/repos/${owner}/${repo}/commits/${head}/check-runs?check_name=truedone`).then((r) => r?.check_runs?.[0] ?? null, () => null);
+  }
+  async function labelState(owner, repo, number) {
+    const [onIssue, all] = await Promise.all([
+      api(`/repos/${owner}/${repo}/issues/${number}/labels`),
+      api(`/repos/${owner}/${repo}/labels`).catch(() => []),
+    ]);
+    return { onIssue: onIssue.map((l) => l.name), all };
+  }
+
+  // found and state, when given, are checkRunFor's and labelState's answers; without them each call reads its own.
+  async function postCheck(owner, repo, head, result, prMeta, found) {
     const now = new Date().toISOString();
     const body = {
       name: "truedone",
@@ -57,29 +71,28 @@ export function makeGitHub(env) {
       completed_at: now,
       output: { title: `truedone: ${result.verdict.replace(/_/g, " ")}${result.partial ? " (partial)" : ""}`, summary: summary(result, prMeta) },
     };
-    const existing = await api(`/repos/${owner}/${repo}/commits/${head}/check-runs?check_name=truedone`).catch(() => null);
-    const found = existing?.check_runs?.[0];
-    if (found) return api(`/repos/${owner}/${repo}/check-runs/${found.id}`, { method: "PATCH", body: JSON.stringify(body) });
+    const run = found === undefined ? await checkRunFor(owner, repo, head) : found;
+    if (run) return api(`/repos/${owner}/${repo}/check-runs/${run.id}`, { method: "PATCH", body: JSON.stringify(body) });
     return api(`/repos/${owner}/${repo}/check-runs`, { method: "POST", body: JSON.stringify(body) });
   }
 
-  async function postLabel(owner, repo, number, result, prMeta) {
+  // The stale truedone labels go and a missing label is defined together, then the wanted one is added.
+  async function postLabel(owner, repo, number, result, prMeta, state) {
     const key = VERDICT_LABEL[result.verdict];
     const wanted = key ?? null;
-    const current = (await api(`/repos/${owner}/${repo}/issues/${number}/labels`)).map((l) => l.name).filter((n) => n.startsWith("truedone:"));
-    for (const name of current) {
-      if (name !== wanted) await api(`/repos/${owner}/${repo}/issues/${number}/labels/${encodeURIComponent(name)}`, { method: "DELETE" }).catch(() => {});
-    }
-    if (!wanted || current.includes(wanted)) return;
-    const all = await api(`/repos/${owner}/${repo}/labels`).catch(() => []);
+    const { onIssue, all } = state ?? await labelState(owner, repo, number);
+    const current = onIssue.filter((n) => n.startsWith("truedone:"));
+    const first = current.filter((name) => name !== wanted).map((name) => api(`/repos/${owner}/${repo}/issues/${number}/labels/${encodeURIComponent(name)}`, { method: "DELETE" }).catch(() => {}));
+    if (!wanted || current.includes(wanted)) { await Promise.all(first); return; }
     if (!all.some((l) => l.name === wanted)) {
       const l = LABELS.find((x) => x.name === key);
-      await api(`/repos/${owner}/${repo}/labels`, { method: "POST", body: JSON.stringify({ name: l.name, color: l.color, description: l.description }) }).catch(() => {});
+      first.push(api(`/repos/${owner}/${repo}/labels`, { method: "POST", body: JSON.stringify({ name: l.name, color: l.color, description: l.description }) }).catch(() => {}));
     }
+    await Promise.all(first);
     await api(`/repos/${owner}/${repo}/issues/${number}/labels`, { method: "POST", body: JSON.stringify({ labels: [wanted] }) });
   }
 
-  return { api, publishedShas, rawFile, postCheck, postLabel };
+  return { api, publishedShas, rawFile, checkRunFor, labelState, postCheck, postLabel };
 }
 
 function esc(text) {
