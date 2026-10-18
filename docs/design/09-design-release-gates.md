@@ -13,9 +13,9 @@ There are two sets of gates. The static gates, 1 to 4, need only GitHub API read
 
 Gates 1 and 2 also produce the launch post: the measured share of agent PRs that prove nothing, against the human baseline.
 
-Before the proof release, a public demonstration on mgillr/truedone-sandbox runs the published npm version and the action's published tag on one pull request per case, every verdict among them, and checks each truedone check and label against docs/demo/expected.json; docs/demo.md publishes it (DEMO-01). ACT-04's 20 seeded pull requests and APP-06's smoke can reuse these cases.
+Before the proof release, a public demonstration on Truedone/truedone-sandbox runs the published npm version and the action's published tag on one pull request per case, every verdict among them, and checks each truedone check and label against docs/demo/expected.json; docs/demo.md publishes it (DEMO-01). ACT-04's 20 seeded pull requests and APP-06's smoke can reuse these cases.
 
-The preview, 0.1.0, ships before these gates (D35): the command line on npm, the action on mgillr/truedone-action, the production App made public, and the plugin from this repository's marketplace, each labelled preview and none announced. A part counts as released only after a walk of its install path from a fresh home gives the expected verdict on the sandbox's demonstration pull requests, and only then does its entry in packages/web/lib/release.mjs flip. The gates above still guard the launch: the announcement, the index, the marketplace submission and the second wave.
+The preview, 0.1.0, ships before these gates (D35): the command line on npm, the action on Truedone/truedone-action, the production App made public, and the plugin from this repository's marketplace, each labelled preview and none announced. A part counts as released only after a walk of its install path from a fresh home gives the expected verdict on the sandbox's demonstration pull requests, and only then does its entry in packages/web/lib/release.mjs flip. The gates above still guard the launch: the announcement, the index, the marketplace submission and the second wave.
 
 ## Flow
 

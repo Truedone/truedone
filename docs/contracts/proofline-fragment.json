@@ -73,7 +73,7 @@
           "statement": "the vendored file is byte-identical to the tagged truedone release",
           "verifier": {
             "type": "command",
-            "cmd": "V=$(head -1 src/vendor/TRUEDONE_VERSION) && curl -sf \"https://raw.githubusercontent.com/mgillr/truedone/v$V/packages/core/core.mjs\" | cmp - src/vendor/truedone-core.mjs",
+            "cmd": "V=$(head -1 src/vendor/TRUEDONE_VERSION) && curl -sf \"https://raw.githubusercontent.com/Truedone/truedone/v$V/packages/core/core.mjs\" | cmp - src/vendor/truedone-core.mjs",
             "expect_exit": 0,
             "timeout_s": 900
           }

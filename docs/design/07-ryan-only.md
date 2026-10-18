@@ -4,10 +4,11 @@ Source section: Ryan only
 
 These items are Ryan's alone, each with the week it falls in.
 
-- Week 1: register npm `truedone`, the repository mgillr/truedone and the Cloudflare Pages project truedone; no trademark search is run.
+- Week 1: register npm `truedone`, the repository Truedone/truedone and the Cloudflare Pages project truedone; no trademark search is run.
 - Week 1: the Cloudflare account, the GitHub App registration, the private key into Worker secrets, and the development app. The App lists two callback URLs: the production Worker's /api/github/callback and the site's sign-in, https://truedone.pages.dev/signin/callback (D26, WEB-02).
 - Week 1: no credential on the lanes: only the lead runner reaches GitHub, with his login (D25).
 - From 2026-10-17, while GitHub Actions do not run on his account (a billing lock), the lead runner runs the CI job in an isolated container and posts its result as a commit status, and deploys run the same way, production only after his yes (D22). This ends when Actions run again. The gate restores the contract, its signature and guard/ byte for byte from main and never edits them; a task whose only failures are its env-bound criteria passes; the owner key must exist on main and verify-sig must say the signature matches; and an explicit --base outranks a Proofline-Base trailer, so the merge-base it passes cannot be moved by a trailer on the head (SEC-03).
+- From 2026-10-18: the repositories live in the organisation Truedone, which he owns and which runs hosted Actions during the lock: Truedone/truedone, Truedone/truedone-action and Truedone/truedone-sandbox. The development App belongs to the organisation and is installed only on the sandbox; the production App stays on his account (D36).
 - Week 1: confirm or change D1 to D31, then sign and commit the contracts.
 - Week 1: `.github/allowed_signers` with his SSH key (D25).
 - Weeks 1 and 2: the environments dev, production and release, the Cloudflare token, the mirror token, and the ruleset with the CI gate and merge commits only (D25, D26).
@@ -24,7 +25,7 @@ These items are Ryan's alone, each with the week it falls in.
 ```mermaid
 flowchart LR
   W1["week 1"] --> W2["week 2"] --> W4["week 4"] --> W5["week 5"] --> W6["week 6"]
-  N["npm name, the repository mgillr/truedone, the Cloudflare Pages project"] --- W1
+  N["npm name, the repository Truedone/truedone, the Cloudflare Pages project"] --- W1
   CF["Cloudflare account, GitHub App registration, private key into Worker secrets, development app"] --- W1
   TOK["no credential on the lanes; only the lead runner reaches GitHub, with his login, D25"] --- W1
   CON["confirm or change D1 to D31, then sign and commit the contracts"] --- W1
@@ -48,7 +49,7 @@ flowchart LR
 flowchart TB
   RYAN["Ryan"]
   subgraph NAMES["name and registrations"]
-    N1["npm truedone, the repository mgillr/truedone, the Cloudflare Pages project truedone"]
+    N1["npm truedone, the repository Truedone/truedone, the Cloudflare Pages project truedone"]
   end
   subgraph ACCESS["accounts, keys and tokens"]
     A1["Cloudflare account and token"]
