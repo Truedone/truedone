@@ -24,3 +24,29 @@ $ truedone https://github.com/Truedone/truedone/pull/54 --json   -> unrun
 $ truedone https://github.com/Truedone/truedone/pull/43 --json   -> not_applicable
 result: pass
 ```
+
+## The plugin
+
+Written by `node tools/release-preview.mjs plugin`.
+
+```text
+$ claude --version
+2.1.302 (Claude Code)
+$ claude plugin marketplace add Truedone/truedone   (HOME in a scratch directory)
+  ✔ Successfully added marketplace: truedone (declared in user settings)
+$ claude plugin install truedone@truedone
+  Installing plugin "truedone@truedone"...✔ Successfully installed plugin: truedone@truedone (scope: user)
+installed: version 0.1.0, from Truedone/truedone on GitHub, at <scratch HOME>/.claude/plugins/cache/truedone/truedone/0.1.0
+manifest version 0.1.0 (the release is 0.1.0)
+manifest homepage https://truedone.pages.dev
+Stop hook registered: node "${CLAUDE_PLUGIN_ROOT}/hooks/stop.mjs"
+red-green in the hook: off (const REDGREEN_ENABLED = false;): this preview's hook has no red-green; it comes with PLG-03
+$ node "${CLAUDE_PLUGIN_ROOT}/hooks/stop.mjs"   (sh -c, CLAUDE_PLUGIN_ROOT the installed copy, in a scratch repository on branch work: src/add.mjs and test/add.test.mjs changed, the test passing)
+  on the recorded transcript of the plugin's case "row 3: the last message says tests pass, with no test run after the last edit: block", last message "All tests pass."
+  -> {"decision":"block","reason":"truedone: the last message says the tests pass, but the changed tests have not run since the last file edit. Fix this, or say plainly in your reply that it is not fixed."}
+the hook blocks with "have not run since the last file edit", as the plugin's own test expects
+  on the recorded transcript of the plugin's case "row 3, not met: the claim follows a test run after the last edit: no block", last message "All tests pass."
+  -> (nothing)
+the hook lets the turn end and says nothing, as the plugin's own test expects
+result: pass
+```
