@@ -3088,14 +3088,14 @@
       "id": "RUN-04",
       "title": "[W3-4] Coverage condition: spike, decision and implementation (D8)",
       "phase": "implement",
-      "owner": "lane-c",
+      "owner": "lane-d",
       "depends_on": [
         "RUN-03"
       ],
       "requirements": [
         "PV-X05"
       ],
-      "description": "Spike first on five TypeScript repositories from the corpus (jest and vitest): can V8 coverage through NODE_V8_COVERAGE, mapped through source maps, say which changed TypeScript lines a test ran, with no dependency? docs/spikes/ts-coverage.md lists the repositories, what worked, and \"Decision: lines\" or \"Decision: imports\". Then run/coverage.mjs: Node through NODE_V8_COVERAGE; Python through a pytest plugin written to a temporary directory using sys.monitoring (3.12+) or sys.settrace; the fallback \"the test imports a changed module, directly or one hop away\". The report names the condition used.",
+      "description": "Spike first on five TypeScript repositories from the corpus (jest and vitest): can V8 coverage through NODE_V8_COVERAGE, mapped through source maps, say which changed TypeScript lines a test ran, with no dependency? docs/spikes/ts-coverage.md lists the repositories, what worked, and \"Decision: lines\" or \"Decision: imports\". Then run/coverage.mjs: Node through NODE_V8_COVERAGE; Python through a pytest plugin written to a temporary directory using sys.monitoring (3.12+) or sys.settrace; the fallback \"the test imports a changed module, directly or one hop away\". The report names the condition used. Owner lane-d from 2026-10-18 05:35Z.",
       "scope": {
         "allow": [
           "packages/core/run/**",
