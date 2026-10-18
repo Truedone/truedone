@@ -1,15 +1,14 @@
 {
   "name": "truedone",
   "url": "https://truedone.pages.dev",
+  "description": "truedone checks whether a pull request's tests prove its change: red without the change, green with it. It also flags tests that were skipped, focused or weakened. Each pull request gets one verdict, as a check run and a label, so you see what the tests show before you read the diff.\n\n**On each pull request**\n\n- A check run named truedone, with the verdict and the reason for it.\n- One label: `truedone:yes`, `truedone:weak`, `truedone:tampered`, `truedone:review`, `truedone:no-evidence`, `truedone:unrun`, `truedone:pending` or `truedone:could-not-run`. A pull request with nothing to check gets none.\n\n**Why each permission**\n\n- Pull requests, write: read the changed files and set the label.\n- Checks, write: post the check run.\n- Contents, read: read each changed test at the base and at the head.\n- Actions, read: read the report the truedone action uploads, for the red-green verdict.\n- Metadata, read: GitHub requires it.\n\nIt never runs your code. The static checks only read files. The red-green run happens in your own workflow, through the truedone action.\n\n**To turn it off** for one repository, add `enabled: false` to `.github/truedone.yml` on your default branch, or uninstall the app.\n\nThis is a preview. [truedone.pages.dev](https://truedone.pages.dev) shows what works today. Source: [github.com/mgillr/truedone](https://github.com/mgillr/truedone) (Apache-2.0). [Privacy](https://truedone.pages.dev/privacy) and [terms](https://truedone.pages.dev/terms).",
   "hook_attributes": {
     "url": "https://truedone.ledgerguard-global.workers.dev/api/github/webhook",
     "active": true
   },
   "redirect_url": "https://truedone.ledgerguard-global.workers.dev/api/github/manifest",
-  "callback_urls": ["https://truedone.ledgerguard-global.workers.dev/api/github/callback", "https://truedone.pages.dev/signin/callback"],
-  "setup_url": "https://truedone.ledgerguard-global.workers.dev/api/github/setup",
-  "setup_on_update": true,
-  "public": false,
+  "callback_urls": ["https://truedone.pages.dev/signin/callback"],
+  "public": true,
   "default_events": ["pull_request", "workflow_run"],
   "default_permissions": {
     "actions": "read",

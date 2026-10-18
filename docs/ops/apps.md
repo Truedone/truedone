@@ -42,5 +42,14 @@ the old account ended with the transfer.
 
 Open: the development app is installed only on `Truedone/truedone-sandbox`. Its first installation landed on this repository by
 mistake; I moved it to the sandbox on 2026-10-18, and the Worker logged the sandbox's deliveries from then on. The production app
-is installed nowhere, with posting off, until the app is offered (REL-W4). It is private, and GitHub lets only its owner authorize
-a private app, so the sign-in on truedone.pages.dev, which uses its client, works for me alone until it is public.
+is installed nowhere yet, with posting off.
+
+The production app is public since 2026-10-18 (D35), so anyone can install it from https://github.com/apps/truedone and sign in
+on truedone.pages.dev. Its posting stays off until the development app's smoke passes on the sandbox. I set its page the same day,
+and `packages/app/app-manifest.json` records it: the description, the homepage https://truedone.pages.dev, the logo
+(`packages/app/logo.svg`, uploaded as `logo.png` on the badge colour #0d1117) and one callback, the site's `/signin/callback`. I
+removed the setup URL and the callback `/api/github/callback`: the Worker routes only `/health` and `/api/github/webhook`, so both
+answered 404, and a new user would have landed on an error page after installing. Ryan read the settings page back the same day
+and approved it: description saved, one callback, no setup URL, logo set, badge #0d1117. `node tools/app-listing-check.mjs`
+reads the public page without a token and fails unless it equals the manifest (description, homepage, permissions, events); with
+`--urls` it also reads the homepage and each callback live and fails on any answer other than 200 or a redirect.
