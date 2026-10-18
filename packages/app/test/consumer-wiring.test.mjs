@@ -58,7 +58,7 @@ test("a pull_request delivery drives the real static stage to its first GitHub w
     // env.core.analyse is the real stage's local verdict pass; it reads the
     // files already fetched above and returns the verdict object the two
     // writes below carry.
-    delivery: "d-1",
+    delivery: "d-fix-1",
     payload: {
       action: "opened",
       number: 41,

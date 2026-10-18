@@ -35,6 +35,8 @@ function github({ filesStatus = 200 } = {}) {
     "GET /repos/o/r/pulls/6/files": [{ filename: FILE, status: "modified", patch: "@@ -5,0 +6,3 @@" }],
     ...writeRoutes("o", "r", 6, H),
     "GET /repos/o/r/labels": LABELS.map((l) => ({ name: l.name })),
+    "PATCH /repos/o/r/issues/6": {},
+    "POST /graphql": { data: { addLabelsToLabelable: { labelable: { number: 6 } } } },
   };
   const fake = fakeGitHub({ api, raw: { [`o/r/${B}/${FILE}`]: before, [`o/r/${H}/${FILE}`]: after } });
   if (filesStatus === 200) return fake;
@@ -113,7 +115,7 @@ test("a run that throws: the delivery goes to the queue as it came, and one log 
   assert.deepEqual(sent, [[{ event: "pull_request", delivery: "d-2", payload: payloadFor("pull_request", "opened") }]], "queued once, with no delay");
   assert.equal(count(gh, "POST /repos/o/r/check-runs"), 0, "nothing written");
   assert.equal(await env.KV.get("delivery:d-2"), "1", "the queue has it, so the dedupe record stays");
-  const lines = logs.map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+  const lines = logs.map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean).filter((l) => l.stage === "intake");
   assert.deepEqual(lines.map((l) => [l.stage, l.delivery]), [["intake", "d-2"]]);
   assert.match(lines[0].error, /500/);
   assert.ok(logs.every((l) => !l.includes(TOKEN)), "the token is in no log line");

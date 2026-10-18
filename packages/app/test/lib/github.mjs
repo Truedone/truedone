@@ -43,9 +43,12 @@ export function writeRoutes(owner, repo, n, head) {
     [`GET ${r}/commits/${head}/check-runs`]: { total_count: 0, check_runs: [] },
     [`POST ${r}/check-runs`]: { id: 1 },
     [`GET ${r}/issues/${n}/labels`]: [],
-    [`GET ${r}/labels`]: [],
+    [`GET ${r}/labels`]: [{ name: `truedone:unrun`, node_id: `LABEL_${n}` }],
     [`POST ${r}/labels`]: {},
     [`POST ${r}/issues/${n}/labels`]: [],
+    // APP-21: the trial's other two write methods answer as GitHub does.
+    [`PATCH ${r}/issues/${n}`]: {},
+    [`POST /graphql`]: { data: { addLabelsToLabelable: { labelable: { number: n } } } },
   };
 }
 
@@ -67,7 +70,13 @@ export function delivery(pull, installation = 3) {
 
 // The calls the stage made of one kind.
 export const checkRuns = (fetch) => fetch.calls.filter((c) => c.method === "POST" && /\/check-runs$/.test(c.url));
-export const labelWrites = (fetch, n) => fetch.calls.filter((c) => c.method === "POST" && new RegExp(`/issues/${n}/labels$`).test(c.url));
+// APP-21: a label write is the REST POST of the label list, the issue PATCH
+// that replaces it, or the GraphQL addLabelsToLabelable mutation. The first two
+// carry a label list in the body; the mutation is identified by its query.
+export const labelWrites = (fetch, n) => fetch.calls.filter((c) =>
+  (c.method === "POST" && new RegExp(`/issues/${n}/labels$`).test(c.url)) ||
+  (c.method === "PATCH" && new RegExp(`/issues/${n}$`).test(c.url)) ||
+  (c.method === "POST" && /addLabelsToLabelable/.test(String(c.body))));
 export const rawCalls = (fetch) => fetch.calls.filter((c) => c.url.startsWith("https://raw.githubusercontent.com/")).map((c) => c.url.slice("https://raw.githubusercontent.com/".length));
 
 const FIX = new URL("../fixtures/sandbox-42/", import.meta.url);
