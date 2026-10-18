@@ -27,7 +27,7 @@ export function reportChecks(reportText, { headSha, defaultBranchStep, published
 
 export function makeRedGreen(env) {
   async function api(p, init = {}) {
-    const r = await fetch(API + p, { ...init, headers: { authorization: `Bearer ${env.INSTALLATION_TOKEN}`, accept: "application/vnd.github+json", "user-agent": "truedone-app", ...init.headers } });
+    const r = await fetch(API + p, { ...init, headers: { authorization: `Bearer ${await env.INSTALLATION_TOKEN}`, accept: "application/vnd.github+json", "user-agent": "truedone-app", ...init.headers } });
     if (!r.ok) throw Object.assign(new Error(`${r.status} ${p}`), { status: r.status });
     return r.json();
   }
@@ -46,7 +46,7 @@ export function makeRedGreen(env) {
     if (!mine.length) return null;
     const art = mine[0];
     if (art.size_in_bytes > MAX_ARTIFACT) throw new Error(`artifact over ${MAX_ARTIFACT} bytes`);
-    const zip = await fetch(art.archive_download_url, { headers: { authorization: `Bearer ${env.INSTALLATION_TOKEN}`, "user-agent": "truedone-app" } });
+    const zip = await fetch(art.archive_download_url, { headers: { authorization: `Bearer ${await env.INSTALLATION_TOKEN}`, "user-agent": "truedone-app" } });
     const buf = new Uint8Array(await zip.arrayBuffer());
     if (buf.length > MAX_ARTIFACT) throw new Error(`artifact over ${MAX_ARTIFACT} bytes`);
     // A minimal unzip: the stored entry count must be exactly one, checked on the

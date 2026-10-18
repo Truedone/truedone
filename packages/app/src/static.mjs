@@ -31,7 +31,7 @@ export function makeAnalyser(env, gh) {
     const github = (url, init = {}) => String(url) === prUrl
       ? Promise.resolve(Response.json(pr))
       : fetch(url, { ...init, headers: { "user-agent": "truedone-app", ...init.headers } });
-    const [releases, { input }] = await Promise.all([shas, loadPR({ owner, repo, number: pr.number }, { fetch: github, classify, token: env.INSTALLATION_TOKEN })]);
+    const [releases, { input }] = await Promise.all([shas, loadPR({ owner, repo, number: pr.number }, { fetch: github, classify, token: await env.INSTALLATION_TOKEN })]);
     return env2.core.analyse({ ...input, releases });
   };
 }
@@ -53,14 +53,21 @@ export function makeStatic(env) {
     // (APP-13), and both posting flags. Nothing else is read before it, so a repository that
     // opted out has only its config read. (2) Only when posting is allowed, every read: the
     // analysis, the check run already on the head and the labels. (3) The two writes.
+    const gateStart = Date.now();
     const configText = rawFile(owner, repo, pr.base.sha, ".github/truedone.yml");
     const allowed = await postingAllowed(env, { installationId: payload.installation?.id, repository: repository.id, configText });
     if (!allowed.allowed) return { skipped: allowed.reason };
+    const phase1 = Date.now() - gateStart;
 
     const t0 = Date.now();
     meta.startedAt = new Date(t0).toISOString();
     const [result, found, labels] = await Promise.all([analyse(env, owner, repo, pr), checkRunFor(owner, repo, pr.head.sha), labelState(owner, repo, pr.number)]);
+    const phase2 = Date.now() - t0;
+    const writesStart = Date.now();
     await Promise.all([postCheck(owner, repo, pr.head.sha, result, meta, found), postLabel(owner, repo, pr.number, result, meta, labels)]);
+    const phase3 = Date.now() - writesStart;
+    // APP-18: one line per analysed delivery, numbers only, for the tail to split.
+    console.log(JSON.stringify({ stage: "static", delivery: delivery.delivery, phase1_ms: phase1, phase2_ms: phase2, phase3_ms: phase3, total_ms: Date.now() - gateStart }));
     // S8: timings and identifiers only, never diff content or PR text.
     env.LOG?.({ installation: payload.installation?.id, repository: repository.id, pr: pr.number, verdict: result.verdict, ms: Date.now() - t0 });
     return { verdict: result.verdict };
