@@ -46,7 +46,7 @@ test('the page has no script, no inline style and no event attribute, and links 
 });
 
 test('the page ends with the next rung, which says red-green on someone else\'s PR executes that PR\'s code', () => {
-  const rung = text.indexOf('Next rung: red-green on your machine');
+  const rung = text.indexOf("Next rung: run the PR's own tests on your machine");
   assert.ok(rung > text.indexOf(groups.at(-1).rows.at(-1).next), 'the next rung comes after the last label');
   assert.ok(text.indexOf("executes that PR's code", rung) > rung);
   assert.ok(text.includes('npx truedone <PR link> --run'));

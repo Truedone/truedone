@@ -1,6 +1,9 @@
 // What each truedone.pages.dev page shows (WEB-01), as a plain tree that dom.mjs mounts with textContent only: PR text is
 // never parsed as HTML (S7). Every page ends with the next rung, which says that red-green on someone else's PR
 // executes that PR's code (PV-W05). The wording states what was observed and never addresses the PR's author.
+// WEB-07: the verdict is a link to its section of /why; the label line says the app would set it; a reason that names
+// its file is not prefixed with it, and reasons whose verdict is not the result's come after the others under "Also
+// noted"; home links one example per verdict this static site can show; every footer offers sign-in.
 // A node is { tag, text?, attrs?, children? }.
 export const VERDICTS = {
   tampered: 'Tampered',
@@ -20,6 +23,17 @@ export const BADGE = {
   proven_weak: 'weak', no_evidence: 'no-evidence', pending: 'pending', unrun: 'unrun', not_applicable: 'none',
 };
 export const badgeClass = (verdict) => `verdict verdict-${BADGE[verdict] ?? 'none'}`;
+// the verdict's section of /why: truedone-<label without truedone:>; Not applicable sets no label, so /why itself
+export const whyHref = (verdict) => (BADGE[verdict] && verdict !== 'not_applicable' ? `/why#truedone-${BADGE[verdict]}` : '/why');
+// one public pull request page per verdict the diff alone can give, each checked live on this site before it was added
+export const EXAMPLES = [
+  ['tampered', '/mgillr/truedone-sandbox/pull/31'],
+  ['review', '/mgillr/truedone/pull/17'],
+  ['no_evidence', '/mgillr/truedone/pull/47'],
+  ['unrun', '/mgillr/truedone/pull/54'],
+  ['not_applicable', '/mgillr/truedone/pull/43'],
+];
+export const signinHref = (path) => `/signin?return=${encodeURIComponent(path || '/')}`;
 export const TAGLINE = 'Checks whether a pull request\'s tests prove its change: red without it, green with it.';
 export const FOOTER_LINKS = [['Why', '/why'], ['Privacy', '/privacy'], ['Terms', '/terms'], ['GitHub', 'https://github.com/mgillr/truedone']];
 export const MAX_REASONS = 10;
@@ -36,34 +50,45 @@ export function siteHeader() {
   ]);
 }
 
-export function siteFooter() {
+// the four links, then sign-in, which returns to the page it was offered on (WEB-02)
+export function siteFooter(path = '/') {
   return el('footer', undefined, { class: 'site-footer' }, [
-    el('ul', undefined, undefined, FOOTER_LINKS.map(([text, href]) => el('li', undefined, undefined, [el('a', text, { href })]))),
+    el('ul', undefined, undefined, [
+      ...FOOTER_LINKS.map(([text, href]) => el('li', undefined, undefined, [el('a', text, { href })])),
+      el('li', undefined, { class: 'signin-item' }, [el('a', 'Sign in with GitHub', { href: signinHref(path) })]),
+    ]),
   ]);
 }
 
-// a view's main between the header and the footer; page.mjs mounts every view through it
-export function shell(main) {
-  return el('div', undefined, { class: 'page' }, [siteHeader(), main, siteFooter()]);
+// a view's main between the header and the footer; page.mjs mounts every view through it, with the page's path
+export function shell(main, path = '/') {
+  return el('div', undefined, { class: 'page' }, [siteHeader(), main, siteFooter(path)]);
 }
 
-export function nextRung(link) {
+// verdict: whether the page shows a verdict, the only kind of page whose reading of the diff can be claimed
+export function nextRung(link, { verdict = false } = {}) {
   return el('section', undefined, { class: 'next' }, [
-    el('h2', 'Next rung: red-green on your machine'),
-    el('p', 'This page reads the diff only. To run the PR\'s own tests against base and head, run:'),
+    el('h2', 'Next rung: run the PR\'s own tests on your machine'),
+    el('p', verdict ? 'This page reads the diff only. To run the PR\'s own tests against base and head, run:' : 'To run a pull request\'s own tests against base and head, run:'),
     el('pre', link ? `npx truedone ${link} --run` : NEXT_RUNG_COMMAND),
     el('p', RED_GREEN_WARNING, { class: 'warning' }),
     el('p', 'For your own agent, the truedone Claude Code plugin runs the same checks before it reports a task done.'),
   ]);
 }
 
-function reasonList(reasons) {
+// the reasons that give the verdict, then, under "Also noted", those whose own verdict is lesser (CORE-09). A reason
+// with no file, such as the partial note, or whose message already names its file, is its message alone.
+function reasonLists(reasons, verdict) {
   const shown = reasons.slice(0, MAX_REASONS);
-  // a reason with no file, such as the partial note, is its message alone
-  const where = (r) => (r.file ? `${r.file}${r.line ? `:${r.line}` : ''}: ` : '');
-  const items = shown.map((r) => el('li', `${where(r)}${r.message}`));
-  if (reasons.length > shown.length) items.push(el('li', `${reasons.length - shown.length} more not shown`));
-  return el('ul', undefined, { class: 'reasons' }, items);
+  const where = (r) => (r.file && !r.message.includes(r.file) ? `${r.file}${r.line ? `:${r.line}` : ''}: ` : '');
+  const item = (r) => el('li', `${where(r)}${r.message}`);
+  const main = shown.filter((r) => (r.verdict ?? verdict) === verdict).map(item);
+  const also = shown.filter((r) => (r.verdict ?? verdict) !== verdict).map(item);
+  if (reasons.length > shown.length) (also.length ? also : main).push(el('li', `${reasons.length - shown.length} more not shown`));
+  const out = [];
+  if (main.length) out.push(el('ul', undefined, { class: 'reasons' }, main));
+  if (also.length) out.push(el('p', 'Also noted', { class: 'also' }), el('ul', undefined, { class: 'reasons also-list' }, also));
+  return out;
 }
 
 export function prView(result, pr, { truncated = false, analysed = 0 } = {}) {
@@ -71,14 +96,19 @@ export function prView(result, pr, { truncated = false, analysed = 0 } = {}) {
   const children = [
     el('p', `${pr.owner}/${pr.repo}#${pr.number}`, { class: 'target' }),
     el('h1', pr.title, { class: 'title' }),
-    el('p', `Verdict: ${name}${result.partial || truncated ? ' (partial)' : ''}`, { class: badgeClass(result.verdict) }),
+    // the badge is the verdict's name alone, a link to what it means; "Verdict: " is there for screen readers and the
+    // tools that read the page (check-browser, the web bench), out of sight
+    el('p', undefined, { class: 'verdict-line' }, [
+      el('span', 'Verdict: ', { class: 'visually-hidden' }),
+      el('a', `${name}${result.partial || truncated ? ' (partial)' : ''}`, { class: badgeClass(result.verdict), href: whyHref(result.verdict) }),
+    ]),
   ];
-  if (result.label) children.push(el('p', `Label: ${result.label}`, { class: 'label' }));
+  if (result.label) children.push(el('p', `Label the app would set: ${result.label}`, { class: 'label' }));
   if (truncated) children.push(el('p', `Analysed ${analysed} of the ${pr.changed_files} changed files.`, { class: 'partial' }));
-  if (result.reasons?.length) children.push(reasonList(result.reasons));
+  if (result.reasons?.length) children.push(...reasonLists(result.reasons, result.verdict));
   if (result.next) children.push(el('p', `What would change the verdict: ${result.next}`, { class: 'change' }));
   children.push(el('p', undefined, undefined, [el('a', 'The PR on GitHub', { href: pr.url })]));
-  children.push(nextRung(pr.url));
+  children.push(nextRung(pr.url, { verdict: true }));
   return el('main', undefined, undefined, children);
 }
 
@@ -91,6 +121,16 @@ export function precomputedView(data, owner, repo) {
     el('h1', `${owner}/${repo}: the last ${rows.length} PRs`),
     el('p', `Precomputed${data.computed_at ? ` at ${data.computed_at}` : ''}${data.core_version ? ` with core ${data.core_version}` : ''}, from the diff alone.`, { class: 'precomputed' }),
     el('ul', undefined, { class: 'prs' }, rows),
+    nextRung(null, { verdict: true }),
+  ]);
+}
+
+// a repository with no precomputed list: the site serves its single page for a missing file, so this says so plainly
+export function noListView(owner, repo) {
+  return el('main', undefined, undefined, [
+    el('h1', `${owner}/${repo} has no list yet`),
+    el('p', 'Lists are precomputed for a few public repositories. Paste a pull request link on the home page to check one.'),
+    el('p', undefined, undefined, [el('a', 'Check a pull request', { href: '/' })]),
     nextRung(null),
   ]);
 }
@@ -103,6 +143,11 @@ export function homeView() {
       el('input', undefined, { name: 'target', type: 'text', placeholder: 'https://github.com/owner/repo/pull/1', 'aria-label': 'Pull request link' }),
       el('button', 'Check', { type: 'submit' }),
     ]),
+    el('h2', 'Examples'),
+    el('ul', undefined, { class: 'examples' }, EXAMPLES.map(([verdict, href]) => el('li', undefined, undefined, [
+      el('a', VERDICTS[verdict], { href, class: badgeClass(verdict) }),
+      el('span', ` ${href.slice(1).replace(/\/pull\//, '#')}`, { class: 'example-target' }),
+    ]))),
     nextRung(null),
   ]);
 }

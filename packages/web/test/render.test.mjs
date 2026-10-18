@@ -21,7 +21,7 @@ test('a PR of 300 files takes 4 api.github.com calls and renders the verdict cor
   assert.equal(r.calls, 4);
   assert.equal(input.files.length, 300);
   const text = textOf(root);
-  assert.match(text, /Verdict: No red-green evidence/);
+  assert.match(text, /Verdict:\s*No red-green evidence/);   // the visually hidden label, then the badge (WEB-07)
   assert.match(text, /src\/mod001\.js: source changed and no test fails without it/);
   assert.match(text, /octo\/demo#7/);
 });
