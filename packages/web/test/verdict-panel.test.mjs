@@ -49,7 +49,7 @@ test('a reason whose message names its file is not prefixed; one that does not i
     { check: 'snapshot', file: 'test/__snapshots__/a.snap', message: 'Snapshot test/__snapshots__/a.snap changed.', verdict: 'review' },
     { check: 'skip_focus', file: 'src/a.test.js', line: 3, message: 'a test is skipped', verdict: 'review' },
   ] }));
-  const items = find(tree, (e) => e.tag === 'li').map((e) => e.textContent);
+  const items = find(tree, (e) => e.tag === 'ul' && classes(e).includes('reasons')).flatMap((ul) => find(ul, (e) => e.tag === 'li')).map((e) => e.textContent);
   assert.deepEqual(items, ['Snapshot test/__snapshots__/a.snap changed.', 'src/a.test.js:3: a test is skipped']);
 });
 

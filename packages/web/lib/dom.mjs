@@ -1,7 +1,7 @@
 // Mounts a view.mjs tree (WEB-01, S7). Text goes in through textContent only; attributes come from a fixed list, and
 // an href must be https: or a same-site path, so nothing taken from a PR can become markup or a script URL.
-const ATTRS = new Set(['class', 'id', 'href', 'type', 'name', 'placeholder', 'aria-label', 'aria-labelledby', 'for']);
-const TAGS = new Set(['div', 'header', 'footer', 'main', 'section', 'h1', 'h2', 'p', 'pre', 'ul', 'li', 'a', 'span', 'form', 'input', 'button']);
+const ATTRS = new Set(['class', 'id', 'href', 'type', 'name', 'placeholder', 'aria-label', 'aria-labelledby', 'aria-current', 'for']);
+const TAGS = new Set(['div', 'header', 'footer', 'main', 'section', 'h1', 'h2', 'p', 'pre', 'ul', 'ol', 'li', 'a', 'span', 'form', 'input', 'button']);
 
 const safeHref = (v) => /^https:\/\//.test(v) || (/^\//.test(v) && !/^\/\//.test(v));
 

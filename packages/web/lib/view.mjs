@@ -9,6 +9,8 @@
 // says when the limit resets, in the visitor's local time.
 // WEB-09: each reasons list has an accessible name, the first from a visually hidden label and the second from "Also
 // noted"; titleOf names a view for document.title.
+// WEB-11: a PR page shows the verdict ladder under its badge, the four rungs from Tampered to a green Proven with this
+// PR's rung marked, and the line on where green comes from; home carries the line beside its examples.
 // A node is { tag, text?, attrs?, children? }.
 export const VERDICTS = {
   tampered: 'Tampered',
@@ -46,6 +48,10 @@ export const resetTime = (reset) => new Date(reset * 1000).toLocaleTimeString(un
 export const TAGLINE = 'Checks whether a pull request\'s tests prove its change: red without it, green with it.';
 export const FOOTER_LINKS = [['Why', '/why'], ['Privacy', '/privacy'], ['Terms', '/terms'], ['GitHub', 'https://github.com/mgillr/truedone']];
 export const MAX_REASONS = 10;
+// the rungs the diff and a red-green run can give, from Tampered up to Proven; Proven (new behaviour) shares Proven's
+// label and rung, and a verdict on no rung (No red-green evidence, Could not run, Waiting, Proven (weak)) marks none
+export const LADDER = ['tampered', 'review', 'unrun', 'proven'];
+const RUNG_OF = { proven_new: 'proven' };
 export const NEXT_RUNG_COMMAND = 'npx truedone <PR link> --run';
 export const RED_GREEN_WARNING = "Red-green on someone else's PR executes that PR's code on your machine; --docker runs it in a container.";
 
@@ -72,6 +78,24 @@ export function siteFooter(path = '/') {
 // a view's main between the header and the footer; page.mjs mounts every view through it, with the page's path
 export function shell(main, path = '/') {
   return el('div', undefined, { class: 'page' }, [siteHeader(), main, siteFooter(path)]);
+}
+
+// the line under the ladder, and beside home's examples: the site reads the diff, so green needs a run
+export function greenLine() {
+  return el('p', undefined, { class: 'green-line' }, [el('span', 'Green comes from running the tests: '), el('a', 'add the truedone step', { href: '/why#truedone-yes' })]);
+}
+
+// the four rungs in order, this PR's marked by aria-current and a visible "(this PR)", so not by colour alone; Proven
+// always in the green badge style
+export function ladder(verdict) {
+  const at = LADDER.includes(verdict) ? verdict : RUNG_OF[verdict] ?? null;
+  return el('div', undefined, { class: 'ladder-block' }, [
+    el('ol', undefined, { class: 'ladder', 'aria-label': 'The verdict ladder' }, LADDER.map((v) => el('li', undefined, v === at ? { 'aria-current': 'step' } : undefined, [
+      el('span', VERDICTS[v], { class: v === at || v === 'proven' ? badgeClass(v) : 'rung' }),
+      ...(v === at ? [el('span', ' (this PR)', { class: 'this-pr' })] : []),
+    ]))),
+    greenLine(),
+  ]);
 }
 
 // verdict: whether the page shows a verdict, the only kind of page whose reading of the diff can be claimed
@@ -117,6 +141,7 @@ export function prView(result, pr, { truncated = false, analysed = 0, expired = 
       el('a', `${name}${result.partial || truncated ? ' (partial)' : ''}`, { class: badgeClass(result.verdict), href: whyHref(result.verdict) }),
     ]),
   ];
+  if (result.verdict !== 'not_applicable') children.push(ladder(result.verdict));
   if (result.label) children.push(el('p', `Label the app would set: ${result.label}`, { class: 'label' }));
   if (truncated) children.push(el('p', `Analysed ${analysed} of the ${pr.changed_files} changed files.`, { class: 'partial' }));
   if (result.reasons?.length) children.push(...reasonLists(result.reasons, result.verdict));
@@ -170,6 +195,7 @@ export function homeView() {
       el('a', VERDICTS[verdict], { href, class: badgeClass(verdict) }),
       el('span', ` ${href.slice(1).replace(/\/pull\//, '#')}`, { class: 'example-target' }),
     ]))),
+    greenLine(),
     nextRung(null),
   ]);
 }
