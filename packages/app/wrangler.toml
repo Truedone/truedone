@@ -26,6 +26,9 @@ max_batch_timeout = 0
 max_retries = 3
 dead_letter_queue = "truedone-dev-dlq"
 
+[[analytics_engine_datasets]]
+binding = "METRICS"
+
 [triggers]
 crons = ["13 4 * * *"]
 
@@ -54,6 +57,9 @@ max_batch_size = 10
 max_batch_timeout = 0
 max_retries = 3
 dead_letter_queue = "truedone-dlq"
+
+[[env.production.analytics_engine_datasets]]
+binding = "METRICS"
 
 [env.production.triggers]
 crons = ["13 4 * * *"]

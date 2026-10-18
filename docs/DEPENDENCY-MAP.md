@@ -157,7 +157,7 @@ flowchart TD
     "app": {"paths": ["packages/app/**"], "update": [], "review": ["readme", "design"]},
     "action": {"paths": ["packages/action/**"], "update": [], "review": ["readme", "design"]},
     "corpus": {"planned": true, "paths": ["tools/corpus/**"], "update": [], "review": ["gates", "index"]},
-    "bench": {"planned": true, "paths": ["tools/bench/**", "docs/bench/**"], "update": [], "review": ["readme"]},
+    "bench": {"paths": ["tools/bench/**", "docs/bench/**"], "update": [], "review": ["readme"]},
     "github": {"paths": [".github/workflows/**", ".github/CODEOWNERS"], "update": [], "review": ["contract"]},
     "gates": {"paths": ["docs/gates/**"], "update": [], "review": ["readme", "releases"]},
     "index": {"planned": true, "paths": ["docs/index/**"], "update": [], "review": ["readme"]},

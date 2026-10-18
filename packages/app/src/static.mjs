@@ -74,6 +74,7 @@ export function makeStatic(env) {
     console.log(JSON.stringify({ stage: "static", delivery: delivery.delivery, phase1_ms: phase1, phase2_ms: (analyseDone ?? end) - t0, label_ms: (labelDone ?? end) - t0, check_ms: (checkDone ?? end) - t0, label_write_ms: labelWritten?.writeMs ?? 0, total_ms: end - gateStart }));
     // S8: timings and identifiers only, never diff content or PR text.
     env.LOG?.({ installation: payload.installation?.id, repository: repository.id, pr: pr.number, verdict: result.verdict, ms: Date.now() - t0 });
+    env.METRICS?.writeDataPoint({ blobs: [result.verdict, String(repository.id)], doubles: [Date.now() - t0], indexes: [String(pr.number)] });
     return { verdict: result.verdict };
   };
 }
