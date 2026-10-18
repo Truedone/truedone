@@ -13,6 +13,8 @@ All eight requirements are met before the app is offered at the end of week 4, a
 - **R7.** A load test at 1,000 installs' webhook volume before the app is offered, with the measured cost published.
 - **R8.** The index has a public corrections log and a contact, and a correction is published within one week.
 
+The label speed (PV-A03, D37) is held in two parts: the pull request opened to label at p50 at most 3 s from GitHub's own events, which are in whole seconds, and the App's own time to the label under 1.5 s at p50 from its phase line. GitHub's webhook delivery and its label write take about 2.4 s of the 3 s themselves, so the App is held to the share it controls, and R4's monitoring reports both.
+
 ## Flow
 
 ```mermaid
