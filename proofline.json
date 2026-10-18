@@ -348,6 +348,9 @@
       ],
       "WEB-10": [
         "WEB-10-AC07"
+      ],
+      "WEB-11": [
+        "WEB-11-AC05"
       ]
     }
   },
@@ -9319,6 +9322,107 @@
       ]
     },
     {
+      "id": "WEB-11",
+      "title": "[W2] The site shows the verdict ladder and where green comes from",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "WEB-10"
+      ],
+      "requirements": [
+        "PV-W02"
+      ],
+      "description": "Found by the owner on 2026-10-18 (issue #88): nothing on the site shows a clear green when all is good. Measured: packages/web/style.css defines the Proven badge (verdict-yes) in green and no page shows it; home lists one example per static verdict and none for Proven, because Proven comes only from a red-green run and no pull request has had one; a PR page shows its verdict with no ladder above it, so a visitor cannot see that a green state exists or how it is reached. The site keeps computing what it computes (D2). Changes: every PR page shows the verdict ladder under its badge, the four rungs the diff and the run can give in the spec's order (Tampered, Test changes: review, Tests changed: not run, Proven), the current verdict marked with aria-current and Proven in the green badge style, followed by one line, \"Green comes from running the tests: add the truedone step\", linking /why#truedone-yes; home carries the same line beside its examples; /why's Proven section carries the green badge at the top of its ladder. Not applicable pages show no ladder.",
+      "scope": {
+        "allow": [
+          "packages/web/lib/**",
+          "packages/web/why.html",
+          "packages/web/style.css",
+          "packages/web/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "WEB-11-AC01",
+          "mandatory": true,
+          "statement": "a PR page shows the four-rung ladder in order with the current verdict marked and Proven in the green style, plus the green line; home carries the line; a Not applicable page shows no ladder",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/ladder.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-11-AC02",
+          "mandatory": true,
+          "statement": "why.html's Proven section carries the green badge",
+          "verifier": {
+            "type": "command",
+            "cmd": "grep -q \"verdict-yes\" packages/web/why.html",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "WEB-11-AC03",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 97,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "WEB-11-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-11-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-11-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "WEB-11-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
       "id": "CLI-02",
       "title": "[W1] npx truedone init",
       "phase": "implement",
@@ -10364,13 +10468,15 @@
       "requirements": [
         "PV-R01"
       ],
-      "description": "Replace the contact placeholder in SECURITY.md with the real address, read docs/privacy.md and docs/terms.md, add \"Approved by Ryan Gillespie on <date>\" to both, and commit signed.",
+      "description": "Replace the contact placeholder in SECURITY.md with the real address, read docs/privacy.md and docs/terms.md, add \"Approved by Ryan Gillespie on <date>\" to both, and commit signed. From v3a the approval commit also rebuilds packages/web/privacy.html and packages/web/terms.html with node tools/build-legal.mjs (WEB-10 generates them from the two documents, and the web suite requires byte equality).",
       "scope": {
         "allow": [
           "SECURITY.md",
           "docs/privacy.md",
           "docs/terms.md",
-          "docs/DEPENDENCY-MAP.md"
+          "docs/DEPENDENCY-MAP.md",
+          "packages/web/privacy.html",
+          "packages/web/terms.html"
         ]
       },
       "criteria": [
