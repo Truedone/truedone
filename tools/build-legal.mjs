@@ -1,7 +1,8 @@
 // node tools/build-legal.mjs (WEB-10): renders docs/privacy.md and docs/terms.md, the documents OPS-05 approves and the
 // only source, into packages/web/privacy.html and packages/web/terms.html, so the footer's Privacy and Terms stay on
 // the site. Each page has why.html's static shell, with the header and footer from packages/web/lib/view.mjs, the title
-// "<heading> - truedone", and no script, style element or inline style (the CSP is unchanged).
+// "<heading> - truedone", the logo as its icon (WEB-13), and no script, style element or inline style (the CSP is
+// unchanged).
 // The markdown it knows is what the two documents use: # and ## headings, paragraphs whose lines wrap, "- " lists
 // with indented continuation lines, and inline **bold**, `code` and [text](href). Anything else is an error naming its
 // line. Links to privacy.md and terms.md become /privacy and /terms, another relative path becomes the file on
@@ -96,6 +97,7 @@ export function page(markdown, file, sitePath) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escape(h1)}${SITE_TITLE}</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
