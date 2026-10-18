@@ -100,7 +100,7 @@ When the first release ships, this quick start becomes `npx truedone` on your ow
 <!-- status: written by node tools/readme-status.mjs from the contract and main; do not edit -->
 truedone is pre-release: the npm package, the action, the plugin and the app have no published release, and the release decisions stay open until a record in docs/releases says "Decision: GO".
 
-At main 689f901bdd2f (2026-10-18), 54 of the 87 tasks in the signed contract, [proofline.json](proofline.json), are on main:
+At main 2cf897613f5b (2026-10-18), 54 of the 87 tasks in the signed contract, [proofline.json](proofline.json), are on main:
 
 - truedone.pages.dev: 7 of 8 (WEB-01, WEB-02, WEB-04, WEB-05, WEB-06, WEB-07, WEB-08).
 - `npx truedone`: 1 of 3 (CLI-02).
