@@ -22,7 +22,7 @@ const DEAD_LETTER_QUEUES = new Set(["truedone-dev-dlq", "truedone-dlq"]);
 export function makeApp(env) {
   const health = makeHealth({ version: env.VERSION ?? "unversioned", flags: env.FLAGS });
   // APP-17: a pull_request delivery is analysed in the intake, with the queue as its retry path
-  const intake = makeIntake(env, { run: (body) => runStatic(coreFor(env), body) });
+  const intake = makeIntake(env, { run: (body, opts) => runStatic(coreFor(env), body, opts) });
   return async function app(request, ctx) {
     const url = new URL(request.url);
     if (url.pathname === "/health") return health(request);
@@ -109,8 +109,9 @@ export async function dropToken(env, installationId) {
 }
 
 // The static stage for one pull_request delivery, with the kept token; the intake runs it directly (APP-17), with the
-// delivery's pull request in memory, so the direct run makes no extra GitHub call (APP-25).
-async function runStatic(env, body) {
+// delivery's pull request in memory, so the direct run makes no extra GitHub call (APP-25), and with its dedupe verdict as
+// the gate its writes wait for (APP-26).
+async function runStatic(env, body, { gate } = {}) {
   const installationId = body.payload?.installation?.id;
   // APP-18: the mint starts beside the stage's config read, not before it; the
   // token is awaited at the first GitHub call. The mint is the App's own
@@ -118,7 +119,7 @@ async function runStatic(env, body) {
   // repository read and every write (APP-15).
   const tokenP = installationToken(env, installationId);
   try {
-    await makeStatic({ ...env, INSTALLATION_TOKEN: tokenP })(body, { pr: body.payload?.pull_request });
+    await makeStatic({ ...env, INSTALLATION_TOKEN: tokenP })(body, { pr: body.payload?.pull_request, gate });
   } catch (error) {
     if (error?.status === 401) await dropToken(env, installationId);
     throw error;

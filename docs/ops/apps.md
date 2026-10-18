@@ -48,6 +48,15 @@ the delivery id, the event and the attempts) and acknowledges it, so nothing wai
 2026-10-18 at 20:58Z `truedone-dev-dlq` held 386 messages in the full shape (6,633,339 bytes) and `truedone-dlq` held 1. The
 first deploy with these consumers acknowledges them.
 
+The dedupe runs beside the stage (APP-26). A kept delivery waited 296 ms at p50 (n=30) for the KV read of `delivery:<id>` and
+then its write before its stage started, inside the opened-to-label time GitHub measures (PV-A03). For a pull_request delivery
+run in the intake, the stage now starts at once, and the read and, for a new delivery, the write run beside its switch and read
+phases. The check run and the label, and any hand-over to the queue, wait for that verdict, so a duplicate writes nothing, and
+the answer to GitHub waits for it too: `{analysing}`, `duplicate`, or a 500 when KV fails, as before. A queued delivery is still
+deduped before its send. The read and the write are not one atomic step and KV reaches other locations up to a minute after a
+write, so two copies of one delivery id within about a minute can both pass; that was so before APP-26, and closing it needs a
+strongly consistent record, such as a D1 insert on the id.
+
 The development app belongs to the Truedone organisation since 2026-10-18 (D36), with the repositories; its installation on
 the old account ended with the transfer.
 
