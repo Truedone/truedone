@@ -56,6 +56,9 @@ export async function markRemoved(env, installationId) {
   await env.KV.put(`removed:${installationId}`, "1");
 }
 
+// APP-17's cache of the installation token, kept in KV under its own prefix, outside <id>: (index.mjs).
+export const tokenKey = (installationId) => `token:${installationId}`;
+
 // Workers KV pages its list: { keys, list_complete, cursor }. listKeys walks
 // every page, following the cursor (APP-09), so nothing past a page boundary
 // is missed. Keys arrive as objects { name }.
@@ -70,12 +73,14 @@ export async function listKeys(kv, opts) {
   return out;
 }
 
-// installation.deleted: delete the installation's KV keys and its switch row at once (R6, PV-R06).
-// The daily sweep (a Worker cron) removes anything left; both share listDelete.
+// installation.deleted: delete the installation's KV keys, its kept token and its switch row at once (R6, PV-R06;
+// the intake calls it, APP-24). The daily sweep (a Worker cron) runs the same deletion for anything left. It returns the
+// number of <id>: keys deleted.
 export async function deleteInstallationData(env, installationId) {
   const prefix = `${installationId}:`;
   const names = await listKeys(env.KV, { prefix });
   for (const name of names) await env.KV.delete(name);
+  await env.KV.delete(tokenKey(installationId));
   // the installation's switch row (APP-19)
   await env.FLAGS.prepare("DELETE FROM flags WHERE key = ?").bind(`${SWITCH}:${installationId}`).run();
   return names.length;

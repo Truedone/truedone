@@ -4,6 +4,8 @@
 // delivery for every pull request and each CI run sends requested and in_progress. The drops now come before the
 // dedupe. Here the Worker's own default export takes signed deliveries with a KV that records every call:
 // - each dropped delivery, sent once or twice, is answered 200 and dropped with no KV call, nothing queued and no fetch;
+// - installation.deleted is answered and dropped the same way, and each copy marks the installation removed and deletes
+//   its data (APP-24) with no dedupe read or write;
 // - a kept delivery is still deduped: opened, or workflow_run completed, sent twice with one id, is queued once, and the
 //   second copy reads "duplicate";
 // - an unsigned delivery is refused with no KV call;
@@ -11,6 +13,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import worker from "../src/index.mjs";
+import { flagsDB } from "./lib/github.mjs";
 
 const SECRET = "test-secret";
 
@@ -56,7 +59,7 @@ const DROPPED = [
   ["pull_request", "labeled", "pull_request.labeled"], ["pull_request", "unlabeled", "pull_request.unlabeled"],
   ["pull_request", "closed", "pull_request.closed"], ["pull_request", "edited", "pull_request.edited"],
   ["workflow_run", "requested", "workflow_run.requested"], ["workflow_run", "in_progress", "workflow_run.in_progress"],
-  ["installation", "deleted", "installation_deleted"], ["installation_repositories", "removed", "installation_repositories_removed"],
+  ["installation_repositories", "removed", "installation_repositories_removed"],
 ];
 for (const [event, action, dropped] of DROPPED) {
   test(`${event}.${action}, sent twice: dropped both times with no KV call, nothing queued, no fetch`, async (t) => {
@@ -72,6 +75,23 @@ for (const [event, action, dropped] of DROPPED) {
     assert.deepEqual(fetches, []);
   });
 }
+
+test("installation.deleted, sent twice: dropped both times, marked removed and deleted each time, with no dedupe record, nothing queued and no fetch", async (t) => {
+  const fetches = noFetch(t);
+  const { env, sent } = environment();
+  env.FLAGS = flagsDB({ posting_enabled: "on", "posting_enabled:3": "off" });
+  for (const copy of [1, 2]) {
+    const r = await deliver(env, payload("deleted"), "installation", "d-installation-deleted");
+    assert.equal(r.status, 200, `copy ${copy}`);
+    assert.deepEqual(JSON.parse(r.text), { dropped: "installation_deleted" }, `copy ${copy}`);
+  }
+  // with no ctx the delete runs inline: the marker, the list of 3: keys (none here) and the kept token, each time
+  const once = [["put", "removed:3"], ["list"], ["delete", "token:3"]];
+  assert.deepEqual(env.KV.calls, [...once, ...once], "no dedupe get or put");
+  assert.deepEqual([...env.FLAGS.store.keys()], ["posting_enabled"], "the installation's switch row is deleted");
+  assert.deepEqual(sent, []);
+  assert.deepEqual(fetches, []);
+});
 
 for (const [event, action] of [["pull_request", "opened"], ["workflow_run", "completed"]]) {
   test(`${event}.${action}, sent twice with one id: queued once, the second copy a duplicate`, async (t) => {

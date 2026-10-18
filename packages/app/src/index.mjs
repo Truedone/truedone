@@ -9,7 +9,7 @@ import { makeHealth } from "./health.mjs";
 import { makeIntake, REFUSED_RETRY_DELAY_S } from "./webhook.mjs";
 import { makeStatic, makeAnalyser } from "./static.mjs";
 import { makeRedGreen } from "./redgreen.mjs";
-import { listKeys, sweepLeftovers } from "./posting.mjs";
+import { listKeys, sweepLeftovers, tokenKey } from "./posting.mjs";
 import { makeGitHub } from "./github.mjs";
 import { unzip } from "./unzip.mjs";
 import { analyse as coreAnalyse, judge as coreJudge } from "../../core/core.mjs";
@@ -86,7 +86,6 @@ export async function mintInstallationToken(env, installationId) {
 // Not exported: the Workers runtime takes every named export of the main module for an entry point, and refuses to start
 // on one that is not a function or a handler (wrangler 3.90's workerd: "Incorrect type for map entry 'TOKEN_MARGIN_S'").
 const TOKEN_MARGIN_S = 300;
-const tokenKey = (installationId) => `token:${installationId}`;
 
 export async function installationToken(env, installationId, mint = mintInstallation) {
   const kept = env.KV ? await env.KV.get(tokenKey(installationId)) : null;
@@ -161,12 +160,22 @@ export function makeConsumers(deps = {}) {
         }
       }
     },
+    // Each removed installation is swept on its own (APP-24): a failure logs one line and keeps that marker for the next
+    // day's sweep, the rest are still swept, and the run then throws so the cron shows the failure.
     async scheduled(controller, env) {
       const names = await listKeys(env.KV, { prefix: REMOVED_PREFIX });
+      const failed = [];
       for (const name of names) {
         const id = Number(String(name).slice(REMOVED_PREFIX.length));
-        if (Number.isFinite(id) && id > 0) await sweep(env, id);
+        if (!(Number.isFinite(id) && id > 0)) continue;
+        try {
+          await sweep(env, id);
+        } catch (error) {
+          console.error(JSON.stringify({ stage: "sweep", installation: id, error: `${error?.name ?? "Error"}: ${error?.message ?? error}` }));
+          failed.push(id);
+        }
       }
+      if (failed.length > 0) throw new Error(`the sweep failed for ${failed.length} of ${names.length} removed installations`);
     },
   };
 }

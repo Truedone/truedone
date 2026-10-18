@@ -29,6 +29,14 @@ never posts. A row `posting_enabled:<installation id>` that reads `off` stops th
 it. If the database cannot be read, nothing posts (the delivery waits in the queue and is retried) and `/health` answers 503.
 The switch tool writes the row with `wrangler d1 execute <database> --remote`.
 
+An uninstall deletes the installation's stored data within 24 hours (R6; APP-24, #122). On `installation.deleted` the intake
+writes the KV marker `removed:<installation id>` before it answers, then deletes the installation's `<id>:` keys, its kept token
+`token:<id>` and its row `posting_enabled:<id>`, after the answer. The daily cron (`13 4 * * *`) runs the same deletion for every
+marker, so it catches a delete that failed or was cut off and anything a delivery in flight wrote afterwards, and it deletes the
+marker last. An installation whose sweep fails keeps its marker for the next day, the others are still swept, and the cron run
+fails with one log line per failed installation (`"stage": "sweep"`). Labels, check runs and comments already written stay,
+since they belong to the repository.
+
 The development app belongs to the Truedone organisation since 2026-10-18 (D36), with the repositories; its installation on
 the old account ended with the transfer.
 
