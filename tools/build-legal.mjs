@@ -120,7 +120,8 @@ export function build(root = ROOT) {
   for (const [doc, out, sitePath] of LEGAL) fs.writeFileSync(path.join(root, out), page(fs.readFileSync(path.join(root, doc), 'utf8'), doc, sitePath));
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// real paths on both sides: Node resolves symlinks for import.meta.url but keeps argv[1] as typed (GUARD-01, #115)
+if (process.argv[1] && fs.realpathSync(path.resolve(process.argv[1])) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   try {
     build();
   } catch (e) {

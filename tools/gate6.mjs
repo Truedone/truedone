@@ -128,6 +128,7 @@ export async function main(argv, { root, fetch = globalThis.fetch, now = new Dat
   return 0;
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// real paths on both sides: Node resolves symlinks for import.meta.url but keeps argv[1] as typed (GUARD-01, #115)
+if (process.argv[1] && fs.realpathSync(path.resolve(process.argv[1])) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   process.exitCode = await main(process.argv.slice(2), { root: fileURLToPath(new URL('..', import.meta.url)) });
 }

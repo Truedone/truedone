@@ -24,7 +24,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import http from 'node:http';
 import os from 'node:os';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 
 const DEFAULT_CANDIDATES = [
   { kind: 'env', name: 'CHROMIUM_BIN' },
@@ -79,13 +79,15 @@ export function resolveBrowser({ candidates = DEFAULT_CANDIDATES, env = process.
   throw new Error(`no Chromium or Chrome found. Looked at: ${looked.join(', ')}`);
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+// real paths on both sides: Node resolves symlinks for import.meta.url but keeps argv[1] as typed (GUARD-01, #115)
+if (process.argv[1] && fs.realpathSync(path.resolve(process.argv[1])) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   if (process.argv.includes('--page')) process.exit(await checkPage());
   await runMain();
 }
 
 async function runMain() {
-  const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+  // fileURLToPath, not the URL's pathname, which keeps a space or other character percent-encoded (GUARD-01)
+  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const coreFile = path.join(root, 'packages/web/core.mjs');
   if (!existsSync(coreFile)) {
     console.error('packages/web/core.mjs is missing');
