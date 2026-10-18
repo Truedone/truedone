@@ -7,6 +7,7 @@
 //   init [--global]                add the agent snippet (src/init.mjs); --global to the developer's own agent files (D38)
 //   --pr-line                      print one line for a pull request description, with the verdict's page link (D38)
 //   report <PR link|owner/repo#n>  print the filled wrong-verdict form link; nothing is sent (src/report.mjs, D39)
+//   mcp                            serve the check over the Model Context Protocol on stdio (src/mcp.mjs, MCP-01)
 //   --run [--docker] [--yes]        add red-green (src/run.mjs, CLI-03); on someone else's PR only after a typed yes or --yes
 //   --help, -h                     print the usage and exit 0, whatever else is given
 // deps: { analyse, classify, fetch, cwd, env, stdout, stderr, git? }, and for --run { judge, detect, redGreen,
@@ -18,14 +19,15 @@ import { loadPR, fetchReleases, RateLimited, GitHubError } from './github.mjs';
 import { localInput, makeGit, NoRepository } from './local.mjs';
 import { emit, VERDICTS } from './output.mjs';
 import { reportLink } from './report.mjs';
+import { serveMcp } from './mcp.mjs';
 import { runMode } from './run.mjs';
 
-const USAGE = 'usage: npx truedone [<PR link> | <owner/repo#n>] [--run [--docker] [--yes]] [--json | --pr-line] [--fail-on <verdict>[,<verdict>...]]\n       npx truedone init [--global]\n       npx truedone report <PR link | owner/repo#n>';
+const USAGE = 'usage: npx truedone [<PR link> | <owner/repo#n>] [--run [--docker] [--yes]] [--json | --pr-line] [--fail-on <verdict>[,<verdict>...]]\n       npx truedone init [--global]\n       npx truedone report <PR link | owner/repo#n>\n       npx truedone mcp';
 class UsageError extends Error {}
 
 function parse(argv) {
   if (argv.includes('--help') || argv.includes('-h')) return { help: true };
-  const o = { json: false, failOn: null, init: false, target: null, run: false, docker: false, yes: false, prLine: false, global: false, report: false };
+  const o = { json: false, failOn: null, init: false, target: null, run: false, docker: false, yes: false, prLine: false, global: false, report: false, mcp: false };
   const rest = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -52,6 +54,9 @@ function parse(argv) {
   if (rest[0] === 'init') {
     if (rest.length > 1 || o.json || o.failOn || o.run || o.prLine) throw new UsageError('init takes only --global');
     o.init = true;
+  } else if (rest[0] === 'mcp') {
+    if (rest.length > 1 || o.json || o.failOn || o.run || o.prLine) throw new UsageError('mcp takes no other arguments');
+    o.mcp = true;
   } else if (rest[0] === 'report') {
     if (rest.length !== 2 || o.json || o.failOn || o.run || o.prLine) throw new UsageError('report takes one PR link or owner/repo#n and nothing else');
     o.report = true;
@@ -88,6 +93,7 @@ export async function main(argv, deps) {
       } else init(cwd, { log });
       return 0;
     }
+    if (o.mcp) return await serveMcp({ stdin: deps.stdin ?? process.stdin, stdout, cwd, check: ({ target, dir }) => staticVerdict({ target, dir }, deps) });
     if (o.run) return await runMode(o, deps);
     const v = await staticVerdict({ target: o.target, dir: cwd }, deps);
     if (o.report) {
