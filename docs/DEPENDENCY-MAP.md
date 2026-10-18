@@ -87,6 +87,7 @@ flowchart TD
   releases -.->|review| readme
   spikes -.->|review| spec
   policy -.->|review| readme
+  policy -.->|review| web
   design -.->|review| readme
   reviews -.->|review| readme
 ```
@@ -124,7 +125,7 @@ flowchart TD
 | `ops` | the owner ops records | `docs/ops/**` |   |   | live |
 | `releases` | release decisions | `docs/releases/**` |   | `readme` | planned |
 | `spikes` | spike records | `docs/spikes/**`, `docs/plugin-hooks.md` |   | `spec` | live |
-| `policy` | security, privacy, terms | `SECURITY.md`, `docs/privacy.md`, `docs/terms.md` |   | `readme` | live |
+| `policy` | security, privacy, terms | `SECURITY.md`, `docs/privacy.md`, `docs/terms.md` |   | `readme`, `web` | live |
 | `design` | section documents and the master schematic | `docs/design/**` |   | `readme` | live |
 | `reviews` | review records | `docs/reviews/**` |   | `readme` | planned |
 
@@ -162,7 +163,7 @@ flowchart TD
     "ops": {"paths": ["docs/ops/**"], "update": [], "review": []},
     "releases": {"planned": true, "paths": ["docs/releases/**"], "update": [], "review": ["readme"]},
     "spikes": {"paths": ["docs/spikes/**", "docs/plugin-hooks.md"], "update": [], "review": ["spec"]},
-    "policy": {"paths": ["SECURITY.md", "docs/privacy.md", "docs/terms.md"], "update": [], "review": ["readme"]},
+    "policy": {"paths": ["SECURITY.md", "docs/privacy.md", "docs/terms.md"], "update": [], "review": ["readme", "web"]},
     "design": {"paths": ["docs/design/**"], "update": [], "review": ["readme"]},
     "reviews": {"planned": true, "paths": ["docs/reviews/**"], "update": [], "review": ["readme"]}
   }
