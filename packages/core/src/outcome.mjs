@@ -1,6 +1,8 @@
 // The one red-green table. judge() and the runner both call outcome().
 // A timeout token is neither a pass nor a fail, so it falls through to the last row
 // unless an earlier row already matched on the pass and fail tokens.
+// Before the table: a test without two base runs and three head runs, because a run gave
+// no result for it, is Could not run: incomplete runs, never No red-green evidence (RUN-06).
 
 export function baseToken(run) {
   if (run.status === 'timeout') return 'timeout';
@@ -28,6 +30,9 @@ export function outcome(row) {
   const bothMissing = base.length === 2 && base.every((token) => token === 'fail:missing');
   const conditionHolds = condition === 'lines' || condition === 'imports';
 
+  if (base.length < 2 || head.length < 3) {
+    return { result: 'Could not run: incomplete runs', reason: 'incomplete runs', detail: 'incomplete runs' };
+  }
   if (bothAssertion && allHeadPass && conditionHolds) {
     return { result: 'Proven', reason: null, detail: null };
   }

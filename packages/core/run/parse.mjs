@@ -1,5 +1,11 @@
 // Turn one runner report into per-test results. Failure kinds follow docs/spec.md "Red-green outcomes":
 // assertion, a missing symbol the diff adds, or any other error (never red).
+// Each row is keyed by the test file's path from the repository root and the test's name (RUN-06), when the run says
+// where it ran: at = { roots, cwd, files }, the root (and its real path), the run's directory relative to it, and the
+// test files the run was given, relative to cwd. vitest, jest and mocha report absolute paths. node --test's junit
+// report names no file, so the runner gives it one file a run; pytest's junit classname is the file's dotted path
+// (tests.test_a, or tests.test_a.TestK for a class), which names one of the files given.
+import path from 'node:path';
 
 function escapeReg(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -49,6 +55,40 @@ export function classifyFailure(text, symbols) {
   return { failure: 'error', errorType: missingType ? missingType[0] : (other ? other[0] : 'Error') };
 }
 
+// a reported path, absolute or relative to cwd, as the path from the root
+export function fromRoot(file, at) {
+  if (!at || !file) return file || '';
+  if (path.isAbsolute(file)) {
+    for (const root of at.roots || []) {
+      const rel = path.relative(root, file);
+      if (rel && !rel.startsWith('..') && !path.isAbsolute(rel)) return rel.split(path.sep).join('/');
+    }
+    return file;
+  }
+  return path.posix.join(at.cwd || '.', file);
+}
+
+// pytest: the file given whose dotted path the classname starts with, or ends with when pytest's rootdir is above cwd
+function byClassname(classname, files) {
+  let best = null;
+  for (const file of files || []) {
+    if (!/\.py$/.test(file)) continue;
+    const dotted = file.replace(/\.py$/, '').split('/').join('.');
+    const c = String(classname || '');
+    const hit = c === dotted || c.startsWith(`${dotted}.`) || c.endsWith(`.${dotted}`) || c.includes(`.${dotted}.`);
+    if (hit && (!best || dotted.length > best.dotted.length)) best = { file, dotted };
+  }
+  return best ? best.file : null;
+}
+
+function junitFile(meta, at) {
+  if (at?.files?.length === 1) return fromRoot(at.files[0], at);
+  if (meta.file) return fromRoot(meta.file, at);
+  const given = byClassname(meta.classname, at?.files);
+  if (given) return fromRoot(given, at);
+  return meta.classname || '';
+}
+
 function row(file, name, status, failure, duration, errorType) {
   return {
     file: file || '',
@@ -69,11 +109,11 @@ function fromMessages(file, name, status, messages, duration, symbols) {
   return row(file, name, 'fail', kind.failure, duration, kind.errorType);
 }
 
-function parseJestLike(text, symbols) {
+function parseJestLike(text, symbols, at) {
   const data = JSON.parse(text);
   const out = [];
   for (const suite of data.testResults || []) {
-    const file = suite.name || '';
+    const file = fromRoot(suite.name || '', at);
     for (const test of suite.assertionResults || []) {
       out.push(fromMessages(
         file,
@@ -88,7 +128,7 @@ function parseJestLike(text, symbols) {
   return out;
 }
 
-function parseMocha(text, symbols) {
+function parseMocha(text, symbols, at) {
   const data = JSON.parse(text);
   const failed = new Set((data.failures || []).map((test) => `${test.file}\0${test.fullTitle || test.title}`));
   const out = [];
@@ -96,12 +136,13 @@ function parseMocha(text, symbols) {
     const key = `${test.file}\0${test.fullTitle || test.title}`;
     const err = test.err || {};
     const broken = failed.has(key) || Boolean(err.message || err.name || err.stack);
+    const file = fromRoot(test.file, at);
     if (!broken) {
-      out.push(row(test.file, test.fullTitle || test.title, 'pass', null, test.duration, null));
+      out.push(row(file, test.fullTitle || test.title, 'pass', null, test.duration, null));
       continue;
     }
     const kind = classifyFailure([err.name, err.message, err.stack].filter(Boolean).join('\n'), symbols);
-    out.push(row(test.file, test.fullTitle || test.title, 'fail', kind.failure, test.duration, kind.errorType));
+    out.push(row(file, test.fullTitle || test.title, 'fail', kind.failure, test.duration, kind.errorType));
   }
   return out;
 }
@@ -121,13 +162,13 @@ function attrs(text) {
   return out;
 }
 
-function parseJunit(text, symbols) {
+function parseJunit(text, symbols, at) {
   const out = [];
   const re = /<testcase\b([^>]*?)\/>|<testcase\b([^>]*)>([\s\S]*?)<\/testcase>/g;
   for (const match of String(text).matchAll(re)) {
     const meta = attrs(match[1] || match[2]);
     const body = match[3] || '';
-    const file = meta.file || meta.classname || '';
+    const file = at ? junitFile(meta, at) : (meta.file || meta.classname || '');
     const name = meta.name || '';
     const duration = meta.time == null ? 0 : Number(meta.time) * 1000;
     const problem = body.match(/<(failure|error)\b([^>]*)>([\s\S]*?)<\/\1>|<skipped\b([^>]*)\/?>/);
@@ -146,9 +187,9 @@ function parseJunit(text, symbols) {
   return out;
 }
 
-export function parseReport(text, reporter, symbols) {
-  if (reporter === 'jest-json' || reporter === 'vitest-json') return parseJestLike(text, symbols);
-  if (reporter === 'mocha-json') return parseMocha(text, symbols);
-  if (reporter === 'junit') return parseJunit(text, symbols);
+export function parseReport(text, reporter, symbols, at) {
+  if (reporter === 'jest-json' || reporter === 'vitest-json') return parseJestLike(text, symbols, at);
+  if (reporter === 'mocha-json') return parseMocha(text, symbols, at);
+  if (reporter === 'junit') return parseJunit(text, symbols, at);
   throw new Error(`unknown reporter ${reporter}`);
 }
