@@ -421,6 +421,9 @@
       "ORG-01": [
         "ORG-01-AC04",
         "ORG-01-AC10"
+      ],
+      "GUARD-01": [
+        "GUARD-01-AC05"
       ]
     }
   },
@@ -5770,6 +5773,108 @@
         "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "GUARD-01",
+      "title": "[W2] Every tool runs when it is started through a symlinked or percent-encoded path",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "ORG-01"
+      ],
+      "requirements": [
+        "PV-B01"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Truedone/truedone#115. Six tools (tools/ci-gate.mjs, tools/build-legal.mjs, tools/gate6.mjs, tools/readme-status.mjs, tools/check-browser.mjs, tools/mirror-action.mjs) run their main code only when process.argv[1] equals the module's own path; Node resolves symlinks for import.meta.url and keeps argv[1] as typed, so started through a symlinked path each does nothing and exits 0. Measured on the CI gate from main b51f6e80 on 2026-10-18: node /tmp/<dir>/ci-gate.mjs exits 0 with no output on macOS, where /tmp is a symlink, and through /private/tmp it reports the unknown task. ci-gate.mjs also strips \"file://\" by string replace, so a percent-encoded path misses as well. Each tool compares real paths on both sides (fs.realpathSync of path.resolve(argv[1]) and of fileURLToPath(import.meta.url)); tools/check-browser.mjs takes its repository root from fileURLToPath, not the URL pathname. One test starts each tool through a symlinked directory and requires it to run, each stopping before any git, network or write outside its scratch copy (mirror-action with --tree and no MIRROR_TOKEN), and requires an import of each to run nothing.",
+      "scope": {
+        "allow": [
+          "tools/ci-gate.mjs",
+          "tools/build-legal.mjs",
+          "tools/gate6.mjs",
+          "tools/readme-status.mjs",
+          "tools/check-browser.mjs",
+          "tools/mirror-action.mjs",
+          "tools/test/entry-guard.test.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "GUARD-01-AC01",
+          "mandatory": true,
+          "statement": "each of the six tools runs when started through a symlinked directory, and an import of each runs nothing",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/entry-guard.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "GUARD-01-AC02",
+          "mandatory": true,
+          "statement": "the CI gate started through a symlinked checkout refuses a pull request title with no task id, where it exited 0 with no output",
+          "verifier": {
+            "type": "command",
+            "cmd": "L=\"$(mktemp -d)/link\" && ln -s \"$PWD\" \"$L\" && O=\"$(mktemp)\" && ! (cd \"$L\" && PR_TITLE= node \"$L/tools/ci-gate.mjs\" > \"$O\" 2>&1) && grep -q \"no task id\" \"$O\"",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "GUARD-01-AC03",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "GUARD-01-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "GUARD-01-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "GUARD-01-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "GUARD-01-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
       ]
     },
     {
