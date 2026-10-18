@@ -1,0 +1,50 @@
+# Deploys only from main (D26): the site, the token exchange, the development app and
+# the production app. No lane holds a Cloudflare token; both tokens live in the
+# environments below (S5). Production waits for Ryan's approval.
+name: deploy
+on:
+  push:
+    branches: [main]
+permissions: {}
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Publish truedone.pages.dev
+        run: npx wrangler@3.90.0 pages deploy packages/web --project-name=truedone --branch=main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - name: Deploy the token exchange
+        run: npx wrangler@3.90.0 deploy packages/web/exchange/wrangler.toml
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  app-dev:
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Deploy the development app
+        run: npx wrangler@3.90.0 deploy packages/app/wrangler.toml
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  app-prod:
+    needs: [web, app-dev]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Deploy the production app
+        run: npx wrangler@3.90.0 deploy packages/app/wrangler.toml --name truedone
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - name: Health answers the version and the posting switch
+        run: |
+          v=$(node -p "require('./package.json').version")
+          body=$(curl -fsS https://truedone.ledgerguard-global.workers.dev/health)
+          echo "$body" | grep -q "\"version\":\"$v\""
+          echo "$body" | grep -q '"posting_enabled"'

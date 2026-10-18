@@ -1,0 +1,5 @@
+# The development app (DEP-01): deployed from main by .github/workflows/deploy.yml,
+# in the dev environment. The production deploy uses the same file with --name truedone.
+name = "truedone-dev"
+main = "src/index.mjs"
+compatibility_date = "2026-10-01"
