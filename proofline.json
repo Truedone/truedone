@@ -363,6 +363,12 @@
       ],
       "README-03": [
         "README-03-AC07"
+      ],
+      "APP-11": [
+        "APP-11-AC05"
+      ],
+      "APP-12": [
+        "APP-12-AC05"
       ]
     }
   },
@@ -6388,6 +6394,214 @@
       ]
     },
     {
+      "id": "APP-11",
+      "title": "[W2] The Worker gives the static stage the core engine, proven by its own entry with only the platform faked",
+      "phase": "implement",
+      "owner": "lane-d",
+      "depends_on": [
+        "APP-10"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "description": "Measured live on 2026-10-18 10:04Z (wrangler tail truedone-dev, main c58723b1): every pull_request delivery fails with {\"stage\":\"static\",\"error\":\"TypeError: Cannot read properties of undefined (reading 'analyse')\"}. packages/app/src/static.mjs:94 calls env.core.analyse and its header says core \"is wired in when lane-a's branch lands\"; production never sets env.core, and every app test passes its own env. Fix: the Worker's entry imports the core engine (packages/core/core.mjs, pure and dependency-free) and hands it to the static stage. The test imports the default export of packages/app/src/index.mjs and calls its queue handler with a recorded pull_request delivery, faking only fetch (GitHub's API with a recorded PR, its files and contents, and the installation token answer), KV and the queue message, with no injected stage or dependency, and asserts one check run POST and one truedone label write for the PR, with the verdict core gives for the recorded diff.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "packages/app/wrangler.toml",
+          "packages/app/README.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-11-AC01",
+          "mandatory": true,
+          "statement": "the Worker's own default export, with only fetch, KV and the message faked, posts one check run and one truedone label for a recorded pull_request delivery",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/entry-static.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-11-AC02",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-11-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-11-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-11-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-11-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-11-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "APP-12",
+      "title": "[W2] The Worker wires the red-green stage's dependencies, proven by its own entry with only the platform faked",
+      "phase": "implement",
+      "owner": "lane-d",
+      "depends_on": [
+        "APP-11"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "description": "The red-green stage (packages/app/src/redgreen.mjs) reads env.core, env.UNZIP, env.defaultStepSha, env.postCheck, env.postLabel, env.publishedShas, env.staticResult and env.staticVerdict, and production sets none of them (measured on main c58723b1), so every workflow_run delivery would fail as the static stage did. Fix: the Worker's entry builds each from real code: the core engine; postCheck, postLabel and publishedShas from the same GitHub calls the static stage uses, shared rather than copied; staticResult and staticVerdict by running the static analysis for the head commit; defaultStepSha from the default branch's workflow; UNZIP with Web APIs only (DecompressionStream over the zip's deflate entries). The test imports the default export and calls its queue handler with a recorded workflow_run delivery and a recorded truedone.report/1 artifact, faking only fetch, KV and the message, and asserts the judged check run update and the label for the PR.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "packages/app/wrangler.toml",
+          "packages/app/README.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-12-AC01",
+          "mandatory": true,
+          "statement": "the Worker's own default export, with only fetch, KV and the message faked, updates the check run and the label from a recorded workflow_run delivery and its report artifact",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/entry-redgreen.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-12-AC02",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-12-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-12-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-12-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-12-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-12-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
       "id": "APP-03",
       "title": "[W3] Static stage: check run, one label, summary, config, logs",
       "phase": "implement",
@@ -7085,7 +7299,8 @@
         "DEP-01",
         "OPS-02",
         "APP-09",
-        "APP-10"
+        "APP-10",
+        "APP-11"
       ],
       "requirements": [
         "PV-A03",
@@ -7660,7 +7875,8 @@
         "ACT-02",
         "RUN-04",
         "APP-04",
-        "APP-06"
+        "APP-06",
+        "APP-12"
       ],
       "requirements": [
         "PV-X02",
