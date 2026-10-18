@@ -1,4 +1,4 @@
-import { staticVerdict } from './checks.mjs';
+import { staticFindings } from './checks.mjs';
 import { isListedBot } from './bots.mjs';
 import { isAgent } from './agents.mjs';
 import { FILES, LINES, FETCHED } from './limits.mjs';
@@ -20,9 +20,14 @@ const LABELS = {
 const NEXT = {
   tampered: 'Restore an equivalent test, or pin the step to a published release.',
   review: 'Confirm the test change is intended.',
-  unrun: 'Run the changed tests.',
+  could_not_run: 'Fix the named reason and run again.',
+  proven: 'Review the rest of the change as usual.',
+  proven_new: 'Review the rest of the change as usual.',
+  proven_weak: 'Make the test run the changed lines and assert on them.',
   no_evidence: 'Add a test that fails before the change and passes after it.',
-  not_applicable: 'No test change is in this set.',
+  pending: 'Approve the run on GitHub.',
+  unrun: 'Run the changed tests: the next rung.',
+  not_applicable: 'Nothing.',
 };
 
 const UNSUPPORTED = new Set(['go', 'rs', 'java']);
@@ -78,12 +83,15 @@ function fileTexts(f) {
 }
 
 function pack(verdict, reasons, partial) {
+  const lines = reasons.filter((r) => r.check !== 'partial');
+  const out = lines.slice(0, partial ? 9 : 10);
+  if (partial) out.push({ check: 'partial', file: '', message: partialMessage });
   return {
     schema: 'truedone.verdict/1',
     verdict,
     label: LABELS[verdict] ?? null,
     partial: Boolean(partial),
-    reasons: reasons.slice(0, 10),
+    reasons: out,
     next: NEXT[verdict] || '',
   };
 }
@@ -110,13 +118,13 @@ export function analyse(input = {}) {
     if (!reasons.length) reasons.push({ check: 'language', file: unsupported[0].path, message: language });
     return pack('not_applicable', reasons, false);
   }
-  let verdict = staticVerdict({
+  const found = staticFindings({
     files: supported,
     pr: prBody(input.pr),
     releases: input.releases || [],
     report: input.report,
   });
+  let verdict = found.verdict;
   if (partial && verdict === 'not_applicable') verdict = 'review';
-  if (partial) reasons.push({ check: 'partial', file: '', message: partialMessage });
-  return pack(verdict, reasons, partial);
+  return pack(verdict, reasons.concat(found.reasons), partial);
 }

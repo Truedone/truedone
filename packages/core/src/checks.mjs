@@ -1,6 +1,17 @@
 // Per-test checks over base and head text. First matching row wins.
 // Callers pass file text in. This file does not read the disk.
 import { classify } from './classify.mjs';
+import {
+  skip, focus, weakened as weakenedMsg, deleted, snapshot as snapshotMsg, parametrised,
+  timeout as timeoutMsg, runner_config, step_release, step as stepMsg, claim, no_test, unrun, not_applicable,
+} from './messages.mjs';
+
+const TEMPLATES = {
+  skip, focus, weakened: weakenedMsg, deleted, snapshot: snapshotMsg, parametrised,
+  timeout: timeoutMsg, runner_config, step_release, step: stepMsg, claim, no_test, unrun, not_applicable,
+};
+const CHECK_ORDER = ['skip', 'focus', 'weakened', 'deleted', 'snapshot', 'parametrised', 'timeout', 'runner_config', 'step_release', 'step', 'claim', 'no_test', 'unrun', 'not_applicable'];
+const VERDICT_RANK = ['tampered', 'review', 'could_not_run', 'proven', 'proven_new', 'proven_weak', 'no_evidence', 'pending', 'unrun', 'not_applicable'];
 
 const STRONG = new Set(['toBe', 'toEqual', 'toStrictEqual', 'assertEqual', 'assertEq']);
 const WEAK = new Set(['toBeDefined', 'toBeTruthy', 'toBeNull', 'toBeTypeOf', 'assertTrue', 'assertIsNotNone', 'assertBare']);
@@ -163,21 +174,24 @@ function parseTests(path, text) {
   return lang === 'py' ? parsePy(text || '') : parseJs(text || '');
 }
 
-function weakened(baseTests, headTests) {
+function weakenedNames(baseTests, headTests) {
+  const names = [];
   const headBy = new Map(headTests.map((t) => [t.name, t]));
   for (const b of baseTests) {
     const h = headBy.get(b.name);
     if (!h) continue;
-    if (h.assertions.length < b.assertions.length) return true;
+    let bad = h.assertions.length < b.assertions.length;
     const used = new Set();
-    for (const kind of b.assertions) {
-      const idx = h.assertions.findIndex((k, i) => !used.has(i) && rank(k) >= rank(kind) && (k === kind || rank(k) >= rank(kind)));
-      if (idx < 0) return true;
-      if (rank(h.assertions[idx]) < rank(kind)) return true;
-      used.add(idx);
+    if (!bad) {
+      for (const kind of b.assertions) {
+        const idx = h.assertions.findIndex((k, i) => !used.has(i) && rank(k) >= rank(kind) && (k === kind || rank(k) >= rank(kind)));
+        if (idx < 0 || rank(h.assertions[idx]) < rank(kind)) { bad = true; break; }
+        used.add(idx);
+      }
     }
+    if (bad) names.push(b.name);
   }
-  return false;
+  return names;
 }
 
 function truedonePins(text) {
@@ -207,47 +221,78 @@ function sourceStillThere(files, spec) {
 
 // judge(staticResult, reports) is the public export in judge.mjs.
 // This name stays different so the single-file build can export both.
-export function staticVerdict(input = {}) {
+function reason(check, file, name, verdict) {
+  const message = TEMPLATES[check].replaceAll('{name}', name || file || 'the change');
+  return { check, file: file || '', message, verdict };
+}
+
+export function staticFindings(input = {}) {
   const files = fileMap(input.files);
   const releases = new Set(input.releases || []);
   const pr = String(input.pr || '');
   const allTests = { base: [], head: [] };
+  const findings = [];
+  const sourcePaths = [];
   let testChanged = false;
   let sourceChanged = false;
   let runnerChanged = false;
   let snapshotChanged = false;
-  let timeoutUp = false;
   let paramDown = false;
   let stepSame = true;
   let stepGone = false;
   let stepRelease = false;
   let stepOther = false;
   let sawWorkflow = false;
+  let testPath = '';
+  let snapPath = '';
+  let paramPath = '';
+  let runnerPath = '';
+  let wfPath = '';
+  let docsPath = '';
+  const changedKinds = [];
 
   for (const [path, entry] of files) {
     const kind = classify(path);
     const diff = changed(entry);
+    if (diff) changedKinds.push(kind);
     if (kind === 'test' || kind === 'test_helper') {
       const baseTests = parseTests(path, entry.base);
       const headTests = parseTests(path, entry.head);
       allTests.base.push(...baseTests.map((t) => ({ ...t, path })));
       allTests.head.push(...headTests.map((t) => ({ ...t, path })));
-      if (diff) testChanged = true;
-      if (weakened(baseTests, headTests)) return 'tampered';
+      if (diff) {
+        testChanged = true;
+        if (!testPath) testPath = path;
+      }
+      for (const name of weakenedNames(baseTests, headTests)) findings.push(reason('weakened', path, name, 'tampered'));
       for (const b of baseTests) {
         const h = headTests.find((t) => t.name === b.name);
         if (!h) continue;
-        if (!b.skip && h.skip) return 'tampered';
-        if (!b.focus && h.focus) return 'tampered';
-        if (h.timeout > b.timeout && h.timeout > 0) timeoutUp = true;
-        if (b.eachCount > 0 && h.eachCount > 0 && h.eachCount < b.eachCount) paramDown = true;
+        if (!b.skip && h.skip) findings.push(reason('skip', path, b.name, 'tampered'));
+        if (!b.focus && h.focus) findings.push(reason('focus', path, b.name, 'tampered'));
+        if (h.timeout > b.timeout && h.timeout > 0) findings.push(reason('timeout', path, b.name, 'review'));
+        if (b.eachCount > 0 && h.eachCount > 0 && h.eachCount < b.eachCount) {
+          paramDown = true;
+          if (!paramPath) paramPath = path;
+        }
       }
     }
-    if (kind === 'source' && diff) sourceChanged = true;
-    if ((kind === 'runner_config' || kind === 'setup' || kind === 'workflow') && diff) runnerChanged = true;
-    if (path.endsWith('.snap') && diff) snapshotChanged = true;
+    if (kind === 'source' && diff) {
+      sourceChanged = true;
+      sourcePaths.push(path);
+    }
+    if ((kind === 'runner_config' || kind === 'setup' || kind === 'workflow') && diff) {
+      runnerChanged = true;
+      if (!runnerPath) runnerPath = path;
+    }
+    if (path.endsWith('.snap') && diff) {
+      snapshotChanged = true;
+      if (!snapPath) snapPath = path;
+    }
+    if ((kind === 'docs' || kind === 'lockfile' || kind === 'dependency_manifest') && diff && !docsPath) docsPath = path;
     if (kind === 'workflow') {
       sawWorkflow = true;
+      wfPath = path;
       const basePins = truedonePins(entry.base);
       const headPins = truedonePins(entry.head);
       if (basePins.join() !== headPins.join()) stepSame = false;
@@ -266,22 +311,37 @@ export function staticVerdict(input = {}) {
     const still = allTests.head.some((h) => h.path === b.path && h.name === b.name);
     if (still) continue;
     const moved = headBodies.has(b.body) && allTests.head.some((h) => h.body === b.body && (h.path !== b.path || h.name !== b.name));
-    if (moved) return 'unrun';
+    if (moved) {
+      findings.push(reason('unrun', b.path, b.path, 'unrun'));
+      continue;
+    }
     const kept = (b.imports || []).every((spec) => sourceStillThere(files, spec));
-    if ((b.imports || []).length && !kept) return 'review';
-    return 'tampered';
+    const verdict = (b.imports || []).length && !kept ? 'review' : 'tampered';
+    findings.push(reason('deleted', b.path, b.name, verdict));
   }
 
-  if (snapshotChanged) return 'review';
-  if (paramDown) return 'review';
-  if (timeoutUp) return 'review';
-  if (sawWorkflow && !stepSame && stepRelease && !stepGone) return 'review';
-  if (sawWorkflow && !stepSame && (stepGone || stepOther)) return 'tampered';
-  if (runnerChanged && !sawWorkflow) return 'review';
-  if (/adds tests/i.test(pr) && !testChanged) return 'no_evidence';
-  if (sourceChanged && !testChanged) return 'no_evidence';
-  if (testChanged && !input.report) return 'unrun';
-  if (sawWorkflow && stepSame && !testChanged) return 'not_applicable';
-  if (!testChanged && !sourceChanged) return 'not_applicable';
-  return 'unrun';
+  const docsOnly = changedKinds.length > 0 && changedKinds.every((k) => k === 'docs' || k === 'lockfile' || k === 'dependency_manifest');
+  if (snapshotChanged) findings.push(reason('snapshot', snapPath, snapPath, 'review'));
+  if (paramDown) findings.push(reason('parametrised', paramPath, paramPath, 'review'));
+  if (sawWorkflow && !stepSame && stepRelease && !stepGone) findings.push(reason('step_release', wfPath, wfPath, 'review'));
+  if (sawWorkflow && !stepSame && (stepGone || stepOther)) findings.push(reason('step', wfPath, wfPath, 'tampered'));
+  if (runnerChanged && !sawWorkflow) findings.push(reason('runner_config', runnerPath, runnerPath, 'review'));
+  if (!docsOnly && /adds tests/i.test(pr) && !testChanged) findings.push(reason('claim', '', 'the text', 'no_evidence'));
+  if (!docsOnly && sourceChanged && !testChanged) {
+    for (const p of sourcePaths) findings.push(reason('no_test', p, p, 'no_evidence'));
+  }
+  if (testChanged && !input.report && !findings.some((f) => f.check === 'unrun')) findings.push(reason('unrun', testPath, testPath, 'unrun'));
+  const ranked = findings.some((f) => f.verdict !== 'not_applicable');
+  if (!ranked && (docsOnly || (!testChanged && !sourceChanged) || (sawWorkflow && stepSame && !testChanged))) {
+    findings.push(reason('not_applicable', docsPath, docsPath, 'not_applicable'));
+  }
+  if (!findings.length) findings.push(reason('unrun', testPath, testPath, 'unrun'));
+
+  findings.sort((a, b) => CHECK_ORDER.indexOf(a.check) - CHECK_ORDER.indexOf(b.check) || a.file.localeCompare(b.file) || a.message.localeCompare(b.message));
+  const verdict = findings.reduce((win, f) => (VERDICT_RANK.indexOf(f.verdict) < VERDICT_RANK.indexOf(win) ? f.verdict : win), 'not_applicable');
+  return { verdict, reasons: findings.map(({ check, file, message }) => ({ check, file, message })) };
+}
+
+export function staticVerdict(input = {}) {
+  return staticFindings(input).verdict;
 }
