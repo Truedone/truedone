@@ -7,57 +7,61 @@
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-<main>
+<header class="site-header">
+<p class="name"><a href="/">truedone</a></p>
+<p class="tagline">Checks whether a pull request's tests prove its change: red without it, green with it.</p>
+</header>
+<main class="why">
 <h1>What each truedone label means</h1>
 <p>truedone gives every pull request one verdict and sets at most one label. The labels come in the order truedone ranks the verdicts, highest first. Not applicable sets no label.</p>
 <section id="truedone-tampered">
 <h2>truedone:tampered</h2>
-<h3 class="verdict">Tampered</h3>
+<h3 class="verdict verdict-tampered">Tampered</h3>
 <p>Given when: A test that existed at base is disabled, focused or weakened, and nothing equivalent is added; or this PR removes, edits or re-pins the truedone step, other than to a published truedone release</p>
 <p>What to do next: Restore an equivalent test, or pin the step to a published release.</p>
 </section>
 <section id="truedone-review">
 <h2>truedone:review</h2>
-<h3 class="verdict">Test changes: review</h3>
+<h3 class="verdict verdict-review">Test changes: review</h3>
 <p>Given when: Tests moved, removed or rewritten in a way that may be legitimate (a snapshot update, a parametrised case dropped, a deleted test whose source was deleted too); a raised timeout; a change to the test runner config, a setup file, the test script or the workflow that holds the truedone step; the truedone step moved to a newer published release</p>
 <p>What to do next: Confirm the test change is intended.</p>
 </section>
 <section id="truedone-could-not-run">
 <h2>truedone:could-not-run</h2>
-<h3 class="verdict">Could not run</h3>
+<h3 class="verdict verdict-could-not-run">Could not run</h3>
 <p>Given when: No test reached a result: the runner, a service or a setup step was missing, the results were flaky, or a run errored or timed out. The reason is named</p>
 <p>What to do next: Fix the named reason and run again.</p>
 </section>
 <section id="truedone-yes">
 <h2>truedone:yes</h2>
-<h3 class="verdict">Proven</h3>
+<h3 class="verdict verdict-yes">Proven</h3>
 <p>Given when: A test in the PR fails on base by assertion (twice), passes on head (three times out of three), and runs lines the PR changed</p>
 <p>What to do next: Review the rest of the change as usual.</p>
-<h3 class="verdict">Proven (new behaviour)</h3>
+<h3 class="verdict verdict-yes">Proven (new behaviour)</h3>
 <p>Given when: A test fails on base only because a function or module the PR adds does not exist yet. On head it passes three times out of three, makes at least one assertion on that new code's result, and runs lines the PR changed. Without that assertion it is Proven (weak)</p>
 <p>What to do next: Review the rest of the change as usual.</p>
 </section>
 <section id="truedone-weak">
 <h2>truedone:weak</h2>
-<h3 class="verdict">Proven (weak)</h3>
+<h3 class="verdict verdict-weak">Proven (weak)</h3>
 <p>Given when: Red-green holds, but the test runs none of the changed non-test lines or asserts nothing about them</p>
 <p>What to do next: Make the test run the changed lines and assert on them.</p>
 </section>
 <section id="truedone-no-evidence">
 <h2>truedone:no-evidence</h2>
-<h3 class="verdict">No red-green evidence</h3>
+<h3 class="verdict verdict-no-evidence">No red-green evidence</h3>
 <p>Given when: Source changed, and no test in the PR fails without the change</p>
 <p>What to do next: Add a test that fails before the change and passes after it.</p>
 </section>
 <section id="truedone-pending">
 <h2>truedone:pending</h2>
-<h3 class="verdict">Waiting for approval</h3>
+<h3 class="verdict verdict-pending">Waiting for approval</h3>
 <p>Given when: Tests changed and the repository has the truedone step, but GitHub is holding the run for a first-time contributor. The static findings are shown meanwhile</p>
 <p>What to do next: Approve the run on GitHub.</p>
 </section>
 <section id="truedone-unrun">
 <h2>truedone:unrun</h2>
-<h3 class="verdict">Tests changed: not run</h3>
+<h3 class="verdict verdict-unrun">Tests changed: not run</h3>
 <p>Given when: Tests were added or changed with nothing weakened, and no red-green has run: the repository has no truedone step, or the verdict comes from truedone.pages.dev or the static CLI</p>
 <p>What to do next: Run the changed tests: the next rung.</p>
 </section>
@@ -69,6 +73,8 @@
 <p>For your own agent, the truedone Claude Code plugin runs the same checks before it reports a task done.</p>
 </section>
 </main>
-<footer><a href="/">truedone</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></footer>
+<footer class="site-footer">
+<ul><li><a href="/why">Why</a></li><li><a href="/privacy">Privacy</a></li><li><a href="/terms">Terms</a></li><li><a href="https://github.com/mgillr/truedone">GitHub</a></li></ul>
+</footer>
 </body>
 </html>

@@ -14,11 +14,38 @@ export const VERDICTS = {
   unrun: 'Tests changed: not run',
   not_applicable: 'Not applicable',
 };
+// the class of each verdict's badge: verdict-<its label without truedone:>; Not applicable sets no label, so none
+export const BADGE = {
+  tampered: 'tampered', review: 'review', could_not_run: 'could-not-run', proven: 'yes', proven_new: 'yes',
+  proven_weak: 'weak', no_evidence: 'no-evidence', pending: 'pending', unrun: 'unrun', not_applicable: 'none',
+};
+export const badgeClass = (verdict) => `verdict verdict-${BADGE[verdict] ?? 'none'}`;
+export const TAGLINE = 'Checks whether a pull request\'s tests prove its change: red without it, green with it.';
+export const FOOTER_LINKS = [['Why', '/why'], ['Privacy', '/privacy'], ['Terms', '/terms'], ['GitHub', 'https://github.com/mgillr/truedone']];
 export const MAX_REASONS = 10;
 export const NEXT_RUNG_COMMAND = 'npx truedone <PR link> --run';
 export const RED_GREEN_WARNING = "Red-green on someone else's PR executes that PR's code on your machine; --docker runs it in a container.";
 
 const el = (tag, text, attrs, children) => ({ tag, ...(text !== undefined ? { text: String(text) } : {}), ...(attrs ? { attrs } : {}), ...(children ? { children } : {}) });
+
+// every page: the name and what it does above, the four links below
+export function siteHeader() {
+  return el('header', undefined, { class: 'site-header' }, [
+    el('p', undefined, { class: 'name' }, [el('a', 'truedone', { href: '/' })]),
+    el('p', TAGLINE, { class: 'tagline' }),
+  ]);
+}
+
+export function siteFooter() {
+  return el('footer', undefined, { class: 'site-footer' }, [
+    el('ul', undefined, undefined, FOOTER_LINKS.map(([text, href]) => el('li', undefined, undefined, [el('a', text, { href })]))),
+  ]);
+}
+
+// a view's main between the header and the footer; page.mjs mounts every view through it
+export function shell(main) {
+  return el('div', undefined, { class: 'page' }, [siteHeader(), main, siteFooter()]);
+}
 
 export function nextRung(link) {
   return el('section', undefined, { class: 'next' }, [
@@ -42,7 +69,7 @@ export function prView(result, pr, { truncated = false, analysed = 0 } = {}) {
   const children = [
     el('p', `${pr.owner}/${pr.repo}#${pr.number}`, { class: 'target' }),
     el('h1', pr.title, { class: 'title' }),
-    el('p', `Verdict: ${name}${result.partial || truncated ? ' (partial)' : ''}`, { class: `verdict v-${result.verdict}` }),
+    el('p', `Verdict: ${name}${result.partial || truncated ? ' (partial)' : ''}`, { class: badgeClass(result.verdict) }),
   ];
   if (result.label) children.push(el('p', `Label: ${result.label}`, { class: 'label' }));
   if (truncated) children.push(el('p', `Analysed ${analysed} of the ${pr.changed_files} changed files.`, { class: 'partial' }));
@@ -56,7 +83,7 @@ export function prView(result, pr, { truncated = false, analysed = 0 } = {}) {
 export function precomputedView(data, owner, repo) {
   const rows = (data.prs ?? []).map((p) => el('li', undefined, undefined, [
     el('a', `#${p.number} ${p.title ?? ''}`, { href: `/${owner}/${repo}/pull/${p.number}` }),
-    el('span', ` ${VERDICTS[p.result?.verdict] ?? p.result?.verdict ?? ''}`, { class: `verdict v-${p.result?.verdict}` }),
+    el('span', VERDICTS[p.result?.verdict] ?? p.result?.verdict ?? '', { class: badgeClass(p.result?.verdict) }),
   ]));
   return el('main', undefined, undefined, [
     el('h1', `${owner}/${repo}: the last ${rows.length} PRs`),
@@ -68,7 +95,7 @@ export function precomputedView(data, owner, repo) {
 
 export function homeView() {
   return el('main', undefined, undefined, [
-    el('h1', 'truedone'),
+    el('h1', 'Check a pull request'),
     el('p', 'Paste a GitHub pull request link to see what its diff shows about its tests.'),
     el('form', undefined, { id: 'go' }, [
       el('input', undefined, { name: 'target', type: 'text', placeholder: 'https://github.com/owner/repo/pull/1', 'aria-label': 'Pull request link' }),
