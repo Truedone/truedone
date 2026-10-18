@@ -3,6 +3,7 @@
 // reached a result counts. Across its tests the best result counts.
 
 import { verdictId } from './outcome.mjs';
+import { nextStep } from './messages.mjs';
 
 const STAND = new Set(['tampered', 'review']);
 const RANK = ['proven', 'proven_new', 'proven_weak', 'no_evidence'];
@@ -54,28 +55,15 @@ const LABELS = {
   not_applicable: null,
 };
 
-const NEXT = {
-  tampered: 'Restore an equivalent test, or pin the step to a published release.',
-  review: 'Confirm the test change is intended.',
-  could_not_run: 'Fix the named reason and run again.',
-  proven: 'Review the rest of the change as usual.',
-  proven_new: 'Review the rest of the change as usual.',
-  proven_weak: 'Make the test run the changed lines and assert on them.',
-  no_evidence: 'Add a test that fails before the change and passes after it.',
-  pending: 'Approve the run on GitHub.',
-  unrun: 'Run the changed tests: the next rung.',
-  not_applicable: 'Nothing.',
-};
-
 function result(verdict, reasons, partial) {
-  const lines = (reasons || []).filter((r) => r && r.check !== 'partial').slice(0, 10);
+  const all = (reasons || []).filter((r) => r && r.check !== 'partial');
   return {
     schema: 'truedone.verdict/1',
     verdict,
     label: LABELS[verdict] ?? null,
     partial: Boolean(partial),
-    reasons: lines,
-    next: NEXT[verdict] || '',
+    reasons: all.slice(0, 10),
+    next: nextStep(verdict, all),
   };
 }
 
@@ -88,6 +76,7 @@ function redGreen(test) {
     check: 'red_green',
     file: test.file || '',
     message: `Test ${name} is ${id} on head ${head} with coverage ${cond}.`,
+    verdict: id,
   };
 }
 
@@ -99,20 +88,22 @@ export function judge(staticResult, reports) {
   const report = pick(reports);
   if (!report) {
     const fallback = standing || 'no_evidence';
-    const lines = staticReasons.length ? staticReasons : [{ check: 'no_test', file: '', message: 'No report reached a result.' }];
+    const lines = staticReasons.length ? staticReasons : [{ check: 'no_test', file: '', message: 'No report reached a result.', verdict: fallback }];
     return result(fallback, lines, partial);
   }
   if (report.could_not_run && report.tests.length === 0) {
     const why = report.could_not_run.reason || 'unknown';
     const detail = report.could_not_run.detail || '';
     const message = detail ? `${why}: ${detail}` : String(why);
-    return result('could_not_run', [{ check: 'could_not_run', file: '', message }], partial);
+    return result('could_not_run', [{ check: 'could_not_run', file: '', message, verdict: 'could_not_run' }], partial);
   }
   const lines = report.tests.map(redGreen);
+  const verdict = best(report.tests.map(verdictId));
   const attempt = report.attempt ?? 0;
   const same = (Array.isArray(reports) ? reports : []).filter((r) => (r.attempt ?? 0) === attempt && r !== report);
+  // a line about another report gives no verdict of its own: it carries the result's
   for (const other of same) {
-    lines.push({ check: 'report', file: '', message: `Report ${other.job || 'a job'} is on the same attempt.` });
+    lines.push({ check: 'report', file: '', message: `Report ${other.job || 'a job'} is on the same attempt.`, verdict });
   }
-  return result(best(report.tests.map(verdictId)), lines, partial);
+  return result(verdict, lines, partial);
 }

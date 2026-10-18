@@ -9,7 +9,7 @@ test('a skipped test is Tampered and names the test', () => {
   const f = JSON.parse(fs.readFileSync('packages/core/test/fixtures/checks/skip_added/js.json', 'utf8'));
   const o = analyse({ files: f.files, pr, releases: [] });
   assert.equal(o.verdict, 'tampered');
-  assert.equal(o.next, 'Restore an equivalent test, or pin the step to a published release.');
+  assert.equal(o.next, 'Restore an equivalent test.');
   assert.ok(o.reasons.some((r) => r.check === 'skip' && r.file === 'a.test.js' && r.message.includes('adds')));
 });
 

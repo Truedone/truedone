@@ -446,7 +446,8 @@ export function staticFindings(input = {}) {
 
   findings.sort((a, b) => CHECK_ORDER.indexOf(a.check) - CHECK_ORDER.indexOf(b.check) || a.file.localeCompare(b.file) || a.message.localeCompare(b.message));
   const verdict = findings.reduce((win, f) => (VERDICT_RANK.indexOf(f.verdict) < VERDICT_RANK.indexOf(win) ? f.verdict : win), 'not_applicable');
-  return { verdict, reasons: findings.map(({ check, file, message }) => ({ check, file, message })) };
+  // each reason keeps the verdict it alone gives (CORE-09), so next and the views can tell a lesser finding apart
+  return { verdict, reasons: findings.map(({ check, file, message, verdict: own }) => ({ check, file, message, verdict: own })) };
 }
 
 export function staticVerdict(input = {}) {
