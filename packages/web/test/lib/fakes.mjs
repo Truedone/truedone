@@ -34,6 +34,7 @@ function element(tag) {
   const e = {
     tag, attrs: {}, children: [], textContent: '', listeners: {},
     setAttribute(k, v) { this.attrs[k] = v; },
+    removeAttribute(k) { delete this.attrs[k]; },
     appendChild(c) { this.children.push(c); return c; },
     replaceChildren(...c) { this.children = c; },
     addEventListener(t, f) { this.listeners[t] = f; },
