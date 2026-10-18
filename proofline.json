@@ -439,6 +439,12 @@
       ],
       "APP-22": [
         "APP-22-AC05"
+      ],
+      "APP-23": [
+        "APP-23-AC05"
+      ],
+      "APP-24": [
+        "APP-24-AC05"
       ]
     }
   },
@@ -7871,6 +7877,211 @@
         },
         {
           "id": "APP-22-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "APP-23",
+      "title": "[W2] A dropped delivery is answered before the dedupe, with no KV call",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "APP-22"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Measured on truedone-dev (three tails, 1245 events): 807 of 960 webhook fetches are never analysed, wall p50 327 ms with CPU p50 1 ms, because the intake runs the KV dedupe (a get and a put) before the installation drops and the action filter. The intake now runs the signature check, the delivery id, the parse, the installation drops and the action filter, and only then the dedupe for what is kept. A dropped delivery is answered with no KV call, no queue send and no fetch; a duplicate of a dropped delivery is dropped again with the same answer; a kept duplicate is still deduped once; an unsigned delivery is still 401 with no KV call. A malformed body is no longer recorded before the parse fails. The 24 hour record and the APP-17 run, queue and dedupe-delete paths are unchanged.",
+      "scope": {
+        "allow": [
+          "packages/app/src/webhook.mjs",
+          "packages/app/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-23-AC01",
+          "mandatory": true,
+          "statement": "a dropped delivery (the action filter and the installation drops) makes no KV call, no queue send and no fetch; a kept duplicate is deduped once; an unsigned delivery is 401 with no KV call",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/drop-before-dedupe.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-23-AC02",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-23-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-23-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-23-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-23-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-23-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "APP-24",
+      "title": "[W2] An uninstall marks the installation removed, so the daily sweep deletes its data",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "APP-23"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Truedone/truedone#122, R6. markRemoved (packages/app/src/posting.mjs) is the only writer of removed:<id>, the marker the daily cron sweeps, and nothing called it: the intake answered installation.deleted with 200 {dropped} and returned, so an uninstalled installation's stored data was never deleted. APP-05 tested the functions directly; nothing drove an uninstall through the Worker. On installation.deleted the intake now marks the installation removed (idempotent, so no dedupe is needed), and the daily cron deletes its data and the marker within 24 hours.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/ops/apps.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-24-AC01",
+          "mandatory": true,
+          "statement": "a signed installation.deleted through the Worker's default export writes removed:<id>, and the scheduled handler then deletes that installation's stored data and the marker",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/uninstall-sweep.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-24-AC02",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-24-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-24-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-24-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-24-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-24-AC07",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
