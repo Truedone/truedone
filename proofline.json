@@ -369,6 +369,9 @@
       ],
       "APP-12": [
         "APP-12-AC05"
+      ],
+      "APP-13": [
+        "APP-13-AC08"
       ]
     }
   },
@@ -6602,6 +6605,139 @@
       ]
     },
     {
+      "id": "APP-13",
+      "title": "[W2] The static stage reads each file's real base, its config from the base branch, and links the site",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "APP-11"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "description": "The development app's first live check run (2026-10-18 10:25Z, mgillr/truedone-sandbox#42) reads \"truedone: not applicable\" for a pull request that adds a test case, and links https://truedone.dev/..., which does not exist (D26: the site is truedone.pages.dev). Measured by lane-b with the Worker's own queue handler: packages/app/src/static.mjs:89 fetches a modified file's base from the literal ref \"base\", which answers 404, so core compares the head with an empty base and a deleted assertion in a modified test reads as unrun where core gives tampered on the real base; an added file's base is fetched at the head instead of left empty; static.mjs:149 reads .github/truedone.yml from the pull request's own branch, so a pull request can switch truedone off for itself; and entry-static.test.mjs passes with a core that always answers Proven, and with two check runs. Fixes: a modified or renamed file's base comes from payload.pull_request.base.sha (the previous path for a rename), an added file has no base; the configuration is read from the base branch at payload.pull_request.base.sha, never the head; the check run's link is https://truedone.pages.dev/<owner>/<repo>/pull/<n>; the entry test asserts exactly one check run and one label, and that their verdict equals core.analyse's own answer for the recorded files. The cause of #42's not applicable is measured and stated in the commit.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-13-AC01",
+          "mandatory": true,
+          "statement": "a modified test file is compared against its content at the base sha, so a deleted assertion reads tampered; an added file has no base",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/static-base.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-13-AC02",
+          "mandatory": true,
+          "statement": "the configuration is read from the base branch: a pull request that adds enabled: false to its own .github/truedone.yml is still checked",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/static-config.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-13-AC03",
+          "mandatory": true,
+          "statement": "the check run links truedone.pages.dev, and no app source names truedone.dev",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rn \"truedone\\.dev\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "APP-13-AC04",
+          "mandatory": true,
+          "statement": "the entry test pins exactly one check run and one label to the verdict core gives for the recorded files",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/entry-verdict.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-13-AC05",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-13-AC06",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-13-AC07",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-13-AC08",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-13-AC09",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-13-AC10",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
       "id": "APP-03",
       "title": "[W3] Static stage: check run, one label, summary, config, logs",
       "phase": "implement",
@@ -7300,7 +7436,8 @@
         "OPS-02",
         "APP-09",
         "APP-10",
-        "APP-11"
+        "APP-11",
+        "APP-13"
       ],
       "requirements": [
         "PV-A03",
