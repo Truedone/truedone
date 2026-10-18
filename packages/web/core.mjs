@@ -904,6 +904,9 @@ const bothAssertion = base.length === 2 && base.every((token) => token === 'fail
 const bothMissing = base.length === 2 && base.every((token) => token === 'fail:missing');
 const conditionHolds = condition === 'lines' || condition === 'imports';
 
+if (base.length < 2 || head.length < 3) {
+return { result: 'Could not run: incomplete runs', reason: 'incomplete runs', detail: 'incomplete runs' };
+}
 if (bothAssertion && allHeadPass && conditionHolds) {
 return { result: 'Proven', reason: null, detail: null };
 }

@@ -26,6 +26,9 @@ function entry(name) {
   };
 }
 
+// the runs seen: node --test goes one file a command (RUN-06), so a run is the report's side and number
+const runsOf = (seen) => new Set(seen.map((command) => command.match(/\.truedone-report-(base|head)-(\d+)/).slice(1).join('-'))).size;
+
 function execWriting(command, cwd, seen) {
   seen.push(command);
   const report = command.match(/\.truedone-report-\S+/)[0];
@@ -48,10 +51,10 @@ test('more than 50 changed tests are capped', async () => {
     });
     assert.equal(report.truncated, true);
     assert.equal(report.schema, 'truedone.report/1');
-    assert.equal(seen.length, 5);
+    assert.equal(runsOf(seen), 5);
     assert.equal(seen.some((command) => command.includes('t50.test.js')), false);
-    assert.equal(seen[0].includes('t00.test.js'), true);
-    assert.equal(seen[0].includes('t49.test.js'), true);
+    assert.equal(seen.some((command) => command.includes('t00.test.js')), true);
+    assert.equal(seen.some((command) => command.includes('t49.test.js')), true);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -71,8 +74,8 @@ test('50 changed tests are not capped', async () => {
       exec: (command, { cwd }) => execWriting(command, cwd, seen),
     });
     assert.equal(report.truncated, false);
-    assert.equal(seen.length, 5);
-    assert.equal(seen[0].includes('t49.test.js'), true);
+    assert.equal(runsOf(seen), 5);
+    assert.equal(seen.some((command) => command.includes('t49.test.js')), true);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
