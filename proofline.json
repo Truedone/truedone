@@ -391,8 +391,7 @@
       "REL-P5": [
         "REL-P5-AC05",
         "REL-P5-AC01",
-        "REL-P5-AC02",
-        "REL-P5-AC03"
+        "REL-P5-AC02"
       ],
       "REL-P4": [
         "REL-P4-AC06"
@@ -402,6 +401,10 @@
       ],
       "APP-15": [
         "APP-15-AC06"
+      ],
+      "REL-P6": [
+        "REL-P6-AC01",
+        "REL-P6-AC03"
       ]
     }
   },
@@ -11749,12 +11752,11 @@
     },
     {
       "id": "REL-P5",
-      "title": "[W2] Ryan's preview steps: npm publish, the action pushed and tagged, the App public",
+      "title": "[W2] Ryan's preview steps: the App public and npm publish",
       "phase": "implement",
       "owner": "ryan",
       "depends_on": [
-        "REL-P1",
-        "REL-P2"
+        "REL-P1"
       ],
       "requirements": [
         "PV-R01"
@@ -11764,7 +11766,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "D35. Ryan's own steps, in his browser and his terminal: the production App made public (done on 2026-10-18); npm publish from packages/cli after REL-P1 passes; REL-P2's tree pushed to mgillr/truedone-action with the tag v0.1.0. The lead reads each back.",
+      "description": "D35. Ryan's own steps, in his browser and his terminal: the production App made public (done on 2026-10-18); npm publish from packages/cli after REL-P1 passes. The action's push and tag are REL-P6, after the billing lock. The lead reads each back.",
       "scope": {
         "allow": [
           "docs/DEPENDENCY-MAP.md",
@@ -11790,17 +11792,6 @@
           "verifier": {
             "type": "command",
             "cmd": "npm view truedone@0.1.0 version | grep -qx 0.1.0",
-            "expect_exit": 0,
-            "timeout_s": 300
-          }
-        },
-        {
-          "id": "REL-P5-AC03",
-          "mandatory": true,
-          "statement": "mgillr/truedone-action has the tag v0.1.0 and action.yml at its root",
-          "verifier": {
-            "type": "command",
-            "cmd": "gh api repos/mgillr/truedone-action/git/ref/tags/v0.1.0 --jq .ref | grep -qx refs/tags/v0.1.0 && gh api repos/mgillr/truedone-action/contents/action.yml --jq .name | grep -qx action.yml",
             "expect_exit": 0,
             "timeout_s": 300
           }
@@ -11846,19 +11837,92 @@
       ]
     },
     {
+      "id": "REL-P6",
+      "title": "[W2] Ryan pushes the action's tree to mgillr/truedone-action and tags it v0.1.0",
+      "phase": "implement",
+      "owner": "ryan",
+      "depends_on": [
+        "REL-P2"
+      ],
+      "requirements": [
+        "PV-R01"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D35. After the billing lock on the account's GitHub Actions ends and REL-P2 lands, Ryan pushes REL-P2's tree to mgillr/truedone-action and tags it v0.1.0, with the commands REL-P2's tool prints. The lead reads it back.",
+      "scope": {
+        "allow": [
+          "docs/DEPENDENCY-MAP.md",
+          "docs/releases/preview-0.1.0.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "REL-P6-AC01",
+          "mandatory": true,
+          "statement": "mgillr/truedone-action has the tag v0.1.0 and action.yml at its root",
+          "verifier": {
+            "type": "command",
+            "cmd": "gh api repos/mgillr/truedone-action/git/ref/tags/v0.1.0 --jq .ref | grep -qx refs/tags/v0.1.0 && gh api repos/mgillr/truedone-action/contents/action.yml --jq .name | grep -qx action.yml",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "REL-P6-AC02",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P6-AC03",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P6-AC04",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "REL-P6-AC05",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "REL-P4",
       "title": "[W2] The preview acceptance walk: a surface flips only after its install path works from a fresh home",
       "phase": "implement",
       "owner": "lane-a",
       "depends_on": [
         "REL-P1",
-        "REL-P2",
         "REL-P3",
         "REL-P5",
         "OPS-09",
         "APP-06",
         "APP-13",
-        "ACT-03",
         "WEB-12",
         "README-03",
         "APP-14"
@@ -11871,7 +11935,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "D35, the gold standard. From a fresh home, as a new user: the site on its five examples; npx truedone@0.1.0 from npm on the same five; the action from mgillr/truedone-action@v0.1.0 in the sandbox's workflow, its run and its label; the production App installed on the sandbox from its public page, its check run and its label, equal to the verdict core gives; the plugin from the marketplace. Each surface has a row in the \"## Acceptance\" table of docs/releases/preview-0.1.0.md, \"| <surface> | <command> | <output> | <UTC time> | Works |\" or the failure. Only a surface with a Works row flips in packages/web/lib/release.mjs, and node tools/readme-status.mjs rewrites the README in the same change. The production App's global posting flag turns on only after its sandbox row works.",
+      "description": "D35, the gold standard. From a fresh home, as a new user: the site on its five examples; npx truedone@0.1.0 from npm on the same five; the action from mgillr/truedone-action@v0.1.0 in the sandbox's workflow, its run and its label; the production App installed on the sandbox from its public page, its check run and its label, equal to the verdict core gives; the plugin from the marketplace. Each surface has a row in the \"## Acceptance\" table of docs/releases/preview-0.1.0.md, \"| <surface> | <command> | <output> | <UTC time> | Works |\" or the failure. Only a surface with a Works row flips in packages/web/lib/release.mjs, and node tools/readme-status.mjs rewrites the README in the same change. The production App's global posting flag turns on only after its sandbox row works. While the account's GitHub Actions are locked for billing (the owner, 2026-10-18), the action's row records that it could not run, and its entry in release.mjs stays false; the walk does not wait for it.",
       "scope": {
         "allow": [
           "README.md",
