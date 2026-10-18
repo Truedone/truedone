@@ -6,6 +6,16 @@ const DELIVERY_HEADER = "x-github-delivery";
 const EVENT_HEADER = "x-github-event";
 const DEDUPE_TTL_S = 24 * 60 * 60; // a delivery id is handled once for 24 hours (S6)
 
+// The actions a stage acts on (APP-16, #111). A pull request is analysed when it opens,
+// gets new commits or reopens; closed, labeled (the App's own label write sends one),
+// edited, assigned, review_requested and the rest are dropped here, so they cost no
+// queue message, no token and no GitHub call. The red-green stage judges a completed
+// workflow run only (redgreen.mjs), so requested and in_progress are dropped too.
+export const ACTIONS = {
+  pull_request: new Set(["opened", "synchronize", "reopened"]),
+  workflow_run: new Set(["completed"]),
+};
+
 export async function verifySignature(secret, body, header) {
   if (typeof header !== "string" || !header.startsWith("sha256=")) return false;
   const given = header.slice("sha256=".length);
@@ -53,6 +63,9 @@ export function makeIntake(env) {
     }
     if (event === "installation_repositories" && payload.action === "removed") {
       return Response.json({ dropped: "installation_repositories_removed" }, { status: 200 });
+    }
+    if (Object.hasOwn(ACTIONS, event) && !ACTIONS[event].has(payload.action)) {
+      return Response.json({ dropped: `${event}.${payload.action}` }, { status: 200 });
     }
 
     await env.QUEUE.send({ event, delivery, payload });

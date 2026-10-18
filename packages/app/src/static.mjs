@@ -4,6 +4,7 @@
 // reader, so the App and truedone.pages.dev build the same input for the same pull
 // request (APP-13).
 import { makeGitHub } from "./github.mjs";
+import { ACTIONS } from "./webhook.mjs";
 import { parseConfig, postingAllowed } from "./posting.mjs";
 import { loadPR, LIMITS } from "../../web/lib/github.mjs";
 import { classify } from "../../core/core.mjs";
@@ -42,6 +43,8 @@ export function makeStatic(env) {
 
   return async function onPullRequest(delivery) {
     const { payload } = delivery;
+    // The intake drops every other action (APP-16); this covers a message queued before that.
+    if (payload.action && !ACTIONS.pull_request.has(payload.action)) return { skipped: payload.action };
     const { repository, pull_request: pr } = payload;
     const owner = repository.owner.login, repo = repository.name;
     const meta = { owner, repo, number: pr.number, title: pr.title, body: pr.body, author: pr.user };
