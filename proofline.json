@@ -396,6 +396,9 @@
       ],
       "REL-P4": [
         "REL-P4-AC06"
+      ],
+      "APP-14": [
+        "APP-14-AC05"
       ]
     }
   },
@@ -6762,6 +6765,108 @@
       ]
     },
     {
+      "id": "APP-14",
+      "title": "[W2] The check run links the pull request's page and dates each verdict",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "APP-13"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "description": "Seen live on 2026-10-18 at 11:35Z on mgillr/truedone-sandbox#31 and #42 with the development App on main 8d7349f8. (1) #103: the check run's details_url is https://truedone.pages.dev while its summary's Why line names the pull request's page; GitHub's Details button must open https://truedone.pages.dev/<owner>/<repo>/pull/<n>, for the static and the red-green check run alike. (2) #104: an update to an existing check run for the same head commit keeps its first started_at and completed_at (#42 shows 10:25:31Z for an 11:35 verdict); every write of a completed verdict sets completed_at to the time of that verdict. The test runs the Worker's default export with only fetch, KV and the message faked, as entry-verdict does.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-14-AC01",
+          "mandatory": true,
+          "statement": "both check runs set details_url to the pull request's page on the site, and an update sets completed_at to the new verdict's time",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/checkrun-fields.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-14-AC02",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-14-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-14-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-14-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-14-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-14-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
       "id": "APP-03",
       "title": "[W3] Static stage: check run, one label, summary, config, logs",
       "phase": "implement",
@@ -11223,7 +11328,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "D35. packages/cli/package.json is version 0.1.0; truedone --version prints \"truedone 0.1.0 (preview)\" and --help names it a preview. tools/release-preview.mjs cli runs npm pack in a scratch directory with an empty npm config and checks the tarball: exactly truedone.mjs, package.json, README.md and LICENSE; the version; no file over 1 MB; no secret pattern. It then installs the tarball into a scratch HOME and runs the installed truedone on the five examples the site lists (EXAMPLES in packages/web/lib/view.mjs), each giving the verdict the site gives, and writes the commands and measured lines to the \"## The command line\" section of docs/releases/preview-0.1.0.md. Publishing is Ryan's, from his terminal (REL-P5).",
+      "description": "D35. packages/cli/package.json is version 0.1.0; truedone --version prints \"truedone 0.1.0 (preview)\" and --help names it a preview. tools/release-preview.mjs cli runs npm pack in a scratch directory with an empty npm config and checks the tarball: exactly truedone.mjs, package.json, README.md and LICENSE; the version; no file over 1 MB; no secret pattern. It then installs the tarball into a scratch HOME and runs the installed truedone on the five examples the site lists (EXAMPLES in packages/web/lib/view.mjs), each giving the verdict the site gives, and writes the commands and measured lines to the \"## The command line\" section of docs/releases/preview-0.1.0.md. Publishing is Ryan's, from his terminal (REL-P5). The red-green report's truedone_version (a literal '0.0.0' at packages/core/run/run.mjs:298, #105) comes from packages/cli/package.json too: tools/bundle.mjs writes that version into each bundle at build, so the CLI, the plugin's Stop hook and the action report the release they are.",
       "scope": {
         "allow": [
           "docs/DEPENDENCY-MAP.md",
@@ -11233,9 +11338,11 @@
           "packages/cli/plugin/hooks/stop.mjs",
           "packages/cli/truedone.mjs",
           "packages/core/core.mjs",
+          "packages/core/run/run.mjs",
           "packages/web/core.mjs",
           "tools/bundle.mjs",
           "tools/release-preview.mjs",
+          "tools/test/bundle-version.test.mjs",
           "tools/test/fixtures/release-preview/**",
           "tools/test/release-preview.test.mjs"
         ]
@@ -11282,6 +11389,16 @@
             "file": "docs/releases/preview-0.1.0.md",
             "pattern": "^## The command line",
             "must": "present"
+          }
+        },
+        {
+          "id": "REL-P1-AC09",
+          "mandatory": true,
+          "statement": "each bundle's red-green report carries packages/cli/package.json's version, and a bundle built with another version fails the test",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/bundle-version.test.mjs",
+            "cmd": "node --test {test}"
           }
         },
         {
@@ -11625,7 +11742,8 @@
         "APP-13",
         "ACT-03",
         "WEB-12",
-        "README-03"
+        "README-03",
+        "APP-14"
       ],
       "requirements": [
         "PV-R01"
