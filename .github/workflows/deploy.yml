@@ -44,7 +44,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Deploy the production app
-        run: npx wrangler@3.90.0 deploy --config packages/app/wrangler.toml --name truedone --var VERSION:$(git rev-parse HEAD)
+        run: npx wrangler@3.90.0 deploy --config packages/app/wrangler.toml --env production --var VERSION:$(git rev-parse HEAD)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       - name: Health answers the version and the posting switch

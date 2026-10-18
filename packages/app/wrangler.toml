@@ -1,5 +1,46 @@
-# The development app (DEP-01): deployed from main by .github/workflows/deploy.yml,
-# in the dev environment. The production deploy uses the same file with --name truedone.
+# The development app at the top level; [env.production] is the production app.
+# Both deploy from main by .github/workflows/deploy.yml (APP-08): the dev job
+# takes the top-level config, production passes --env production. Bindings per
+# the lead's 3505/3508: one KV namespace, one queue as producer and consumer
+# with its dead-letter queue (created on Ryan's go), one daily cron for the
+# sweep. APP-06's analytics dataset joins here when monitoring lands.
 name = "truedone-dev"
 main = "src/index.mjs"
 compatibility_date = "2026-10-01"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "5e2652856f244451ab9bfe9ecc1d0c2d"
+
+[[queues.producers]]
+binding = "QUEUE"
+queue = "truedone-dev"
+
+[[queues.consumers]]
+queue = "truedone-dev"
+max_batch_size = 10
+max_retries = 3
+dead_letter_queue = "truedone-dev-dlq"
+
+[triggers]
+crons = ["13 4 * * *"]
+
+[env.production]
+name = "truedone"
+
+[[env.production.kv_namespaces]]
+binding = "KV"
+id = "df78deb9ed7d4936b92678778d739f73"
+
+[[env.production.queues.producers]]
+binding = "QUEUE"
+queue = "truedone"
+
+[[env.production.queues.consumers]]
+queue = "truedone"
+max_batch_size = 10
+max_retries = 3
+dead_letter_queue = "truedone-dlq"
+
+[env.production.triggers]
+crons = ["13 4 * * *"]
