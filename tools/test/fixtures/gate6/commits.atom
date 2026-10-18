@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+<title>Recent Commits to tool:main</title>
+<entry>
+<title>Flag skipped tests in Python files</title>
+<link rel="alternate" type="text/html" href="https://example.com/tool/commit/abc"/>
+<updated>2026-10-11T08:00:00Z</updated>
+</entry>
+<entry>
+<title>Docs: red, green and blue themes</title>
+<link rel="alternate" type="text/html" href="https://example.com/tool/commit/def"/>
+<updated>2026-10-11T07:00:00Z</updated>
+</entry>
+</feed>
