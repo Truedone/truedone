@@ -7326,7 +7326,7 @@
     },
     {
       "id": "APP-18",
-      "title": "[W2] The App mints its token and reads the posting flags alongside the config read",
+      "title": "[W2] The App mints its token alongside the switch reads, and times its three phases",
       "phase": "implement",
       "owner": "lane-d",
       "depends_on": [
@@ -7343,7 +7343,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "#108. After APP-17, APP-06-AC02 reads p50 3000 ms on Truedone/truedone-sandbox (30 PRs at 17:46Z: deltas 2 s x3, 3 s x23, 4 s x4), where the criterion is under 3000. A wrangler tail of truedone-dev (17:54Z) shows GitHub's delivery 1.2 to 2.2 s after the open and the opened delivery 1.4 s in the Worker with 12 to 24 ms of CPU, so the Worker waits on its calls. Changes: the installation token is minted (or read from the APP-17 cache) in parallel with the config read, and the stage awaits it at its first repository call; the two posting-flag reads run in parallel with the config read, and the gate decides once all three resolve. Every rule holds: the switch is read before any repository read and any write, an opted-out repository has only its config read, a dropped action makes no call, the token is never logged, and a 401 still drops the cached token with the 60 s retry.",
+      "description": "#108. After APP-17, APP-06-AC02 reads p50 3000 ms on Truedone/truedone-sandbox (30 PRs at 17:46Z: deltas 2 s x3, 3 s x23, 4 s x4), where the criterion is under 3000. A wrangler tail of truedone-dev (17:54Z) shows GitHub's delivery 1.2 to 2.2 s after the open and the opened delivery 1.4 s in the Worker with 12 to 24 ms of CPU. The posting flags are already read together with the config (APP-15, posting.mjs), so the remaining time is in the phases themselves. Changes: the installation token is minted (or read from the APP-17 cache) in parallel with the switch reads, and the stage awaits it at its first repository call; each analysed delivery logs one line {stage: \"static\", delivery, phase1_ms, phase2_ms, phase3_ms, total_ms} (the switch, the reads, the writes), with no token and no payload, so the next change is chosen from measured phases. Every rule holds: the switch is read before any repository read and any write, an opted-out repository has only its config read, a dropped action makes no call, the token is never logged, and a 401 still drops the cached token with the 60 s retry.",
       "scope": {
         "allow": [
           "packages/app/src/**",
@@ -7365,10 +7365,10 @@
         {
           "id": "APP-18-AC02",
           "mandatory": true,
-          "statement": "both posting-flag reads start before the config read resolves, and an opted-out repository still gets only its config read",
+          "statement": "an analysed delivery logs one line {stage: \"static\", delivery, phase1_ms, phase2_ms, phase3_ms, total_ms} with the switch, read and write phases timed, and the line carries no token and no payload",
           "verifier": {
             "type": "test_red_green",
-            "test_file": "packages/app/test/flags-overlap.test.mjs",
+            "test_file": "packages/app/test/phase-timing.test.mjs",
             "cmd": "node --test {test}"
           }
         },
