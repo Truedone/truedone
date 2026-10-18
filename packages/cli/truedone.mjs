@@ -2270,31 +2270,44 @@ const SNIPPET = [
 '- Before reporting a task done, run `npx truedone` on the branch.',
 '- Never weaken, disable or delete a test to make it pass.',
 '- Report the verdict `npx truedone` printed, word for word.',
+'- Put the line `npx truedone --pr-line` prints in the pull request description.',
 ];
 
 const CANDIDATES = ['AGENTS.md', 'CLAUDE.md'];
 
-function init(dir, { log = console.log } = {}) {
-const file = CANDIDATES.find((f) => fs.existsSync(path.join(dir, f))) ?? CANDIDATES[0];
-const full = path.join(dir, file);
+function appendSnippet(full, name, log) {
 const existed = fs.existsSync(full);
 const before = existed ? fs.readFileSync(full, 'utf8') : '';
 const eol = before.includes('\r\n') ? '\r\n' : '\n';
 const present = new Set(before.split(/\r?\n/));
 const written = SNIPPET.filter((l) => !present.has(l));
 if (!written.length) {
-log(`${file}: the truedone lines are already there; nothing written`);
-return { file, written };
+log(`${name}: the truedone lines are already there; nothing written`);
+return { file: name, written };
 }
 
 const lead = before === '' ? '' : (before.endsWith('\n') ? '' : eol) + eol;
 fs.appendFileSync(full, lead + written.map((l) => l + eol).join(''));
-log(`${file}: ${existed ? 'appended' : 'created'} ${written.length} line${written.length === 1 ? '' : 's'}`);
+log(`${name}: ${existed ? 'appended' : 'created'} ${written.length} line${written.length === 1 ? '' : 's'}`);
 for (const l of written) log(`  ${l}`);
-return { file, written };
+return { file: name, written };
 }
 
-return {SNIPPET,init};
+function init(dir, { log = console.log } = {}) {
+const file = CANDIDATES.find((f) => fs.existsSync(path.join(dir, f))) ?? CANDIDATES[0];
+return appendSnippet(path.join(dir, file), file, log);
+}
+
+function initGlobal(home, { log = console.log } = {}) {
+const claude = path.join(home, '.claude');
+fs.mkdirSync(claude, { recursive: true });
+const out = [appendSnippet(path.join(claude, 'CLAUDE.md'), '~/.claude/CLAUDE.md', log)];
+const codex = path.join(home, '.codex');
+if (fs.existsSync(codex) && fs.statSync(codex).isDirectory()) out.push(appendSnippet(path.join(codex, 'AGENTS.md'), '~/.codex/AGENTS.md', log));
+return out;
+}
+
+return {SNIPPET,init,initGlobal};
 })();
 const __m13=(()=>{
 const OWNER = '[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})';
@@ -2314,7 +2327,9 @@ const __m15=(()=>{
 const LIMITS = { files: 300, lines: 20000, fetched: 100 };   
 const CONTENT = new Set(['test', 'setup', 'runner_config', 'workflow', 'truedone_config']);   
 
-return {LIMITS,CONTENT};
+const VERSION = '0.1.0';
+
+return {LIMITS,CONTENT,VERSION};
 })();
 const __m14=(()=>{
 const { CONTENT, LIMITS } = __m15;
@@ -2398,6 +2413,8 @@ if (h !== undefined) f.head = h;
 return {
 input: { files, pr: { title: pr.title ?? '', body: pr.body ?? '', author: { login: pr.user?.login ?? '', type: pr.user?.type ?? 'User' } }, limits },
 calls: c.calls(),
+head: pr.head?.sha ?? null,   
+base: pr.base?.sha ?? null,
 };
 }
 
@@ -2536,15 +2553,56 @@ lines.push(
 return lines.join('\n') + '\n';
 }
 
-function emit(result, what, { json, failOn }, stdout) {
+const SITE = 'https://truedone.pages.dev';
+const REASON = {
+tampered: 'a test that existed at base was disabled or weakened',
+review: 'tests or runner setup changed in a way to review',
+could_not_run: 'no test reached a result',
+proven: 'a test in this pull request fails without the change and passes with it',
+proven_new: 'a test fails at base only for want of what the change adds, and passes with it',
+proven_weak: 'red-green holds, but no changed line is run or asserted',
+no_evidence: 'source changed, and no test in the pull request fails without it',
+pending: 'GitHub is holding the run for a first-time contributor',
+unrun: 'tests changed cleanly and no red-green has run yet',
+not_applicable: 'the change is docs, a lockfile, a listed bot or a rename, which truedone does not judge',
+};
+
+const pageLink = (target) => (target ? `${SITE}/${target.owner}/${target.repo}/pull/${target.number}?via=pr-line` : `${SITE}/why?via=pr-line`);
+function prLine(result, target) {
+return `truedone: ${VERDICTS[result.verdict] ?? result.verdict}${result.partial ? ' (partial)' : ''}, ${REASON[result.verdict] ?? 'see the page'}. ${pageLink(target)}`;
+}
+
+function emit(result, what, { json, failOn, prLine: line = false, target = null }, stdout) {
 if (result?.schema !== SCHEMA) throw new Error(`core returned no ${SCHEMA} result`);
-stdout.write(json ? `${JSON.stringify(result)}\n` : readable(result, what));
+stdout.write(line ? `${prLine(result, target)}\n` : json ? `${JSON.stringify(result)}\n` : readable(result, what));
 return failOn?.has(result.verdict) ? 1 : 0;
 }
 
-return {SCHEMA,VERDICTS,MAX_REASONS,readable,emit};
+return {SCHEMA,VERDICTS,MAX_REASONS,readable,SITE,REASON,pageLink,prLine,emit};
 })();
-const __m19=(()=>{
+const __m18=(()=>{
+const { VERSION } = __m15;
+
+const FORM = 'https://github.com/Truedone/truedone/issues/new';
+
+function reportLink({ target, head, base, result, version = VERSION }) {
+const codes = [...new Set((result.reasons ?? []).map((r) => r.check).filter(Boolean))];
+const q = new URLSearchParams({
+template: 'wrong-verdict.yml',
+title: `Wrong verdict: ${target.owner}/${target.repo}#${target.number} (${result.verdict})`,
+pr: `https://github.com/${target.owner}/${target.repo}/pull/${target.number}`,
+head: head ?? '',
+base: base ?? '',
+verdict: result.verdict,
+reasons: codes.join(','),
+version,
+});
+return `${FORM}?${q}`;
+}
+
+return {FORM,reportLink};
+})();
+const __m20=(()=>{
 const NODE_IMAGE = 'node:24-slim';
 const PYTHON_IMAGE = 'python:3.12-slim';
 const HOST_ONLY = new Set(['PATH', 'HOME', 'PWD', 'OLDPWD', 'TMPDIR', 'SHELL', 'USER', 'LOGNAME', 'TERM_PROGRAM', 'TERM_PROGRAM_VERSION', 'TERM_SESSION_ID', '__CF_USER_TEXT_ENCODING', 'XPC_FLAGS', 'XPC_SERVICE_NAME', 'SSH_AUTH_SOCK']);
@@ -2614,11 +2672,11 @@ truncated: reports.some((r) => r.truncated),
 
 return {NODE_IMAGE,PYTHON_IMAGE,imageFor,groupsByImage,containerEnv,dockerRunArgs,dockerExecArgs,spawnCollect,startContainer,dockerOnPath,mergeReports};
 })();
-const __m18=(()=>{
+const __m19=(()=>{
 const { localInput, makeGit, NoRepository } = __m16;
 const { fetchPullBase, RateLimited, GitHubError } = __m14;
 const { emit } = __m17;
-const { groupsByImage, startContainer, dockerOnPath, mergeReports } = __m19;
+const { groupsByImage, startContainer, dockerOnPath, mergeReports } = __m20;
 
 const SECRET_SUFFIX = /(_TOKEN|_SECRET|_KEY|_PASSWORD)$/;
 const SECRET_PREFIX = /^(AWS_|AZURE_|NPM_CONFIG_|npm_config_)/;
@@ -2727,19 +2785,20 @@ return fail(3, `internal error: ${String(e?.message ?? e).split('\n')[0]}`);
 return {filterEnv,consent,runMode};
 })();
 const __m11=(()=>{
-const { init } = __m12;
+const { init, initGlobal } = __m12;
 const { parseTarget } = __m13;
 const { loadPR, fetchReleases, RateLimited, GitHubError } = __m14;
 const { localInput, makeGit, NoRepository } = __m16;
-const { readable, SCHEMA, VERDICTS } = __m17;
-const { runMode } = __m18;
+const { emit, VERDICTS } = __m17;
+const { reportLink } = __m18;
+const { runMode } = __m19;
 
-const USAGE = 'usage: npx truedone [<PR link> | <owner/repo#n>] [--run [--docker] [--yes]] [--json] [--fail-on <verdict>[,<verdict>...]]\n       npx truedone init';
+const USAGE = 'usage: npx truedone [<PR link> | <owner/repo#n>] [--run [--docker] [--yes]] [--json | --pr-line] [--fail-on <verdict>[,<verdict>...]]\n       npx truedone init [--global]\n       npx truedone report <PR link | owner/repo#n>';
 class UsageError extends Error {}
 
 function parse(argv) {
 if (argv.includes('--help') || argv.includes('-h')) return { help: true };
-const o = { json: false, failOn: null, init: false, target: null, run: false, docker: false, yes: false };
+const o = { json: false, failOn: null, init: false, target: null, run: false, docker: false, yes: false, prLine: false, global: false, report: false };
 const rest = [];
 for (let i = 0; i < argv.length; i++) {
 const a = argv[i];
@@ -2752,6 +2811,8 @@ const bad = list.filter((x) => !(x in VERDICTS));
 if (bad.length || !list.length) throw new UsageError(`--fail-on: unknown verdict ${bad.join(', ') || v} (the verdicts are ${Object.keys(VERDICTS).join(', ')})`);
 o.failOn = new Set(list);
 } else if (a === '--run') o.run = true;
+else if (a === '--pr-line') o.prLine = true;
+else if (a === '--global') o.global = true;
 else if (a === '--docker') o.docker = true;
 else if (a === '--yes') o.yes = true;
 else if (a.startsWith('-')) throw new UsageError(`unknown option ${a}`);
@@ -2759,9 +2820,16 @@ else rest.push(a);
 }
 if (o.docker && !o.run) throw new UsageError('--docker runs red-green in a container, so it needs --run');
 if (o.yes && !o.run) throw new UsageError('--yes answers --run\'s question, so it needs --run');
+if (o.prLine && o.json) throw new UsageError('--pr-line and --json each choose the output; give one');
+if (o.global && rest[0] !== 'init') throw new UsageError('--global is for init: npx truedone init --global');
 if (rest[0] === 'init') {
-if (rest.length > 1 || o.json || o.failOn || o.run) throw new UsageError('init takes no other arguments');
+if (rest.length > 1 || o.json || o.failOn || o.run || o.prLine) throw new UsageError('init takes only --global');
 o.init = true;
+} else if (rest[0] === 'report') {
+if (rest.length !== 2 || o.json || o.failOn || o.run || o.prLine) throw new UsageError('report takes one PR link or owner/repo#n and nothing else');
+o.report = true;
+o.target = parseTarget(rest[1]);
+if (!o.target) throw new UsageError(`${rest[1]} is not a PR link or owner/repo#n`);
 } else if (rest.length > 1) throw new UsageError(`one target at most; got ${rest.join(' ')}`);
 else if (rest.length === 1) {
 o.target = parseTarget(rest[0]);
@@ -2786,49 +2854,64 @@ return 0;
 }
 try {
 if (o.init) {
-init(cwd, { log: (s) => stdout.write(`${s}\n`) });
+const log = (s) => stdout.write(`${s}\n`);
+if (o.global) {
+if (!env.HOME) return fail(2, 'init --global writes to your home directory, and HOME is not set');
+initGlobal(env.HOME, { log });
+} else init(cwd, { log });
 return 0;
 }
 if (o.run) return await runMode(o, deps);
-const token = env.GITHUB_TOKEN || null;
-let input, what;
-if (o.target) {
-const t = o.target;
-what = `${t.owner}/${t.repo}#${t.number}`;
-try {
-({ input } = await loadPR(t, { fetch, classify, token }));
+const v = await staticVerdict({ target: o.target, dir: cwd }, deps);
+if (o.report) {
+stdout.write(`Open this link to report the verdict as wrong; nothing has been sent:\n${reportLink({ target: o.target, head: v.head, base: v.base, result: v.result })}\n`);
+return 0;
+}
+return emit(v.result, v.what, o, stdout);
 } catch (e) {
-if (e instanceof GitHubError && e.status === 404) return fail(2, `GitHub has no pull request ${what}, or it is not public`);
-if (e instanceof RateLimited) return fail(3, 'GitHub\'s API rate limit is used up; set GITHUB_TOKEN to read with your own limit');
+if (e instanceof Refused) return fail(e.code, e.message);
+return fail(3, `internal error: ${String(e?.message ?? e).split('\n')[0]}`);
+}
+}
+
+class Refused extends Error {
+constructor(code, message) { super(message); this.name = 'Refused'; this.code = code; }
+}
+
+async function staticVerdict({ target = null, dir }, deps) {
+const { analyse, classify, fetch = globalThis.fetch, env = process.env, stderr } = deps;
+const token = env.GITHUB_TOKEN || null;
+let input, what, head = null, base = null;
+if (target) {
+what = `${target.owner}/${target.repo}#${target.number}`;
+try {
+({ input, head, base } = await loadPR(target, { fetch, classify, token }));
+} catch (e) {
+if (e instanceof GitHubError && e.status === 404) throw new Refused(2, `GitHub has no pull request ${what}, or it is not public`);
+if (e instanceof RateLimited) throw new Refused(3, 'GitHub\'s API rate limit is used up; set GITHUB_TOKEN to read with your own limit');
 throw e;
 }
 } else {
-const git = deps.git ?? makeGit(cwd, env);
+const git = deps.git ?? makeGit(dir, env);
 try {
-const l = localInput(cwd, { classify, git });
+const l = localInput(dir, { classify, git });
 input = l.input;
 what = `${git(['rev-parse', '--abbrev-ref', 'HEAD'], { quiet: true }) ?? 'HEAD'} and the working tree, against ${l.base.slice(0, 12)}`;
 } catch (e) {
-if (e instanceof NoRepository) return fail(2, e.message);
+if (e instanceof NoRepository) throw new Refused(2, e.message);
 throw e;
 }
 }
 
 if (touchesWorkflow(input, classify)) {
 try { input.releases = await fetchReleases({ fetch, token }); } catch (e) {
-stderr.write(`truedone: the published action releases could not be read (${e.message}); a re-pinned step is judged without them\n`);
+stderr?.write(`truedone: the published action releases could not be read (${e.message}); a re-pinned step is judged without them\n`);
 }
 }
-const result = analyse(input);
-if (result?.schema !== SCHEMA) throw new Error(`core returned no ${SCHEMA} result`);
-stdout.write(o.json ? `${JSON.stringify(result)}\n` : readable(result, what));
-return o.failOn?.has(result.verdict) ? 1 : 0;
-} catch (e) {
-return fail(3, `internal error: ${String(e?.message ?? e).split('\n')[0]}`);
-}
+return { result: analyse(input), what, head, base };
 }
 
-return {main};
+return {main,Refused,staticVerdict};
 })();
 const { analyse, classify, judge } = __m1;
 const { detect } = __m2;
