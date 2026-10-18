@@ -1,0 +1,14 @@
+[
+  {
+    "sha": "a80592c7baecfe22864b5229c6ec7dbe00a83fa2",
+    "filename": "python/tests/test_calc.py",
+    "status": "modified",
+    "additions": 4,
+    "deletions": 0,
+    "changes": 4,
+    "blob_url": "https://github.com/mgillr/truedone-sandbox/blob/db0379511f451574f68812dfb77f573c248d22cc/python%2Ftests%2Ftest_calc.py",
+    "raw_url": "https://github.com/mgillr/truedone-sandbox/raw/db0379511f451574f68812dfb77f573c248d22cc/python%2Ftests%2Ftest_calc.py",
+    "contents_url": "https://api.github.com/repos/mgillr/truedone-sandbox/contents/python%2Ftests%2Ftest_calc.py?ref=db0379511f451574f68812dfb77f573c248d22cc",
+    "patch": "@@ -7,3 +7,7 @@ def test_add():\n \n def test_mean(numbers):\n     assert calc.mean(numbers) == 2.5\n+\n+\n+def test_add_zero():\n+    assert calc.add(0, 0) == 0"
+  }
+]

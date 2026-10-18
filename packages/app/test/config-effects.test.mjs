@@ -28,7 +28,7 @@ function memoryKV() {
   };
 }
 
-const FILES = [{ path: "test/a.test.mjs", status: "added", patch: "@@ +1" }];
+const FILES = [{ filename: "test/a.test.mjs", status: "added", patch: "@@ +1" }];
 function routesFor(config) {
   return [
     [/\/pulls\/1\/files/, FILES],
@@ -38,7 +38,7 @@ function routesFor(config) {
   ];
 }
 function delivery() {
-  return { payload: { repository: { owner: { login: "o" }, name: "r", id: 7 }, installation: { id: 3 }, pull_request: { number: 1, head: { sha: "h1", ref: "main" }, title: "t", body: "b", user: { login: "u" } } } };
+  return { payload: { repository: { owner: { login: "o" }, name: "r", id: 7 }, installation: { id: 3 }, pull_request: { number: 1, head: { sha: "h1", ref: "main" }, base: { sha: "b1", ref: "main" }, title: "t", body: "b", user: { login: "u" } } } };
 }
 
 test("the reader knows the five keys and names unknown ones", () => {

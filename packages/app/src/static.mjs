@@ -1,8 +1,12 @@
 // The static stage (APP-03): on pull_request opened/synchronize/reopened, analyse the
-// diff and post one check run and one label. Built against core.analyse's interface
-// (docs/spec.md, core section); @truedone/core is wired in when lane-a's branch lands.
+// diff and post one check run and one label. core.analyse comes in as env.core (the
+// Worker's entry hands it the core engine, APP-11). The input is read by the site's own
+// reader, so the App and truedone.pages.dev build the same input for the same pull
+// request (APP-13).
 import { VERDICT_LABEL, LABELS } from "./labels.mjs";
 import { parseConfig, postingAllowed } from "./posting.mjs";
+import { loadPR } from "../../web/lib/github.mjs";
+import { classify } from "../../core/core.mjs";
 
 const API = "https://api.github.com";
 
@@ -28,17 +32,6 @@ export function makeStatic(env) {
     return r.json();
   }
 
-  async function prFiles(owner, repo, number) {
-    const files = [];
-    let page = 1;
-    for (;;) {
-      const part = await api(`/repos/${owner}/${repo}/pulls/${number}/files?per_page=100&page=${page}`);
-      files.push(...part);
-      if (part.length < 100) return files;
-      page++;
-    }
-  }
-
   // D18: the published truedone release SHAs come from the tags of truedone/action, cached.
   async function publishedShas() {
     if (env.RELEASE_SHA_CACHE) return env.RELEASE_SHA_CACHE;
@@ -58,45 +51,23 @@ export function makeStatic(env) {
     return r.ok ? await r.text() : undefined;
   }
 
-  // The path-shaped pre-filter for content fetching (the spec's File classification
-  // table): core classifies authoritatively, but only these paths' contents are ever
-  // fetched, so a plain source file's contents never leave the repository.
-  const CONTENT_PATHS = [
-    /(^|\/)([^/]+\.(test|spec)\.[cm]?[jt]sx?)$/,
-    /(^|\/)__(tests|mocks)__\//,
-    /(^|\/)tests?\//,
-    /(^|\/)test_[^/]*\.py$/, /(^|\/)[^/]*_test\.py$/,
-    /(^|\/)jest\.config\./, /(^|\/)vitest\.config\./, /(^|\/)vite\.config\./,
-    /(^|\/)\.mocharc\./, /(^|\/)pytest\.ini$/, /(^|\/)tox\.ini$/, /(^|\/)setup\.cfg$/,
-    /(^|\/)pyproject\.toml$/, /(^|\/)jest\.setup\./, /(^|\/)vitest\.setup\./, /(^|\/)setup-tests\./,
-    /(^|\/)conftest\.py$/,
-    /(^|\/)\.github\/workflows\//, /(^|\/)\.github\/truedone\.yml$/,
-  ];
-  const needsContents = (p) => CONTENT_PATHS.some((re) => re.test(p));
-
-  async function analyse(env2, owner, repo, head, files, prMeta) {
-    // Base and head contents are fetched only for test, setup, runner-config and
-    // workflow files (core.analyse's input contract). 100 fetched files is the cap.
-    const fetched = [];
-    for (const f of files) {
-      if (f.status === "removed" || !needsContents(f.path)) continue;
-      if (fetched.length >= 100) break;
-      fetched.push({
-        path: f.path,
-        status: f.status,
-        previous_path: f.previous_filename,
-        patch: f.patch,
-        base: await rawFile(owner, repo, f.status === "added" ? head : "base", f.path).catch(() => undefined),
-        head: await rawFile(owner, repo, head, f.path).catch(() => undefined),
-      });
-    }
+  // APP-13: the input comes from loadPR (packages/web/lib/github.mjs), the site's reader:
+  // path from GitHub's filename, a modified or renamed file's base at
+  // pull_request.base.sha from the base repository (at the previous path for a rename),
+  // its head at the head sha from the head repository, no base for an added file and no
+  // head for a removed one, and core's classify choosing which contents are fetched, so a
+  // plain source file's contents never leave the repository. The pull request itself is
+  // the delivery's, not a second call, so the contents and the check run name the same
+  // head sha. Every request carries the App's user-agent: GitHub's API answers 403
+  // without one, and the site's reader sets none because a browser adds its own.
+  async function analyse(env2, owner, repo, pr) {
+    const prUrl = `${API}/repos/${owner}/${repo}/pulls/${pr.number}`;
+    const github = (url, init = {}) => String(url) === prUrl
+      ? Promise.resolve(Response.json(pr))
+      : fetch(url, { ...init, headers: { "user-agent": "truedone-app", ...init.headers } });
+    const { input } = await loadPR({ owner, repo, number: pr.number }, { fetch: github, classify, token: env.INSTALLATION_TOKEN });
     const releases = await publishedShas();
-    return env2.core.analyse({
-      files: fetched,
-      pr: prMeta,
-      releases,
-      limits: { files: 300, lines: 20000, fetched: 100 },
-    });
+    return env2.core.analyse({ ...input, releases });
   }
 
   function summary(result, prMeta) {
@@ -107,7 +78,7 @@ export function makeStatic(env) {
     }
     if (result.reasons.length > 10) lines.push(`- and ${result.reasons.length - 10} more`);
     if (result.next) lines.push(``, `What would change this: ${esc(result.next)}`);
-    lines.push("", `Why: https://truedone.dev/${prMeta.owner}/${prMeta.repo}/pull/${prMeta.number}`);
+    lines.push("", `Why: https://truedone.pages.dev/${prMeta.owner}/${prMeta.repo}/pull/${prMeta.number}`);
     return lines.join("\n");
   }
 
@@ -146,13 +117,14 @@ export function makeStatic(env) {
     const { repository, pull_request: pr } = payload;
     const owner = repository.owner.login, repo = repository.name;
     const meta = { owner, repo, number: pr.number, title: pr.title, body: pr.body, author: pr.user };
-    const configText = await rawFile(owner, repo, pr.head.ref, ".github/truedone.yml");
+    // The repository's setting, at the base: a pull request cannot switch truedone off
+    // for itself (APP-13).
+    const configText = await rawFile(owner, repo, pr.base.sha, ".github/truedone.yml");
     const allowed = await postingAllowed(env, { installationId: payload.installation?.id, repository: repository.id, configText });
     if (!allowed.allowed) return { skipped: allowed.reason };
 
     const t0 = Date.now();
-    const files = await prFiles(owner, repo, pr.number);
-    const result = await analyse(env, owner, repo, pr.head.sha, files, meta);
+    const result = await analyse(env, owner, repo, pr);
     await postCheck(owner, repo, pr.head.sha, result, meta);
     await postLabel(owner, repo, pr.number, result, meta);
     // S8: timings and identifiers only, never diff content or PR text.

@@ -47,7 +47,7 @@ test("a pull_request delivery drives the real static stage to its first GitHub w
   const calls = stubFetch(t, [
     [/raw\.githubusercontent\.com/, null],
     [new RegExp(`${esc(API)}/repos/truedone/action/tags`), []],
-    [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/pulls/41/files`), [{ path: "src/a.js", status: "modified", patch: "@@ -1 +1 @@\n-a\n+b" }]],
+    [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/pulls/41/files`), [{ filename: "src/a.js", status: "modified", patch: "@@ -1 +1 @@\n-a\n+b" }]],
     [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/labels`), []],
     [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/issues/41/labels`), []],
     [/.*/, {}],
@@ -63,7 +63,7 @@ test("a pull_request delivery drives the real static stage to its first GitHub w
       action: "opened",
       number: 41,
       repository: REPO,
-      pull_request: { number: 41, title: "t", body: "", user: { login: "someone" }, head: { ref: "branch", sha: "sha-41" } },
+      pull_request: { number: 41, title: "t", body: "", user: { login: "someone" }, head: { ref: "branch", sha: "sha-41" }, base: { ref: "main", sha: "base-41" } },
       installation: { id: 3 },
     },
   });
