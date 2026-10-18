@@ -427,6 +427,12 @@
       ],
       "APP-18": [
         "APP-18-AC06"
+      ],
+      "APP-19": [
+        "APP-19-AC06"
+      ],
+      "APP-20": [
+        "APP-20-AC06"
       ]
     }
   },
@@ -7437,6 +7443,233 @@
       ]
     },
     {
+      "id": "APP-19",
+      "title": "[W2] The posting switch is read from D1, so the next delivery anywhere honours it",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "APP-18"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "#107. The switch lived in KV, whose get is cached at each location for 60 s and whose write takes a minute or more to reach other locations, so /health at one location read off while the location taking GitHub's deliveries still posted (APP-06-AC08, sandbox #126 and #128). The flags move to a D1 table flags(key TEXT PRIMARY KEY, value TEXT NOT NULL): posting_enabled and posting_enabled:<installation id>, read with one query alongside the config read, and /health reads the same row. The global row missing reads off; a per-installation row missing reads on; a failed read posts nothing (the run throws to the APP-17 queue path) and /health answers 503. The uninstall sweep deletes the installation's row. wrangler.toml binds the databases truedone-dev-flags and truedone-flags (location hint enam), which the lead creates and seeds, production off. docs/ops/apps.md and the code comments say how the switch works.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "packages/app/wrangler.toml",
+          "docs/ops/apps.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-19-AC01",
+          "mandatory": true,
+          "statement": "a switch written off is honoured by the next delivery at any location, the global row missing reads off, a per-installation row missing reads on, and a failed read posts nothing",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/switch-consistency.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-19-AC02",
+          "mandatory": true,
+          "statement": "both environments bind a D1 database for the switch, with real ids",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(grep -cE '^\\[\\[(env\\.production\\.)?d1_databases\\]\\]' packages/app/wrangler.toml)\" = 2 && ! grep -qiE 'placeholder|00000000-0000-0000' packages/app/wrangler.toml",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-19-AC03",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-19-AC04",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-19-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-19-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-19-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-19-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "APP-20",
+      "title": "[W2] The label does not wait for the check run",
+      "phase": "implement",
+      "owner": "lane-d",
+      "depends_on": [
+        "APP-18"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "#108. APP-18's phase lines on truedone-dev (33 deliveries, 18:28 to 18:31Z) read phase1 p50 18 ms, phase2 383, phase3 839, total 1285, and APP-06's bench after APP-18 still reads p50 3000 ms. The label waited for the check-run lookup in phase 2 and the check-run write in phase 3. After the switch, two chains share the one analysis: the label (the analysis and the label state, then the label write) and the check run (the analysis and the check run already on the head, then the check-run write). The stage resolves when both settle, and a failure in either throws to the APP-17 queue path. The phase line splits phase3 into label_ms and check_ms, both measured from the start of phase 2.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-20-AC01",
+          "mandatory": true,
+          "statement": "with a check-run lookup or a check-run write held open, the label write is still sent",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/label-chain.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-20-AC02",
+          "mandatory": true,
+          "statement": "the phase line carries label_ms and check_ms, each measured from the start of phase 2, and still no token and no payload",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/phase-split.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-20-AC03",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-20-AC04",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-20-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-20-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-20-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-20-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "APP-03",
       "title": "[W3] Static stage: check run, one label, summary, config, logs",
       "phase": "implement",
@@ -8140,7 +8373,9 @@
         "APP-15",
         "APP-16",
         "APP-17",
-        "APP-18"
+        "APP-18",
+        "APP-19",
+        "APP-20"
       ],
       "requirements": [
         "PV-A03",
