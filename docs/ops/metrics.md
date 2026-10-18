@@ -18,7 +18,7 @@ listed under `not_yet_measured` with the reason, and is never shown as a zero.
 | `stars_total`, `forks_total` | Their stargazer and fork counts summed | now | Visibility, not use |
 | `repositories_pushed_in_window` | Repositories with a push inside the window | 30 days | The organisation's own activity |
 | `releases_in_window` | Releases published inside the window, all repositories | 30 days | |
-| `workflow_runs_in_window`, `_success`, `_failure`, `_cancelled` | Completed GitHub Actions runs created inside the window, by conclusion | 30 days | This organisation's CI, not a user's |
+| `workflow_runs_in_window`, `_success`, `_failure`, `_cancelled` | Completed GitHub Actions runs created inside the window, by conclusion, every repository | 30 days | This organisation's CI, not a user's; it includes the sandbox, whose runs fail by design, so the rate is not a health figure and stays off the profile |
 | `workflow_success_rate` | Successful completed runs over all completed runs; `n` is the run count | 30 days | |
 | `open_issues`, `open_pull_requests` | Open at the time of the read | now | |
 | `issues_opened_in_window`, `pull_requests_opened_in_window` | Opened inside the window | 30 days | |
