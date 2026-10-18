@@ -424,6 +424,9 @@
       ],
       "GUARD-01": [
         "GUARD-01-AC05"
+      ],
+      "APP-18": [
+        "APP-18-AC06"
       ]
     }
   },
@@ -7322,6 +7325,118 @@
       ]
     },
     {
+      "id": "APP-18",
+      "title": "[W2] The App mints its token and reads the posting flags alongside the config read",
+      "phase": "implement",
+      "owner": "lane-d",
+      "depends_on": [
+        "APP-17"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "#108. After APP-17, APP-06-AC02 reads p50 3000 ms on Truedone/truedone-sandbox (30 PRs at 17:46Z: deltas 2 s x3, 3 s x23, 4 s x4), where the criterion is under 3000. A wrangler tail of truedone-dev (17:54Z) shows GitHub's delivery 1.2 to 2.2 s after the open and the opened delivery 1.4 s in the Worker with 12 to 24 ms of CPU, so the Worker waits on its calls. Changes: the installation token is minted (or read from the APP-17 cache) in parallel with the config read, and the stage awaits it at its first repository call; the two posting-flag reads run in parallel with the config read, and the gate decides once all three resolve. Every rule holds: the switch is read before any repository read and any write, an opted-out repository has only its config read, a dropped action makes no call, the token is never logged, and a 401 still drops the cached token with the 60 s retry.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-18-AC01",
+          "mandatory": true,
+          "statement": "the installation token request and the config read are in flight together, and no repository read or write starts before the switch and the config resolve",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/mint-overlap.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-18-AC02",
+          "mandatory": true,
+          "statement": "both posting-flag reads start before the config read resolves, and an opted-out repository still gets only its config read",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/flags-overlap.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-18-AC03",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-18-AC04",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-18-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-18-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-18-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-18-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "APP-03",
       "title": "[W3] Static stage: check run, one label, summary, config, logs",
       "phase": "implement",
@@ -8024,7 +8139,8 @@
         "APP-13",
         "APP-15",
         "APP-16",
-        "APP-17"
+        "APP-17",
+        "APP-18"
       ],
       "requirements": [
         "PV-A03",
