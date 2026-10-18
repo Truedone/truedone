@@ -5030,7 +5030,7 @@
       "requirements": [
         "PV-A02"
       ],
-      "description": "packages/app/app-manifest.json in GitHub's app manifest format, from which Ryan registers both apps (OPS-02).",
+      "description": "packages/app/app-manifest.json in GitHub's app manifest format, from which Ryan registers both apps (OPS-02). The events are pull_request and workflow_run only: GitHub refused a manifest naming installation and installation_repositories (\"Default events unsupported\", 2026-10-18), because every app receives those two without subscribing.",
       "scope": {
         "allow": [
           "packages/app/app-manifest.json",
@@ -5043,10 +5043,10 @@
         {
           "id": "APP-02-AC01",
           "mandatory": true,
-          "statement": "the manifest has exactly the five permissions and four events",
+          "statement": "the manifest has exactly the five permissions and the two events an app may subscribe to",
           "verifier": {
             "type": "command",
-            "cmd": "node -e 'const m=require(\"./packages/app/app-manifest.json\");const p=m.default_permissions,e=(m.default_events||[]).slice().sort();const want={checks:\"write\",pull_requests:\"write\",contents:\"read\",actions:\"read\",metadata:\"read\"};process.exit(JSON.stringify(Object.keys(p).sort().map(k=>[k,p[k]]))===JSON.stringify(Object.keys(want).sort().map(k=>[k,want[k]]))&&JSON.stringify(e)===JSON.stringify([\"installation\",\"installation_repositories\",\"pull_request\",\"workflow_run\"].sort())?0:1)'",
+            "cmd": "node -e 'const m=require(\"./packages/app/app-manifest.json\");const p=m.default_permissions,e=(m.default_events||[]).slice().sort();const want={checks:\"write\",pull_requests:\"write\",contents:\"read\",actions:\"read\",metadata:\"read\"};process.exit(JSON.stringify(Object.keys(p).sort().map(k=>[k,p[k]]))===JSON.stringify(Object.keys(want).sort().map(k=>[k,want[k]]))&&JSON.stringify(e)===JSON.stringify([\"pull_request\",\"workflow_run\"].sort())?0:1)'",
             "expect_exit": 0,
             "timeout_s": 300
           }
