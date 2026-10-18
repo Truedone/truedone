@@ -16,3 +16,5 @@ These terms cover the site at truedone.pages.dev, its token exchange, the GitHub
   [security policy](../SECURITY.md).
 
 Contact: data@optitransfer.ch
+
+Approved by Ryan Gillespie on 2026-10-18

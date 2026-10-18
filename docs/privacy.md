@@ -44,3 +44,5 @@ and the CLI and plugin from npm.
 ## Who to ask
 
 Contact: data@optitransfer.ch
+
+Approved by Ryan Gillespie on 2026-10-18
