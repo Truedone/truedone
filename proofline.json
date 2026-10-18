@@ -313,6 +313,9 @@
       ],
       "DEP-02": [
         "DEP-02-AC09"
+      ],
+      "APP-08": [
+        "APP-08-AC08"
       ]
     }
   },
@@ -5292,6 +5295,146 @@
         },
         {
           "id": "APP-07-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "APP-08",
+      "title": "[W2] The Worker declares its bindings for both environments, and the entry consumes the queue and runs the sweep",
+      "phase": "implement",
+      "owner": "lane-d",
+      "depends_on": [
+        "APP-07",
+        "APP-05",
+        "APP-04",
+        "DEP-02"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "description": "On main at 2026-10-18 02:00Z the Worker code reads env.KV (delivery dedupe with a 24 hour TTL, the posting_enabled flag, the verdict and check caches, the removed:* sweep markers) and env.QUEUE (every accepted delivery is sent; the same Worker consumes it), and packages/app/wrangler.toml declares only the VERSION var, so the first webhook would throw; the entry from APP-07 has a fetch handler only. This task: packages/app/wrangler.toml declares, at top level for the development Worker truedone-dev, [[kv_namespaces]] binding KV id 5e2652856f244451ab9bfe9ecc1d0c2d, [[queues.producers]] binding QUEUE queue truedone-dev, [[queues.consumers]] queue truedone-dev with dead_letter_queue truedone-dev-dlq and max_retries 3, [[analytics_engine_datasets]] binding METRICS dataset truedone_dev_metrics, and [triggers] crons with one daily minute for the sweep; and under [env.production] name truedone with the same shape on KV id df78deb9ed7d4936b92678778d739f73, queue truedone, dead-letter queue truedone-dlq and dataset truedone_metrics. .github/workflows/deploy.yml deploys production with --env production instead of --name truedone. packages/app/src/index.mjs exports queue(batch, env), which routes each message by its event to the static stage (pull_request) or the red-green check (workflow_run) with the dependencies the stages take injected, acknowledges a handled message and retries a failed one, and scheduled(controller, env), which runs APP-05's sweepLeftovers. The resources exist on the Cloudflare account (OPS-02); nothing here creates or names a secret.",
+      "scope": {
+        "allow": [
+          "packages/app/wrangler.toml",
+          "packages/app/src/index.mjs",
+          "packages/app/test/**",
+          ".github/workflows/deploy.yml",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-08-AC01",
+          "mandatory": true,
+          "statement": "the queue handler routes a pull_request message to the static stage and a workflow_run message to the red-green check, acknowledges a handled message and retries a failed one; the scheduled handler runs the sweep",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/queue.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-08-AC02",
+          "mandatory": true,
+          "statement": "the development Worker binds KV, the queue producer and consumer with its dead-letter queue, and the cron",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e 'const t=require(\"fs\").readFileSync(\"packages/app/wrangler.toml\",\"utf8\");const top=t.split(/^\\[env\\./m)[0];const need=[/\\[\\[kv_namespaces\\]\\]\\s*\\nbinding = \"KV\"\\s*\\nid = \"5e2652856f244451ab9bfe9ecc1d0c2d\"/,/\\[\\[queues\\.producers\\]\\]\\s*\\nbinding = \"QUEUE\"\\s*\\nqueue = \"truedone-dev\"/,/\\[\\[queues\\.consumers\\]\\]\\s*\\nqueue = \"truedone-dev\"[\\s\\S]*?dead_letter_queue = \"truedone-dev-dlq\"/,/\\[triggers\\]\\s*\\ncrons = \\[\"[^\"]+\"\\]/];process.exit(need.every(r=>r.test(top))?0:1)'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "APP-08-AC03",
+          "mandatory": true,
+          "statement": "the production environment binds its own KV, queue, dead-letter queue and name",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e 'const t=require(\"fs\").readFileSync(\"packages/app/wrangler.toml\",\"utf8\");const i=t.indexOf(\"[env.production]\");const p=i<0?\"\":t.slice(i);const need=[/name = \"truedone\"/,/binding = \"KV\"\\s*\\nid = \"df78deb9ed7d4936b92678778d739f73\"/,/binding = \"QUEUE\"\\s*\\nqueue = \"truedone\"\\s*$/m,/queue = \"truedone\"[\\s\\S]*?dead_letter_queue = \"truedone-dlq\"/];process.exit(need.every(r=>r.test(p))?0:1)'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "APP-08-AC04",
+          "mandatory": true,
+          "statement": "production deploys with --env production",
+          "verifier": {
+            "type": "grep",
+            "file": ".github/workflows/deploy.yml",
+            "pattern": "wrangler@3\\.90\\.0 deploy --config packages/app/wrangler\\.toml --env production",
+            "must": "present"
+          }
+        },
+        {
+          "id": "APP-08-AC05",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-08-AC06",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-08-AC07",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-08-AC08",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-08-AC09",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-08-AC10",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
