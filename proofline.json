@@ -345,6 +345,9 @@
       ],
       "WEB-09": [
         "WEB-09-AC06"
+      ],
+      "WEB-10": [
+        "WEB-10-AC07"
       ]
     }
   },
@@ -9177,6 +9180,131 @@
         },
         {
           "id": "WEB-09-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "WEB-10",
+      "title": "[W2] Privacy and terms are pages on the site, generated from the approved documents",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "WEB-09"
+      ],
+      "requirements": [
+        "PV-W02"
+      ],
+      "description": "packages/web/_redirects sends /privacy and /terms to docs/privacy.md and docs/terms.md on github.com with a 302, so a visitor who opens the footer's Privacy or Terms leaves the site (site walk item 11; the owner delegated the decision on 2026-10-18 08:07Z). tools/build-legal.mjs renders docs/privacy.md and docs/terms.md, which stay the single source that OPS-05 approves, into packages/web/privacy.html and packages/web/terms.html with the site's static header, footer and stylesheet as why.html has them, the title \"<heading> - truedone\", headings, paragraphs, lists, links and emphasis only, no inline script or style (the CSP is unchanged); it fails on any markdown it does not know. The two redirect lines go; Pages serves /privacy and /terms from the files. The pages are committed, and a check rebuilds them and requires no diff, so they cannot drift from the documents.",
+      "scope": {
+        "allow": [
+          "tools/build-legal.mjs",
+          "packages/web/privacy.html",
+          "packages/web/terms.html",
+          "packages/web/_redirects",
+          "packages/web/test/**",
+          "tools/test/build-legal.test.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "WEB-10-AC01",
+          "mandatory": true,
+          "statement": "the generator renders the two documents into pages with the site shell, the title rule, no inline script or style, and fails on unknown markdown",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/build-legal.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-10-AC02",
+          "mandatory": true,
+          "statement": "the committed pages are the generator's output for the documents on this tree",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/build-legal.mjs && git diff --quiet -- packages/web/privacy.html packages/web/terms.html",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-10-AC03",
+          "mandatory": true,
+          "statement": "/privacy and /terms are no longer redirected off the site",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -E \"^/(privacy|terms) \" packages/web/_redirects",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "WEB-10-AC04",
+          "mandatory": true,
+          "statement": "the pages keep the footer links and the sign-in link of every page",
+          "verifier": {
+            "type": "command",
+            "cmd": "for f in packages/web/privacy.html packages/web/terms.html; do grep -q \"Sign in with GitHub\" $f && grep -q \"/why\" $f || exit 1; done",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "WEB-10-AC05",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 90,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "WEB-10-AC06",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-10-AC07",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-10-AC08",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "WEB-10-AC09",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
