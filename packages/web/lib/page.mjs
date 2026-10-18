@@ -3,12 +3,12 @@
 // GitHub responses and app.mjs runs it with ./core.mjs.
 import { route, parseTarget } from './route.mjs';
 import { API, RAW, loadPR, RateLimited, GitHubError } from './github.mjs';
-import { prView, precomputedView, homeView, rateLimitView, errorView, notFoundView } from './view.mjs';
+import { prView, precomputedView, homeView, rateLimitView, errorView, notFoundView, shell } from './view.mjs';
 import { mount } from './dom.mjs';
 
 export async function page(loc, { fetch, doc, root, analyse, classify, api = API, raw = RAW }) {
   const r = route(loc.pathname);
-  const show = (view) => mount(view, root, doc);
+  const show = (view) => mount(shell(view), root, doc);
   let calls = 0;
   try {
     if (r.kind === 'home') {
