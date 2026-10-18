@@ -1,0 +1,14 @@
+[
+ {
+  "name": "v1.0.0",
+  "commit": {
+   "sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+  }
+ },
+ {
+  "name": "v0.9.0",
+  "commit": {
+   "sha": "ffffffffffffffffffffffffffffffffffffffff"
+  }
+ }
+]

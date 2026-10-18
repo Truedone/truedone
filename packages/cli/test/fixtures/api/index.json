@@ -1,0 +1,34 @@
+{
+ "api": {
+  "/repos/octo/demo/pulls/12": {
+   "status": 200,
+   "file": "pr.json"
+  },
+  "/repos/octo/demo/pulls/12/files?per_page=100&page=1": {
+   "status": 200,
+   "file": "files-1.json"
+  },
+  "/repos/Truedone/truedone-action/tags?per_page=100": {
+   "status": 200,
+   "file": "tags.json"
+  }
+ },
+ "raw": {
+  "/octo/demo/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/test/upload.test.js": {
+   "status": 200,
+   "file": "raw/01.txt"
+  },
+  "/fork-owner/demo/dddddddddddddddddddddddddddddddddddddddd/test/upload.test.js": {
+   "status": 200,
+   "file": "raw/02.txt"
+  },
+  "/octo/demo/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/.github/workflows/ci.yml": {
+   "status": 200,
+   "file": "raw/03.txt"
+  },
+  "/fork-owner/demo/dddddddddddddddddddddddddddddddddddddddd/.github/workflows/ci.yml": {
+   "status": 200,
+   "file": "raw/04.txt"
+  }
+ }
+}
