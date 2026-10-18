@@ -11,6 +11,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
 export const PROOFLINE_PIN = '@optitransfer/proofline@0.2.0-next.1';
@@ -167,7 +168,8 @@ export async function main() {
   console.log('ci-gate: the four conditions hold');
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.meta.url.replace('file://', ''))) {
+// real paths on both sides: Node resolves symlinks for import.meta.url but keeps argv[1] as typed (GUARD-01, #115)
+if (process.argv[1] && fs.realpathSync(path.resolve(process.argv[1])) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   // Any git or install failure fails the gate closed, with one line instead of a stack trace.
   try { await main(); } catch (e) { console.error(`ci-gate: ${String(e?.message ?? e).split('\n')[0]}`); process.exit(1); }
 }
