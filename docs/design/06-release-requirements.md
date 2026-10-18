@@ -15,6 +15,8 @@ All eight requirements are met before the app is offered at the end of week 4, a
 
 The label speed (PV-A03, D37) is held in two parts: the pull request opened to label at p50 at most 3 s from GitHub's own events, which are in whole seconds, and the App's own time to the label under 1.5 s at p50 from its phase line. GitHub's webhook delivery and its label write take about 2.4 s of the 3 s themselves, so the App is held to the share it controls, and R4's monitoring reports both.
 
+Wrong verdicts are collected (D39). A link on each check run and each public pull request page opens a structured form on Truedone/truedone; for a public pull request the lead runner snapshots the record at the reported commits into the private repository Truedone/truedone-misses, and a confirmed report becomes a minimal BENCH-01 case. The organisation page counts reported, confirmed and fixed reports, beside R8's corrections log.
+
 ## Flow
 
 ```mermaid

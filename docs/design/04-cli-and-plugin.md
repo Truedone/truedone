@@ -10,6 +10,8 @@ The hook blocks when a test the agent added or changed fails on a fresh run, whe
 
 Before the plugin task starts, lane-b reads the hooks reference for the Stop hook's input fields (the transcript path), its exit-code behaviour and its user-visible message field, and records them in the task. If there is no user-visible field, a finding that does not block goes through one block whose reason asks the agent to state it, and never a second.
 
+**How it spreads (D38).** The verdict travels with the agent's work. `npx truedone --pr-line` prints one line for the pull request description, with the link to the verdict's public page, and `init` asks the agent to include it. `init --global` puts the snippet in the developer's own global agent files, so every pull request their agent opens, in any repository, carries a verdict the receiving maintainer can check in one click. `npx truedone mcp` makes the same check a tool for any agent that speaks the Model Context Protocol. Nothing is posted to a repository that did not install truedone.
+
 ## Flow
 
 ```mermaid
