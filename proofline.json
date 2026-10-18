@@ -399,6 +399,9 @@
       ],
       "APP-14": [
         "APP-14-AC05"
+      ],
+      "APP-15": [
+        "APP-15-AC06"
       ]
     }
   },
@@ -6867,6 +6870,120 @@
       ]
     },
     {
+      "id": "APP-15",
+      "title": "[W2] The queue hands each delivery over at once, and the static stage runs its independent calls together",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "APP-14"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "description": "#108: the development App labelled the APP-06 bench's 30 pull requests at p50 11,000 ms (lead-verify-131846), where APP-06-AC02 asks for under 3,000 ms. Two causes on main 24d6150c: both queue consumers in packages/app/wrangler.toml set max_batch_size = 10 and no max_batch_timeout, so Cloudflare's default 5 s batch wait runs before a lone delivery reaches the consumer; and packages/app/src/static.mjs awaits each step in turn. Changes: max_batch_timeout = 0 on both consumers, with a comment saying why; the static stage starts the published-shas read, the base config read and the posting flags alongside the analysis, and writes the check run and the label together, keeping every rule the stage has (the switch is read before any write; nothing is written when posting is off). The test runs the Worker's default export with a fake GitHub whose every call takes 100 ms and asserts the delivery finishes in under half the time the same calls take one after another, with the same writes. The live p50 is APP-06-AC02's, measured after this deploys.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "packages/app/wrangler.toml",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-15-AC01",
+          "mandatory": true,
+          "statement": "with every fake GitHub call taking 100 ms, a delivery finishes in under half the time of the same calls in sequence, with the same check run and label, and nothing is written when posting is off",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/static-latency.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-15-AC02",
+          "mandatory": true,
+          "statement": "both queue consumers hand a delivery over without a batch wait",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(grep -c \"^max_batch_timeout = 0$\" packages/app/wrangler.toml)\" = 2",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "APP-15-AC03",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-15-AC04",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-15-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-15-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-15-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-15-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
       "id": "APP-03",
       "title": "[W3] Static stage: check run, one label, summary, config, logs",
       "phase": "implement",
@@ -7566,7 +7683,8 @@
         "APP-09",
         "APP-10",
         "APP-11",
-        "APP-13"
+        "APP-13",
+        "APP-15"
       ],
       "requirements": [
         "PV-A03",
