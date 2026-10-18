@@ -33,7 +33,7 @@
 - PV-P05: The plugin never blocks more than three times in a row
 - PV-A01: The app verifies webhook signatures in constant time and handles each delivery once
 - PV-A02: The app requests exactly checks write, pull requests write, contents read, actions read and metadata read
-- PV-A03: The app labels a PR from its static result with p50 under 3 s and p95 under 15 s, measured
+- PV-A03: The app labels a PR from its static result with p50 at most 3 s and p95 under 15 s, measured from GitHub's events, and its own time to the label is under 1.5 s at p50, measured from its phase line (D37)
 - PV-A04: Exactly one truedone label is on a PR at any time, and the check run is updated in place
 - PV-A05: The app matches a workflow run to its PR by head SHA and head repository, so fork PRs work
 - PV-A06: The app accepts a report only for the PR's current head SHA, a truedone step matching the default branch or a published release, and the truedone.report/1 shape within its caps

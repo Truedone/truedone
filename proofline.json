@@ -8594,7 +8594,7 @@
         "PV-R04",
         "PV-R05"
       ],
-      "description": "With truedone-dev deployed from main: tools/smoke-app.mjs opens a seeded PR in Truedone/truedone-sandbox and waits for its label (this runs core.mjs in workerd); --switch-off-test turns posting_enabled off and checks that nothing is posted within one minute. tools/bench/app.mjs opens 30 sandbox PRs and prints {\"prs\": [numbers]}; the contract measures latency from GitHub's own issue events. Load test: a load environment of the Worker with a throwaway secret and a stub GitHub API; tools/bench/load.mjs replays 1,000 installations' webhook volume and prints {\"processed_ratio\", \"cost_usd_month\"}; docs/ops/load-test.md publishes it. Monitoring: webhook errors, queue age and label latency p50 and p95 to Workers Analytics Engine, alerts to Ryan by email, a dead-letter queue (R4); docs/ops/monitoring.md.",
+      "description": "With truedone-dev deployed from main: tools/smoke-app.mjs opens a seeded PR in Truedone/truedone-sandbox and waits for its label (this runs core.mjs in workerd); --switch-off-test turns posting_enabled off and checks that nothing is posted within one minute. tools/bench/app.mjs opens 30 sandbox PRs and prints {\"prs\": [numbers]}; the contract measures latency from GitHub's own issue events. Load test: a load environment of the Worker with a throwaway secret and a stub GitHub API; tools/bench/load.mjs replays 1,000 installations' webhook volume and prints {\"processed_ratio\", \"cost_usd_month\"}; docs/ops/load-test.md publishes it. Monitoring: webhook errors, queue age and label latency p50 and p95 to Workers Analytics Engine, alerts to Ryan by email, a dead-letter queue (R4); docs/ops/monitoring.md. D37 (2026-10-18): the label speed is held in two parts, the GitHub-measured p50 at most 3 s (AC02) and the App's own time to the label under 1.5 s at p50 from its phase line (AC13); tools/bench/app-phase.mjs turns a tail of the deployed Worker, taken by the lead during the bench, into docs/bench/app-phase.json.",
       "scope": {
         "allow": [
           "tools/smoke-app.mjs",
@@ -8603,7 +8603,10 @@
           "packages/app/**",
           "docs/ops/load-test.md",
           "docs/ops/monitoring.md",
-          "docs/DEPENDENCY-MAP.md"
+          "docs/DEPENDENCY-MAP.md",
+          "tools/bench/app-phase.mjs",
+          "tools/test/app-phase.test.mjs",
+          "docs/bench/app-phase.json"
         ]
       },
       "criteria": [
@@ -8621,12 +8624,12 @@
         {
           "id": "APP-06-AC02",
           "mandatory": true,
-          "statement": "PR opened to label, measured from GitHub events: p50 under 3 s",
+          "statement": "PR opened to label, measured from GitHub events (whole seconds): p50 at most 3 s (D37)",
           "verifier": {
             "type": "metric",
             "cmd": "node tools/bench/app.mjs --repo Truedone/truedone-sandbox --prs 30 > /tmp/app-bench.json && node -e 'const cp=require(\"child_process\");const {prs}=JSON.parse(require(\"fs\").readFileSync(\"/tmp/app-bench.json\",\"utf8\").trim().split(\"\\n\").pop());const d=prs.map(n=>{const pr=JSON.parse(cp.execSync(\"gh api repos/Truedone/truedone-sandbox/pulls/\"+n));const ev=JSON.parse(cp.execSync(\"gh api repos/Truedone/truedone-sandbox/issues/\"+n+\"/events\"));const l=ev.find(e=>e.event===\"labeled\"&&e.label.name.startsWith(\"truedone:\"));return l?Date.parse(l.created_at)-Date.parse(pr.created_at):Infinity}).sort((a,b)=>a-b);const q=p=>d[Math.min(d.length-1,Math.floor(p*d.length))];console.log(JSON.stringify({p50_ms:q(0.5),p95_ms:q(0.95)}))'",
             "key": "p50_ms",
-            "op": "<",
+            "op": "<=",
             "value": 3000,
             "timeout_s": 3600,
             "name": "app_label_p50"
@@ -8724,6 +8727,20 @@
             "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
             "expect_exit": 0,
             "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-06-AC13",
+          "mandatory": true,
+          "statement": "the App's own time to the label (phase1_ms + label_ms from its phase line) is under 1.5 s at p50 over at least 30 analysed deliveries of the deployed Worker (D37)",
+          "verifier": {
+            "type": "metric",
+            "key": "p50_app_label_ms",
+            "op": "<",
+            "value": 1500,
+            "timeout_s": 120,
+            "name": "app_own_label_p50",
+            "cmd": "node -e 'const r=JSON.parse(require(\"fs\").readFileSync(\"docs/bench/app-phase.json\",\"utf8\"));if(!(r.n>=30))process.exit(1);console.log(JSON.stringify(r))'"
           }
         },
         {
