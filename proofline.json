@@ -451,6 +451,18 @@
       ],
       "APP-26": [
         "APP-26-AC05"
+      ],
+      "MET-01": [
+        "MET-01-AC08"
+      ],
+      "ORG-02": [
+        "ORG-02-AC07"
+      ],
+      "BENCH-01": [
+        "BENCH-01-AC07"
+      ],
+      "SPK-02": [
+        "SPK-02-AC06"
       ]
     }
   },
@@ -5435,6 +5447,240 @@
         "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "phase": "implement",
+      "owner": "lane-a",
+      "requirements": [
+        "PV-G02"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "id": "BENCH-01",
+      "title": "[W2] The detection benchmark: nine labelled cases run on every change, with zero false alarms",
+      "depends_on": [
+        "CORE-11",
+        "JUDGE-01"
+      ],
+      "description": "The owner asked (2026-10-18) for a way to ensure no false alarms all the time. Nine labelled cases from his research note live as base and head fixture trees with an expected outcome each: an assertion weakened while the tests pass; a failing test skipped, deleted or bypassed by a focused one; a source change with no relevant test; a test green on both base and head; a test that is red-green yet asserts the wrong behaviour; a mock that hides an integration failure; a plausible mutation the suite survives; a flaky test; and a legitimate refactor of test structure that weakens nothing. tools/bench/detect.mjs runs the static core and, where the case has a runner, the red-green judge on each, records truedone's verdict beside what baseline CI says (the tests pass or fail), and writes docs/bench/detection.json and docs/bench/detection.md. Its check exits 0 only when every case labelled tampering or no evidence is flagged, the legitimate refactor and the green-on-both case carry no flag, and the cases truedone cannot judge by design (the wrong assertion, the hidden mock) are reported as not detected with the reason, never as caught. Because the check is a contract criterion, CI runs it on every change (PV-B01): a change that makes the core flag the legitimate case cannot land. This is the floor, not the noise claim: GATE-02 and GATE-03R measure noise on real pull requests, and each false alarm found there is added here as a fixture by a follow-up task.",
+      "scope": {
+        "allow": [
+          "tools/bench/detect.mjs",
+          "tools/test/detect.test.mjs",
+          "tools/test/fixtures/detect/**",
+          "docs/bench/detection.json",
+          "docs/bench/detection.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "BENCH-01-AC01",
+          "mandatory": true,
+          "statement": "the bench flags every tampering and no-evidence case, flags neither legitimate case, reports the two by-design misses as not detected with the reason, and fails when a fixture's expected outcome is not met",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/detect.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "BENCH-01-AC02",
+          "mandatory": true,
+          "statement": "the nine cases meet their expected outcomes with zero false alarms",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/bench/detect.mjs --check",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "BENCH-01-AC03",
+          "mandatory": true,
+          "statement": "the committed results equal a fresh run",
+          "verifier": {
+            "type": "command",
+            "cmd": "D=\"$(mktemp -d)\" && node tools/bench/detect.mjs --out \"$D\" && cmp -s \"$D/detection.json\" docs/bench/detection.json",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "BENCH-01-AC04",
+          "mandatory": true,
+          "statement": "the results page lists the nine cases with truedone's verdict beside baseline CI",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/bench/detection.md",
+            "pattern": "baseline CI",
+            "must": "present"
+          }
+        },
+        {
+          "id": "BENCH-01-AC05",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "BENCH-01-AC06",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "BENCH-01-AC07",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "BENCH-01-AC08",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "BENCH-01-AC09",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "phase": "implement",
+      "owner": "lane-a",
+      "requirements": [
+        "PV-G04"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "id": "SPK-02",
+      "title": "[W3] Spike: the requirement evidence check, with a measured prototype and a decision for Ryan",
+      "depends_on": [
+        "BENCH-01"
+      ],
+      "description": "The deepest blind spot in the owner's note: a bad test that agrees with a bad implementation is red-green and wrong. A requirement evidence check asks whether the test's expected result is tied to an explicit acceptance criterion (in the pull request body, a linked issue, or a requirements file) rather than to the implementation. tools/spikes/requirement.mjs is a prototype: it extracts stated criteria from a pull request body and a repository requirements file, matches assertion text and names against them, and scores each test as tied or untied. It runs on the nine BENCH-01 cases and on the sandbox cases and writes docs/spikes/requirement-data.jsonl. docs/spikes/requirement-evidence.md reports whether the wrong-assertion case separates from the legitimate ones, with the numbers, the false ties, and a line Decision for Ryan: build it as a verdict class, keep it as a review hint, or drop it. Mutation checks are RUN-05 and stay there.",
+      "scope": {
+        "allow": [
+          "tools/spikes/requirement.mjs",
+          "tools/test/requirement.test.mjs",
+          "tools/test/fixtures/requirement/**",
+          "docs/spikes/requirement-evidence.md",
+          "docs/spikes/requirement-data.jsonl",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "SPK-02-AC01",
+          "mandatory": true,
+          "statement": "the prototype ties an assertion to a stated criterion and leaves an assertion with no criterion untied, on fixtures",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/requirement.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "SPK-02-AC02",
+          "mandatory": true,
+          "statement": "the committed data equals a fresh run over the benchmark and sandbox cases",
+          "verifier": {
+            "type": "command",
+            "cmd": "D=\"$(mktemp -d)\" && node tools/spikes/requirement.mjs --out \"$D/requirement-data.jsonl\" && cmp -s \"$D/requirement-data.jsonl\" docs/spikes/requirement-data.jsonl",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "SPK-02-AC03",
+          "mandatory": true,
+          "statement": "the spike ends in a decision for Ryan",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/spikes/requirement-evidence.md",
+            "pattern": "^Decision for Ryan: ",
+            "must": "present"
+          }
+        },
+        {
+          "id": "SPK-02-AC04",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "SPK-02-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "SPK-02-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "SPK-02-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "SPK-02-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
       ]
     },
     {
@@ -14274,6 +14520,261 @@
         },
         {
           "id": "ORG-01-AC12",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "phase": "implement",
+      "owner": "lane-a",
+      "requirements": [
+        "PV-D04"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "id": "MET-01",
+      "title": "[W2] Public metrics: a daily snapshot of the organisation's GitHub signals, each figure with its window, source and size",
+      "depends_on": [
+        "ORG-01"
+      ],
+      "description": "The owner asked (2026-10-18) for metrics on github.com/Truedone that measure integrations, faults, successes and growth. tools/metrics/collect.mjs reads public GitHub data for the organisation without a token: its repositories, stars, forks, releases, workflow runs by conclusion over the last 30 days, open issues and pull requests, and the median time to the first response on issues. It writes one JSON snapshot in which every figure carries its reporting window, its source URL and its sample size, and every metric with no honest public source (repositories running truedone, pull requests checked, faults caught beyond CI, false alarms, retention) is listed under not_yet_measured, never as a zero. tools/metrics/check.mjs refuses a snapshot with a figure that lacks any of the three or a number under a not-yet-measured name. The seed snapshot is committed as docs/metrics/latest.json. .github/workflows/metrics.yml runs the collector daily and on demand and commits the snapshot to the metrics-data branch (the index branch pattern), never to main. docs/ops/metrics.md names each metric, its definition and its limits: stars are not adoption, downloads are not users.",
+      "scope": {
+        "allow": [
+          "tools/metrics/**",
+          "tools/test/metrics.test.mjs",
+          "tools/test/fixtures/metrics/**",
+          ".github/workflows/metrics.yml",
+          "docs/metrics/latest.json",
+          "docs/ops/metrics.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "MET-01-AC01",
+          "mandatory": true,
+          "statement": "against a fake GitHub the collector writes every figure with its window, source and size, lists each unsourced metric as not yet measured, and the checker refuses a figure missing any of the three or a number under a not-yet-measured name",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/metrics.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "MET-01-AC02",
+          "mandatory": true,
+          "statement": "the collector runs live against github.com/Truedone without a token and its snapshot passes the checker",
+          "verifier": {
+            "type": "command",
+            "cmd": "D=\"$(mktemp -d)\" && node tools/metrics/collect.mjs --org Truedone --out \"$D/latest.json\" && node tools/metrics/check.mjs \"$D/latest.json\"",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "MET-01-AC03",
+          "mandatory": true,
+          "statement": "the committed seed snapshot passes the checker",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/metrics/check.mjs docs/metrics/latest.json",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MET-01-AC04",
+          "mandatory": true,
+          "statement": "the workflow writes to the metrics-data branch, not main",
+          "verifier": {
+            "type": "grep",
+            "file": ".github/workflows/metrics.yml",
+            "pattern": "metrics-data",
+            "must": "present"
+          }
+        },
+        {
+          "id": "MET-01-AC05",
+          "mandatory": true,
+          "statement": "the workflow runs on a daily schedule",
+          "verifier": {
+            "type": "grep",
+            "file": ".github/workflows/metrics.yml",
+            "pattern": "schedule:",
+            "must": "present"
+          }
+        },
+        {
+          "id": "MET-01-AC06",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MET-01-AC07",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MET-01-AC08",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MET-01-AC09",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "MET-01-AC10",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "phase": "implement",
+      "owner": "lane-a",
+      "requirements": [
+        "PV-D04"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "id": "ORG-02",
+      "title": "[W2] The organisation profile: eight headline figures from the snapshot, at a platinum standard",
+      "depends_on": [
+        "MET-01"
+      ],
+      "description": "The owner set the bar (2026-10-18): the organisation README is simple, elegant, clear, and about value. tools/org-profile.mjs generates docs/org/README.md from a metrics snapshot: a one-line name, one sentence of value in at most 25 words, one line on how to try it, and a table of exactly eight headline metrics (repositories integrated, active in 30 days, pull requests checked, faults caught beyond CI, false alarm rate, verification success rate, 30-day retention, weekly growth), each row with the figure, its window, its source and its sample size, or the words Not yet measured where the snapshot has no source. At most 60 lines; no figure without a source; none of the marketing words on the generator's banned list; no em or en dashes. The generator's --check mode holds the committed page to those rules and to byte equality with its own output from the committed seed snapshot. The owner creates the repository Truedone/.github once and pushes the page to profile/README.md; the live check compares the blob on GitHub with the committed page. The metrics workflow refreshes the page from the daily snapshot once the release plumbing (OPS-07) gives it a token.",
+      "scope": {
+        "allow": [
+          "tools/org-profile.mjs",
+          "tools/test/org-profile.test.mjs",
+          "docs/org/README.md",
+          "docs/ops/metrics.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "ORG-02-AC01",
+          "mandatory": true,
+          "statement": "the generator writes the eight rows with figure, window, source and size, writes Not yet measured where the snapshot has no source, and its check refuses a page over 60 lines, a bare number, a banned word, an em dash or a page that differs from its output",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/org-profile.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "ORG-02-AC02",
+          "mandatory": true,
+          "statement": "the committed page equals the generator's output from the committed seed snapshot and passes every rule",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/org-profile.mjs --check docs/metrics/latest.json docs/org/README.md",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "ORG-02-AC03",
+          "mandatory": true,
+          "statement": "the committed page is at most 60 lines",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(wc -l < docs/org/README.md)\" -le 60",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "ORG-02-AC04",
+          "mandatory": true,
+          "statement": "the organisation profile on GitHub is the committed page (the owner pushed it to Truedone/.github)",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api repos/Truedone/.github/contents/profile/README.md --jq .sha)\" = \"$(git hash-object docs/org/README.md)\"",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "ORG-02-AC05",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "ORG-02-AC06",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "ORG-02-AC07",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "ORG-02-AC08",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "ORG-02-AC09",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
