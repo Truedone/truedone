@@ -1,0 +1,3 @@
+# truedone.pages.dev: every page may be crawled. What truedone does: https://truedone.pages.dev/why
+User-agent: *
+Allow: /
