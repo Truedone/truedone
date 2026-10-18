@@ -5,10 +5,12 @@
 // installations' leftovers. Only Web APIs.
 import { makeHealth } from "./health.mjs";
 import { makeIntake } from "./webhook.mjs";
-import { makeStatic } from "./static.mjs";
+import { makeStatic, makeAnalyser } from "./static.mjs";
 import { makeRedGreen } from "./redgreen.mjs";
 import { listKeys, sweepLeftovers } from "./posting.mjs";
-import { analyse as coreAnalyse } from "../../core/core.mjs";
+import { makeGitHub } from "./github.mjs";
+import { unzip } from "./unzip.mjs";
+import { analyse as coreAnalyse, judge as coreJudge } from "../../core/core.mjs";
 
 const REMOVED_PREFIX = "removed:";
 
@@ -90,7 +92,7 @@ export function makeConsumers(deps = {}) {
           if (event === "pull_request") {
             await (deps.staticStage ?? makeStatic(stageEnv))(message.body);
           } else if (event === "workflow_run") {
-            await (deps.redGreenStage ?? makeRedGreen(stageEnv))(message.body);
+            await (deps.redGreenStage ?? makeRedGreen(redgreenFor(stageEnv, message.body.payload)))(message.body);
           }
           message.ack();
         } catch (error) {
@@ -112,12 +114,57 @@ export function makeConsumers(deps = {}) {
   };
 }
 
-// APP-11: the core engine, handed to the static stage as-is. The stage builds
-// the recorded input itself (files with fetched contents, the PR meta, the
-// published SHAs, the limits) and calls analyse(input).
+// APP-11: the core engine, handed to the stages as-is.
 function coreFor(env) {
-  env.core ??= { analyse: coreAnalyse };
+  env.core ??= { analyse: coreAnalyse, judge: coreJudge };
   return env;
+}
+
+// APP-12: the red-green stage's eight, built from real code against the
+// payload's repository. postCheck, postLabel, publishedShas and the fetch
+// layer are the same calls the static stage uses, shared rather than copied;
+// staticResult and staticVerdict run the shared static analysis for the head
+// commit and cache it; defaultStepSha reads the default branch's workflow;
+// UNZIP inflates with Web APIs.
+function redgreenFor(env, payload) {
+  if (env.UNZIP) return env;
+  const gh = makeGitHub(env);
+  const analyse = makeAnalyser(env, gh);
+  const owner = payload.repository.owner.login;
+  const repo = payload.repository.name;
+  const cache = new Map();
+  const staticResult = async (sha) => {
+    if (cache.has(sha)) return cache.get(sha);
+    const prs = await gh.api(`/repos/${owner}/${repo}/commits/${sha}/pulls`);
+    const pr = prs[0];
+    const files = pr ? await gh.prFiles(owner, repo, pr.number) : [];
+    const meta = { owner, repo, number: pr?.number, title: pr?.title, body: pr?.body, author: pr?.user };
+    const result = await analyse(env, owner, repo, sha, files, meta);
+    cache.set(sha, result);
+    return result;
+  };
+  const defaultStepSha = async () => {
+    const info = await gh.api(`/repos/${owner}/${repo}`);
+    const ref = info.default_branch;
+    const listing = await gh.api(`/repos/${owner}/${repo}/contents/.github/workflows?ref=${encodeURIComponent(ref)}`);
+    for (const f of listing) {
+      const text = await gh.rawFile(owner, repo, ref, `.github/workflows/${f.name}`).catch(() => undefined);
+      const found = text?.match(/uses:\s*\S*truedone-action\S*@([0-9a-f]{40})/)?.[1];
+      if (found) return found;
+    }
+    return null;
+  };
+  return Object.assign(env, {
+    UNZIP: unzip,
+    defaultStepSha,
+    publishedShas: gh.publishedShas,
+    // The stage's own call shapes (sha, judged, meta) and (number, judged),
+    // adapted onto the shared five-argument GitHub calls.
+    postCheck: (sha, judged, meta) => gh.postCheck(meta.owner, meta.repo, sha, judged, meta),
+    postLabel: (number, judged) => gh.postLabel(owner, repo, number, judged, { owner, repo, number }),
+    staticResult,
+    staticVerdict: async (sha) => (await staticResult(sha))?.verdict,
+  });
 }
 
 export default {
