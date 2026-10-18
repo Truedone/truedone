@@ -80,9 +80,14 @@ function sh(gitArgs) {
   return execFileSync('git', gitArgs, { encoding: 'utf8' }).trim();
 }
 
+export function listChangedFiles() {
+  const base = sh(['merge-base', 'HEAD', 'origin/main']);
+  return sh(['diff', '--name-only', base, 'HEAD']).split('\n').filter(Boolean);
+}
+
 export async function main() {
   const title = process.env.PR_TITLE || '';
-  const changed = sh(['diff', '--name-only', 'merge-base', 'HEAD']).split('\n').filter(Boolean);
+  const changed = listChangedFiles();
   const gate = makeGate({
     git: (...a) => sh(a),
     run: (cmd) => { try { execFileSync('sh', ['-c', cmd], { stdio: 'inherit' }); return { code: 0 }; } catch (e) { return { code: e.status ?? 1 }; } },
