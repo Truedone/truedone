@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+<title>Release notes from tool</title>
+<entry>
+<title>v2.0.0</title>
+<link rel="alternate" type="text/html" href="https://example.com/tool/releases/v2.0.0"/>
+<updated>2026-10-16T09:00:00Z</updated>
+<content type="html">&lt;p&gt;Now blocks a pull request that weakens tests.&lt;/p&gt;</content>
+</entry>
+<entry>
+<title>v1.9.0</title>
+<link rel="alternate" type="text/html" href="https://example.com/tool/releases/v1.9.0"/>
+<updated>2026-10-12T09:00:00Z</updated>
+<content type="html">Faster scans.</content>
+</entry>
+</feed>
