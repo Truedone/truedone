@@ -71,6 +71,7 @@ flowchart TD
   bundles -.->|review| action
   web -.->|review| readme
   web -.->|review| design
+  web -.->|review| app
   cli -.->|review| readme
   cli -.->|review| design
   app -.->|review| readme
@@ -113,7 +114,7 @@ flowchart TD
 | `core-run` | the red-green runner | `packages/core/run/**` | `bundles` | `core-test`, `spec` | live |
 | `core-test` | core tests and fixtures | `packages/core/test/**` |   | `core` | live |
 | `bundles` | the built single files | `packages/core/core.mjs`, `packages/web/core.mjs`, `packages/cli/truedone.mjs`, `packages/cli/plugin/hooks/stop.mjs`, `packages/action/dist/index.mjs` |   | `web`, `cli`, `app`, `action` | live |
-| `web` | truedone.pages.dev | `packages/web/**` |   | `readme`, `design` | live |
+| `web` | truedone.pages.dev | `packages/web/**` |   | `readme`, `design`, `app` | live |
 | `cli` | npx truedone and the plugin | `packages/cli/**`, `.claude-plugin/**` |   | `readme`, `design` | live |
 | `app` | the GitHub App | `packages/app/**` |   | `readme`, `design` | live |
 | `action` | the CI step | `packages/action/**` |   | `readme`, `design` | live |
@@ -151,7 +152,7 @@ flowchart TD
     "core-run": {"paths": ["packages/core/run/**"], "update": [], "review": ["core-test", "spec", "bundles"]},
     "core-test": {"paths": ["packages/core/test/**"], "update": [], "review": ["core"]},
     "bundles": {"paths": ["packages/core/core.mjs", "packages/web/core.mjs", "packages/cli/truedone.mjs", "packages/cli/plugin/hooks/stop.mjs", "packages/action/dist/index.mjs"], "update": [], "review": ["web", "cli", "app", "action"]},
-    "web": {"paths": ["packages/web/**"], "update": [], "review": ["readme", "design"]},
+    "web": {"paths": ["packages/web/**"], "update": [], "review": ["readme", "design", "app"]},
     "cli": {"paths": ["packages/cli/**", ".claude-plugin/**"], "update": [], "review": ["readme", "design"]},
     "app": {"paths": ["packages/app/**"], "update": [], "review": ["readme", "design"]},
     "action": {"paths": ["packages/action/**"], "update": [], "review": ["readme", "design"]},

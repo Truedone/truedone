@@ -84,13 +84,21 @@ export function makeRedGreen(env) {
     const check = reportChecks(text, { headSha, defaultBranchStep, publishedShas: await env.publishedShas() });
     if (!check.ok) return { refused: check.why, pr: pr.number };
 
-    const judged = await env.core.judge(env.staticResult(headSha), [check.report]);
+    const judged = await env.core.judge(await env.staticResult(headSha), [check.report]);
     // D10: the app's own static verdict stands; no report overrides tampered or review.
-    if (["tampered", "review"].includes(env.staticVerdict(headSha))) {
-      return { verdict: env.staticVerdict(headSha), pr: pr.number };
+    // The entry builds both from the shared static analysis, so both may be async; each
+    // is awaited (APP-13).
+    const standing = await env.staticVerdict(headSha);
+    if (["tampered", "review"].includes(standing)) {
+      return { verdict: standing, pr: pr.number };
     }
-    await env.postCheck(pr.head.sha, judged, { owner, repo, number: pr.number });
-    await env.postLabel(pr.number, judged);
+    // A verdict is about one commit (APP-13): the check run is written at the commit the
+    // report ran on (reportChecks pinned report.head_sha to it), never at the pull
+    // request's current head; the label belongs to the pull request, so it is written
+    // only while that commit is still the head, and a run on an older commit leaves the
+    // newer head's label to that head's own run.
+    await env.postCheck(headSha, judged, { owner, repo, number: pr.number });
+    if (pr.head.sha === headSha) await env.postLabel(pr.number, judged);
     env.LOG?.({ installation: delivery.payload.installation?.id, repository: delivery.payload.repository.id, pr: pr.number, verdict: judged.verdict, ms: Date.now() - (delivery._t0 || Date.now()) });
     return { verdict: judged.verdict, pr: pr.number };
   };

@@ -20,17 +20,6 @@ export function makeGitHub(env) {
     return r.json();
   }
 
-  async function prFiles(owner, repo, number) {
-    const files = [];
-    let page = 1;
-    for (;;) {
-      const part = await api(`/repos/${owner}/${repo}/pulls/${number}/files?per_page=100&page=${page}`);
-      files.push(...part);
-      if (part.length < 100) return files;
-      page++;
-    }
-  }
-
   // D18: the published truedone release SHAs come from the tags of
   // truedone/action, cached on the env.
   async function publishedShas() {
@@ -81,7 +70,7 @@ export function makeGitHub(env) {
     await api(`/repos/${owner}/${repo}/issues/${number}/labels`, { method: "POST", body: JSON.stringify({ labels: [wanted] }) });
   }
 
-  return { api, prFiles, publishedShas, rawFile, postCheck, postLabel };
+  return { api, publishedShas, rawFile, postCheck, postLabel };
 }
 
 function esc(text) {
@@ -99,7 +88,7 @@ function summary(result, prMeta) {
   }
   if (result.reasons.length > 10) lines.push(`- and ${result.reasons.length - 10} more`);
   if (result.next) lines.push("", `What would change this: ${esc(result.next)}`);
-  lines.push("", `Why: https://truedone.dev/${prMeta.owner}/${prMeta.repo}/pull/${prMeta.number}`);
+  lines.push("", `Why: https://truedone.pages.dev/${prMeta.owner}/${prMeta.repo}/pull/${prMeta.number}`);
   return lines.join("\n");
 }
 

@@ -1,0 +1,35 @@
+{
+  "number": 42,
+  "state": "open",
+  "title": "Probe: one added test case",
+  "body": "A probe for the development app's delivery path; I close it after the check.",
+  "user": {
+    "login": "mgillr",
+    "type": "User"
+  },
+  "head": {
+    "ref": "probe/app09",
+    "sha": "db0379511f451574f68812dfb77f573c248d22cc",
+    "repo": {
+      "id": 1423535438,
+      "name": "truedone-sandbox",
+      "full_name": "mgillr/truedone-sandbox",
+      "owner": {
+        "login": "mgillr"
+      }
+    }
+  },
+  "base": {
+    "ref": "main",
+    "sha": "1bd746aa474b84cd030a533c2232a2b7faa0eb85",
+    "repo": {
+      "id": 1423535438,
+      "name": "truedone-sandbox",
+      "full_name": "mgillr/truedone-sandbox",
+      "owner": {
+        "login": "mgillr"
+      }
+    }
+  },
+  "changed_files": 1
+}

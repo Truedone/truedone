@@ -34,10 +34,10 @@ function memoryKV() {
 }
 
 const PR_FILES = [
-  { path: "src/a.mjs", status: "modified", patch: "@@ -1 +1 @@" },
-  { path: "test/a.test.mjs", status: "added", patch: "@@ +1" },
-  { path: "test/b.test.mjs", status: "added", patch: "@@ +1" },
-  { path: "jest.config.js", status: "modified", patch: "@@ -1 +1 @@" },
+  { filename: "src/a.mjs", status: "modified", patch: "@@ -1 +1 @@" },
+  { filename: "test/a.test.mjs", status: "added", patch: "@@ +1" },
+  { filename: "test/b.test.mjs", status: "added", patch: "@@ +1" },
+  { filename: "jest.config.js", status: "modified", patch: "@@ -1 +1 @@" },
 ];
 
 function routesFor({ analyseResult }) {
@@ -66,7 +66,7 @@ function result(over = {}) {
   return { schema: "truedone.verdict/1", verdict: "proven", label: null, partial: false, reasons: [{ check: "x", file: "test/a.test.mjs", message: "it fails on base" }], next: "nothing", ...over };
 }
 
-const PAYLOAD = { payload: { repository: { owner: { login: "o" }, name: "r", id: 7 }, installation: { id: 3 }, pull_request: { number: 1, head: { sha: "h1", ref: "main" }, title: "t", body: "b", user: { login: "u" } } } };
+const PAYLOAD = { payload: { repository: { owner: { login: "o" }, name: "r", id: 7 }, installation: { id: 3 }, pull_request: { number: 1, head: { sha: "h1", ref: "main" }, base: { sha: "b1", ref: "main" }, title: "t", body: "b", user: { login: "u" } } } };
 
 async function postedSummary(env) {
   const fetch = fakeFetch(routesFor({}));

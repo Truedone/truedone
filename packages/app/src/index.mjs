@@ -137,9 +137,9 @@ function redgreenFor(env, payload) {
     if (cache.has(sha)) return cache.get(sha);
     const prs = await gh.api(`/repos/${owner}/${repo}/commits/${sha}/pulls`);
     const pr = prs[0];
-    const files = pr ? await gh.prFiles(owner, repo, pr.number) : [];
-    const meta = { owner, repo, number: pr?.number, title: pr?.title, body: pr?.body, author: pr?.user };
-    const result = await analyse(env, owner, repo, sha, files, meta);
+    // APP-13: the analyser reads the pull request's files itself, with the site's
+    // reader, at this commit.
+    const result = await analyse(env, owner, repo, pr && { ...pr, head: { ...pr.head, sha } });
     cache.set(sha, result);
     return result;
   };
