@@ -1,5 +1,13 @@
-// node tools/check-browser.mjs: two checks in system Chromium (CHROMIUM_BIN, else chromium on PATH) with --headless
+// node tools/check-browser.mjs: two checks in the system browser with --headless
 // --dump-dom. No dependencies.
+// The browser is resolved once, in one place (REPO-03): CHROMIUM_BIN, then
+// chromium, chromium-browser, google-chrome and google-chrome-stable on PATH,
+// then the standard macOS install paths (Google Chrome.app and Chromium.app
+// under /Applications) and Linux paths (/usr/bin/google-chrome,
+// /usr/bin/chromium); when nothing is found the error names every place it
+// looked. The module is import-safe: the checks run only when it is the
+// invoked entry point, so tools/test/check-browser-resolve.test.mjs imports
+// the resolver.
 // - No arguments (CORE-05-AC04): packages/web/core.mjs loads in a page as an ES module and analyse() returns
 //   no_evidence for a one-line source change.
 // - --page <html> [--fixture <dir>] (WEB-01-AC08): loads a page of the site and checks what it rendered. It serves the
@@ -10,122 +18,186 @@
 //   no error.
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
-import { mkdtempSync, rmSync, readFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, rmSync, readFileSync, existsSync, accessSync, constants as fsConstants } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import fs from 'node:fs';
 import http from 'node:http';
 import os from 'node:os';
-import { execFileSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 
-if (process.argv.includes('--page')) process.exit(await checkPage());
+const DEFAULT_CANDIDATES = [
+  { kind: 'env', name: 'CHROMIUM_BIN' },
+  { kind: 'path', name: 'chromium' },
+  { kind: 'path', name: 'chromium-browser' },
+  { kind: 'path', name: 'google-chrome' },
+  { kind: 'path', name: 'google-chrome-stable' },
+  { kind: 'file', name: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' },
+  { kind: 'file', name: '/Applications/Chromium.app/Contents/MacOS/Chromium' },
+  { kind: 'file', name: '/usr/bin/google-chrome' },
+  { kind: 'file', name: '/usr/bin/chromium' },
+];
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-const coreFile = path.join(root, 'packages/web/core.mjs');
-if (!existsSync(coreFile)) {
-  console.error('packages/web/core.mjs is missing');
-  process.exit(1);
+function onPathDefault(name) {
+  for (const dir of (process.env.PATH ?? '').split(path.delimiter)) {
+    if (!dir) continue;
+    const candidate = path.join(dir, name);
+    try {
+      accessSync(candidate, fsConstants.X_OK);
+      return candidate;
+    } catch { /* not this directory */ }
+  }
+  return null;
 }
-const core = readFileSync(coreFile);
-const html = `<!doctype html><meta charset="utf-8"><div id="v"></div><script type="module">
+
+// REPO-03: the one resolver both browser-picking places use. Throws, naming
+// every place it looked, when nothing is found; throws naming CHROMIUM_BIN
+// when it is set but not a file. The candidate list, the environment, the
+// PATH lookup and the file test are parameters, so a test drives the resolver
+// without a browser.
+export function resolveBrowser({ candidates = DEFAULT_CANDIDATES, env = process.env, lookup = onPathDefault, exists = (p) => existsSync(p) } = {}) {
+  const looked = [];
+  for (const c of candidates) {
+    if (c.kind === 'env') {
+      const value = env[c.name];
+      if (value === undefined || value === '') {
+        looked.push(`${c.name} (unset)`);
+        continue;
+      }
+      if (!exists(value)) throw new Error(`CHROMIUM_BIN is not a file: ${value}`);
+      return value;
+    }
+    if (c.kind === 'path') {
+      looked.push(`${c.name} on PATH`);
+      const hit = lookup(c.name);
+      if (hit) return hit;
+      continue;
+    }
+    looked.push(c.name);
+    if (exists(c.name)) return c.name;
+  }
+  throw new Error(`no Chromium or Chrome found. Looked at: ${looked.join(', ')}`);
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  if (process.argv.includes('--page')) process.exit(await checkPage());
+  await runMain();
+}
+
+async function runMain() {
+  const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+  const coreFile = path.join(root, 'packages/web/core.mjs');
+  if (!existsSync(coreFile)) {
+    console.error('packages/web/core.mjs is missing');
+    process.exit(1);
+  }
+  const core = readFileSync(coreFile);
+  const html = `<!doctype html><meta charset="utf-8"><div id="v"></div><script type="module">
 import { analyse } from "./core.mjs";
 const o = analyse({files:[{path:"src/a.js",status:"modified",patch:"@@ -1 +1 @@\\n-a\\n+b"}],pr:{title:"",body:"",author:{login:"a",type:"User"}},releases:[]});
 document.querySelector("#v").textContent = o.verdict;
 </script>`;
 
-let requests = 0;
-const server = createServer((req, res) => {
-  requests += 1;
-  const u = (req.url || '/').split('?')[0];
-  if (u === '/' || u === '/index.html') {
-    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-    res.end(html);
-    return;
+  let bin;
+  try {
+    bin = resolveBrowser();
+  } catch (e) {
+    console.error(e.message);
+    process.exit(1);
   }
-  if (u === '/core.mjs') {
-    res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8' });
-    res.end(core);
-    return;
-  }
-  res.writeHead(404);
-  res.end();
-});
-await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-const { port } = server.address();
-const bin = process.env.CHROMIUM_BIN || 'chromium';
-const profile = mkdtempSync(path.join(tmpdir(), 'td-browser-'));
-
-function launch(args, timeoutMs) {
-  return new Promise((resolve) => {
-    const child = spawn(bin, args, { stdio: ['ignore', 'pipe', 'pipe'] });
-    let stdout = '';
-    let stderr = '';
-    let settled = false;
-    let timedOut = false;
-    let dumped = false;
-    const finish = (status, error) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      resolve({ status, stdout, stderr, error });
-    };
-    const timer = setTimeout(() => {
-      if (settled) return;
-      timedOut = true;
-      child.kill('SIGKILL');
-    }, timeoutMs);
-    child.stdout.on('data', (chunk) => {
-      stdout += chunk;
-      if (!dumped && stdout.includes('</html>')) {
-        dumped = true;
-        child.kill('SIGKILL');
-      }
-    });
-    child.stderr.on('data', (chunk) => { stderr += chunk; });
-    child.on('error', (error) => finish(null, error));
-    child.on('close', (status) => {
-      if (timedOut) {
-        const error = new Error(`chromium did not exit within ${timeoutMs} ms; requests ${requests}`);
-        error.code = 'ETIMEDOUT';
-        finish(status, error);
-        return;
-      }
-      finish(status, null);
-    });
+  let requests = 0;
+  const server = createServer((req, res) => {
+    requests += 1;
+    const u = (req.url || '/').split('?')[0];
+    if (u === '/' || u === '/index.html') {
+      res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+      res.end(html);
+      return;
+    }
+    if (u === '/core.mjs') {
+      res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8' });
+      res.end(core);
+      return;
+    }
+    res.writeHead(404);
+    res.end();
   });
-}
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const { port } = server.address();
+  const profile = mkdtempSync(path.join(tmpdir(), 'td-browser-'));
 
-let result;
-try {
-  result = await launch([
-    '--headless',
-    '--disable-gpu',
-    '--no-first-run',
-    '--no-default-browser-check',
-    `--user-data-dir=${profile}`,
-    '--virtual-time-budget=15000',
-    '--dump-dom',
-    `http://127.0.0.1:${port}/`,
-  ], 60000);
-} finally {
-  server.close();
-  server.closeAllConnections?.();
-  rmSync(profile, { recursive: true, force: true });
-}
-if (result.error && result.error.code === 'ENOENT') {
-  console.error(process.env.CHROMIUM_BIN ? `CHROMIUM_BIN is not a file: ${bin}` : 'chromium is not on PATH and CHROMIUM_BIN is unset');
-  process.exit(1);
-}
-if (result.error && result.error.code === 'ETIMEDOUT') {
-  console.error(result.error.message);
-  if (result.stderr) console.error(result.stderr.slice(-1500));
-  process.exit(1);
-}
-const dump = result.stdout || '';
-if (!dump.includes('no_evidence')) {
-  if (result.stderr) console.error(result.stderr);
-  if (dump) console.error(dump);
-  process.exit(result.status || 1);
+  function launch(args, timeoutMs) {
+    return new Promise((resolve) => {
+      const child = spawn(bin, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+      let stdout = '';
+      let stderr = '';
+      let settled = false;
+      let timedOut = false;
+      let dumped = false;
+      const finish = (status, error) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve({ status, stdout, stderr, error });
+      };
+      const timer = setTimeout(() => {
+        if (settled) return;
+        timedOut = true;
+        child.kill('SIGKILL');
+      }, timeoutMs);
+      child.stdout.on('data', (chunk) => {
+        stdout += chunk;
+        if (!dumped && stdout.includes('</html>')) {
+          dumped = true;
+          child.kill('SIGKILL');
+        }
+      });
+      child.stderr.on('data', (chunk) => { stderr += chunk; });
+      child.on('error', (error) => finish(null, error));
+      child.on('close', (status) => {
+        if (timedOut) {
+          const error = new Error(`chromium did not exit within ${timeoutMs} ms; requests ${requests}`);
+          error.code = 'ETIMEDOUT';
+          finish(status, error);
+          return;
+        }
+        finish(status, null);
+      });
+    });
+  }
+
+  let result;
+  try {
+    result = await launch([
+      '--headless',
+      '--disable-gpu',
+      '--no-first-run',
+      '--no-default-browser-check',
+      `--user-data-dir=${profile}`,
+      '--virtual-time-budget=15000',
+      '--dump-dom',
+      `http://127.0.0.1:${port}/`,
+    ], 60000);
+  } finally {
+    server.close();
+    server.closeAllConnections?.();
+    rmSync(profile, { recursive: true, force: true });
+  }
+  if (result.error && result.error.code === 'ENOENT') {
+    console.error(process.env.CHROMIUM_BIN ? `CHROMIUM_BIN is not a file: ${bin}` : 'chromium is not on PATH and CHROMIUM_BIN is unset');
+    process.exit(1);
+  }
+  if (result.error && result.error.code === 'ETIMEDOUT') {
+    console.error(result.error.message);
+    if (result.stderr) console.error(result.stderr.slice(-1500));
+    process.exit(1);
+  }
+  const dump = result.stdout || '';
+  if (!dump.includes('no_evidence')) {
+    if (result.stderr) console.error(result.stderr);
+    if (dump) console.error(dump);
+    process.exit(result.status || 1);
+  }
 }
 
 // The --page check (WEB-01-AC08); resolves to the exit code.
@@ -142,9 +214,14 @@ function checkPage() {
       const h = fs.readFileSync(path.join(site, '_headers'), 'utf8').match(/Content-Security-Policy:\s*(.+)/)?.[1] ?? '';
       return h.replace(/connect-src 'self'/, `connect-src 'self' ${origin}`);
     };
+    let resolveError = null;
     const chromium = () => {
-      if (process.env.CHROMIUM_BIN) return process.env.CHROMIUM_BIN;
-      try { return execFileSync('sh', ['-c', 'command -v chromium || command -v chromium-browser'], { encoding: 'utf8' }).trim().split('\n')[0]; } catch { return null; }
+      try {
+        return resolveBrowser();
+      } catch (e) {
+        resolveError = e;
+        return null;
+      }
     };
 
     const server = http.createServer((req, res) => {
@@ -171,7 +248,7 @@ function checkPage() {
     server.listen(0, '127.0.0.1', () => {
       const { port } = server.address();
       const bin = chromium();
-      if (!bin) { console.error('check-browser: no Chromium (set CHROMIUM_BIN or put chromium on PATH)'); server.close(); return done(1); }
+      if (!bin) { console.error(resolveError ? resolveError.message : 'check-browser: no Chromium found'); server.close(); return done(1); }
       const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'check-browser-'));
       const target = `http://127.0.0.1:${port}${rec?.pr ?? '/'}`;
       const c = spawn(bin, ['--headless', '--disable-gpu', '--no-first-run', '--no-default-browser-check', `--user-data-dir=${profile}`, '--virtual-time-budget=15000', '--dump-dom', target], { stdio: ['ignore', 'pipe', 'pipe'] });
