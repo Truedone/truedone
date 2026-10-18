@@ -50,7 +50,16 @@ licence agreement.
 
 ## Running the checks
 
-The checks need Node 22 or later.
+The checks need:
+
+- Node 22 or later.
+- git, which the runner and gate tests drive.
+- curl, which the stand-in browser in `packages/core/test/check-browser.test.mjs` calls.
+- Python 3 with pytest (`python3 -m pip install pytest`), which `packages/core/test/run-live-pytest.test.mjs` runs.
+- Chrome or Chromium, for the browser checks that `node tools/check-browser.mjs` runs, found through `CHROMIUM_BIN` or
+  `chromium` on PATH.
+
+There are no dependencies, so `npm ci` installs nothing; `package-lock.json` is empty on purpose.
 
 ```
 npm test
