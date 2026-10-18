@@ -136,7 +136,7 @@ flowchart TD
 | `gates` | gate records and review sheets | `docs/gates/**` |   | `readme`, `releases` | live |
 | `index` | the weekly index | `docs/index/**` |   | `readme` | planned |
 | `ops` | the owner ops records | `docs/ops/**` |   |   | live |
-| `releases` | release decisions | `docs/releases/**` |   | `readme` | planned |
+| `releases` | release decisions | `docs/releases/**` |   | `readme` | live |
 | `spikes` | spike records | `docs/spikes/**`, `docs/plugin-hooks.md` |   | `spec` | live |
 | `policy` | the security policy | `SECURITY.md` |   | `readme`, `web` | live |
 | `notices` | the privacy and terms notes | `docs/privacy.md`, `docs/terms.md` | `legal-pages` | `readme`, `web` | live |
@@ -178,7 +178,7 @@ flowchart TD
     "gates": {"paths": ["docs/gates/**"], "update": [], "review": ["readme", "releases"]},
     "index": {"planned": true, "paths": ["docs/index/**"], "update": [], "review": ["readme"]},
     "ops": {"paths": ["docs/ops/**"], "update": [], "review": []},
-    "releases": {"planned": true, "paths": ["docs/releases/**"], "update": [], "review": ["readme"]},
+    "releases": {"paths": ["docs/releases/**"], "update": [], "review": ["readme"]},
     "spikes": {"paths": ["docs/spikes/**", "docs/plugin-hooks.md"], "update": [], "review": ["spec"]},
     "policy": {"paths": ["SECURITY.md"], "update": [], "review": ["readme", "web"]},
     "notices": {"paths": ["docs/privacy.md", "docs/terms.md"], "update": ["legal-pages"], "review": ["readme", "web"]},

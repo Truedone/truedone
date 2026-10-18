@@ -8,4 +8,6 @@ agents to `AGENTS.md` or `CLAUDE.md`.
 
 Exit codes: 0 when a verdict is produced or `--help` (or `-h`) prints the usage, 1 when `--fail-on` matches, 2 for a usage error, 3 for an internal error.
 
+This is the 0.1.0 preview: `npx truedone --version` prints `truedone 0.1.0 (preview)`, and `--help` ends by naming it a preview.
+
 The package is one file with no dependencies. Licence: Apache-2.0.

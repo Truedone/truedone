@@ -1979,6 +1979,8 @@ const { restore, swapToBase } = __m9;
 
 const SCHEMA = 'truedone.report/1';
 
+const TRUEDONE_VERSION = '0.1.0';
+
 function cleanEnv(env) {
 const out = {};
 for (const [key, value] of Object.entries(env || {})) {
@@ -2254,7 +2256,7 @@ schema: SCHEMA,
 head_sha: head ?? null,
 checked_out_sha: head ?? null,
 base_sha: base ?? null,
-truedone_version: '0.0.0',
+truedone_version: TRUEDONE_VERSION,
 runner: headSide.runner || baseSide.runner,
 job: null,
 tests: items.map((item) => item.entry),
@@ -2726,6 +2728,12 @@ return fail(3, `internal error: ${String(e?.message ?? e).split('\n')[0]}`);
 
 return {filterEnv,consent,runMode};
 })();
+const __m20=(()=>{
+const VERSION = '0.1.0';
+const VERSION_LINE = `truedone ${VERSION} (preview)`;
+
+return {VERSION,VERSION_LINE};
+})();
 const __m11=(()=>{
 const { init } = __m12;
 const { parseTarget } = __m13;
@@ -2733,12 +2741,16 @@ const { loadPR, fetchReleases, RateLimited, GitHubError } = __m14;
 const { localInput, makeGit, NoRepository } = __m16;
 const { readable, SCHEMA, VERDICTS } = __m17;
 const { runMode } = __m18;
+const { VERSION_LINE } = __m20;
 
-const USAGE = 'usage: npx truedone [<PR link> | <owner/repo#n>] [--run [--docker] [--yes]] [--json] [--fail-on <verdict>[,<verdict>...]]\n       npx truedone init';
+const USAGE = 'usage: npx truedone [<PR link> | <owner/repo#n>] [--run [--docker] [--yes]] [--json] [--fail-on <verdict>[,<verdict>...]]\n       npx truedone init\n       npx truedone --version';
+
+const HELP = `${USAGE}\n\n${VERSION_LINE}: a preview, released ahead of the launch.`;
 class UsageError extends Error {}
 
 function parse(argv) {
 if (argv.includes('--help') || argv.includes('-h')) return { help: true };
+if (argv.includes('--version')) return { version: true };
 const o = { json: false, failOn: null, init: false, target: null, run: false, docker: false, yes: false };
 const rest = [];
 for (let i = 0; i < argv.length; i++) {
@@ -2781,7 +2793,11 @@ if (e instanceof UsageError) return fail(2, `${e.message}\n${USAGE}`);
 throw e;
 }
 if (o.help) {
-stdout.write(`${USAGE}\n`);
+stdout.write(`${HELP}\n`);
+return 0;
+}
+if (o.version) {
+stdout.write(`${VERSION_LINE}\n`);
 return 0;
 }
 try {

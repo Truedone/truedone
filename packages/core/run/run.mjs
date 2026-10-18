@@ -14,6 +14,9 @@ import { fromRoot, parseReport, symbolsAdded } from './parse.mjs';
 import { restore, swapToBase } from './swap.mjs';
 
 const SCHEMA = 'truedone.report/1';
+// The release a report comes from (REL-P1, #105). tools/bundle.mjs writes this line in every bundle from
+// packages/cli/package.json's version, and tools/test/bundle-version.test.mjs holds the source line to it too.
+const TRUEDONE_VERSION = '0.1.0';
 
 function cleanEnv(env) {
   const out = {};
@@ -295,7 +298,7 @@ export async function redGreen({ root, tests, files, base, head, env, exec }) {
     head_sha: head ?? null,
     checked_out_sha: head ?? null,
     base_sha: base ?? null,
-    truedone_version: '0.0.0',
+    truedone_version: TRUEDONE_VERSION,
     runner: headSide.runner || baseSide.runner,
     job: null,
     tests: items.map((item) => item.entry),

@@ -7,6 +7,7 @@
 //   init                           add the agent snippet (src/init.mjs)
 //   --run [--docker] [--yes]        add red-green (src/run.mjs, CLI-03); on someone else's PR only after a typed yes or --yes
 //   --help, -h                     print the usage and exit 0, whatever else is given
+//   --version                      print "truedone <version> (preview)" and exit 0, whatever else but --help is given
 // deps: { analyse, classify, fetch, cwd, env, stdout, stderr, git? }, and for --run { judge, detect, redGreen,
 // restorePending, stdin, makeGit?, spawn?, dockerOnPath?, cloneUrl?, tmpdir? }. core's analyse and classify come in as deps, so
 // the tests run main in-process; src/bin.mjs passes the bundled core. PR mode starts no process.
@@ -16,12 +17,16 @@ import { loadPR, fetchReleases, RateLimited, GitHubError } from './github.mjs';
 import { localInput, makeGit, NoRepository } from './local.mjs';
 import { readable, SCHEMA, VERDICTS } from './output.mjs';
 import { runMode } from './run.mjs';
+import { VERSION_LINE } from './version.mjs';
 
-const USAGE = 'usage: npx truedone [<PR link> | <owner/repo#n>] [--run [--docker] [--yes]] [--json] [--fail-on <verdict>[,<verdict>...]]\n       npx truedone init';
+const USAGE = 'usage: npx truedone [<PR link> | <owner/repo#n>] [--run [--docker] [--yes]] [--json] [--fail-on <verdict>[,<verdict>...]]\n       npx truedone init\n       npx truedone --version';
+// The help ends with the version line, so a reader of --help knows this is the preview (D35).
+const HELP = `${USAGE}\n\n${VERSION_LINE}: a preview, released ahead of the launch.`;
 class UsageError extends Error {}
 
 function parse(argv) {
   if (argv.includes('--help') || argv.includes('-h')) return { help: true };
+  if (argv.includes('--version')) return { version: true };
   const o = { json: false, failOn: null, init: false, target: null, run: false, docker: false, yes: false };
   const rest = [];
   for (let i = 0; i < argv.length; i++) {
@@ -64,7 +69,11 @@ export async function main(argv, deps) {
     throw e;
   }
   if (o.help) {
-    stdout.write(`${USAGE}\n`);
+    stdout.write(`${HELP}\n`);
+    return 0;
+  }
+  if (o.version) {
+    stdout.write(`${VERSION_LINE}\n`);
     return 0;
   }
   try {

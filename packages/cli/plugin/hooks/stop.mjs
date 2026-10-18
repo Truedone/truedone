@@ -1977,6 +1977,8 @@ const { restore, swapToBase } = __m9;
 
 const SCHEMA = 'truedone.report/1';
 
+const TRUEDONE_VERSION = '0.1.0';
+
 function cleanEnv(env) {
 const out = {};
 for (const [key, value] of Object.entries(env || {})) {
@@ -2252,7 +2254,7 @@ schema: SCHEMA,
 head_sha: head ?? null,
 checked_out_sha: head ?? null,
 base_sha: base ?? null,
-truedone_version: '0.0.0',
+truedone_version: TRUEDONE_VERSION,
 runner: headSide.runner || baseSide.runner,
 job: null,
 tests: items.map((item) => item.entry),
