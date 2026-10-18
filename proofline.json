@@ -372,6 +372,30 @@
       ],
       "APP-13": [
         "APP-13-AC08"
+      ],
+      "REL-P1": [
+        "REL-P1-AC06",
+        "REL-P1-AC02"
+      ],
+      "REL-P2": [
+        "REL-P2-AC04"
+      ],
+      "REL-P3": [
+        "REL-P3-AC04",
+        "REL-P3-AC01"
+      ],
+      "OPS-09": [
+        "OPS-09-AC06",
+        "OPS-09-AC02"
+      ],
+      "REL-P5": [
+        "REL-P5-AC05",
+        "REL-P5-AC01",
+        "REL-P5-AC02",
+        "REL-P5-AC03"
+      ],
+      "REL-P4": [
+        "REL-P4-AC06"
       ]
     }
   },
@@ -11183,6 +11207,531 @@
       ]
     },
     {
+      "id": "REL-P1",
+      "title": "[W2] The command line's preview package, checked from its own tarball",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "CLI-01",
+        "CLI-03"
+      ],
+      "requirements": [
+        "PV-R01"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D35. packages/cli/package.json is version 0.1.0; truedone --version prints \"truedone 0.1.0 (preview)\" and --help names it a preview. tools/release-preview.mjs cli runs npm pack in a scratch directory with an empty npm config and checks the tarball: exactly truedone.mjs, package.json, README.md and LICENSE; the version; no file over 1 MB; no secret pattern. It then installs the tarball into a scratch HOME and runs the installed truedone on the five examples the site lists (EXAMPLES in packages/web/lib/view.mjs), each giving the verdict the site gives, and writes the commands and measured lines to the \"## The command line\" section of docs/releases/preview-0.1.0.md. Publishing is Ryan's, from his terminal (REL-P5).",
+      "scope": {
+        "allow": [
+          "docs/DEPENDENCY-MAP.md",
+          "docs/releases/preview-0.1.0.md",
+          "packages/action/dist/index.mjs",
+          "packages/cli/**",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "tools/bundle.mjs",
+          "tools/release-preview.mjs",
+          "tools/test/fixtures/release-preview/**",
+          "tools/test/release-preview.test.mjs"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "REL-P1-AC01",
+          "mandatory": true,
+          "statement": "the release check fails on a tarball with an extra file, a wrong version or a secret, and passes on a clean one",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/release-preview.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "REL-P1-AC02",
+          "mandatory": true,
+          "statement": "the real tarball passes the check, and the installed CLI gives the site's verdict on each of its five examples",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/release-preview.mjs cli",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P1-AC03",
+          "mandatory": true,
+          "statement": "the CLI names itself a preview",
+          "verifier": {
+            "type": "command",
+            "cmd": "node packages/cli/truedone.mjs --version | grep -qx \"truedone 0.1.0 (preview)\"",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "REL-P1-AC04",
+          "mandatory": true,
+          "statement": "the release notes carry the measured CLI lines",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/releases/preview-0.1.0.md",
+            "pattern": "^## The command line",
+            "must": "present"
+          }
+        },
+        {
+          "id": "REL-P1-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P1-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P1-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "REL-P1-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "REL-P2",
+      "title": "[W2] The action's tree for mgillr/truedone-action, built from main",
+      "phase": "implement",
+      "owner": "lane-d",
+      "depends_on": [
+        "ACT-03"
+      ],
+      "requirements": [
+        "PV-R01"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D35. tools/mirror-action.mjs <out dir> writes the tree mgillr/truedone-action carries, from main and nothing else: action.yml at the root, dist/index.mjs, README.md (its usage block says uses: mgillr/truedone-action@v0.1.0 and how to pin the commit the tag names), LICENSE and NOTICE; two runs give the same bytes. Ryan pushes the tree and the tag v0.1.0 with the commands the tool prints (REL-P5). The file list and each file's SHA-256 are in the \"## The action\" section of docs/releases/preview-0.1.0.md.",
+      "scope": {
+        "allow": [
+          "docs/DEPENDENCY-MAP.md",
+          "docs/releases/preview-0.1.0.md",
+          "packages/action/**",
+          "tools/mirror-action.mjs",
+          "tools/test/mirror-action.test.mjs"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "REL-P2-AC01",
+          "mandatory": true,
+          "statement": "the mirror writes exactly the five paths from main's files, the same bytes twice, and fails when one is missing",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/mirror-action.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "REL-P2-AC02",
+          "mandatory": true,
+          "statement": "the release notes carry the tree's file list and hashes",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/releases/preview-0.1.0.md",
+            "pattern": "^## The action",
+            "must": "present"
+          }
+        },
+        {
+          "id": "REL-P2-AC03",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P2-AC04",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P2-AC05",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "REL-P2-AC06",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "REL-P3",
+      "title": "[W3] The plugin installs from this repository's marketplace in a fresh home",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "PLG-02"
+      ],
+      "requirements": [
+        "PV-R01"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D35. tools/release-preview.mjs plugin adds the marketplace mgillr/truedone with the claude CLI in a scratch HOME, installs the plugin truedone from it, checks that its Stop hook is registered, and runs the installed hook on a recorded transcript, expecting the answer the plugin's own tests expect. It writes the commands and their output to the \"## The plugin\" section of docs/releases/preview-0.1.0.md. The official marketplace submission stays with REL-W3.",
+      "scope": {
+        "allow": [
+          ".claude-plugin/**",
+          "docs/DEPENDENCY-MAP.md",
+          "docs/plugin-hooks.md",
+          "docs/releases/preview-0.1.0.md",
+          "packages/action/dist/index.mjs",
+          "packages/cli/plugin/**",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/cli/src/**",
+          "packages/cli/test/**",
+          "packages/cli/truedone.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "tools/bundle.mjs",
+          "tools/release-preview.mjs",
+          "tools/test/fixtures/release-preview/**",
+          "tools/test/release-preview.test.mjs"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "REL-P3-AC01",
+          "mandatory": true,
+          "statement": "the plugin installs from the marketplace in a scratch home and its Stop hook answers a recorded transcript",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/release-preview.mjs plugin",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P3-AC02",
+          "mandatory": true,
+          "statement": "the release notes carry the plugin install lines",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/releases/preview-0.1.0.md",
+            "pattern": "^## The plugin",
+            "must": "present"
+          }
+        },
+        {
+          "id": "REL-P3-AC03",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P3-AC04",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P3-AC05",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "REL-P3-AC06",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "REL-P5",
+      "title": "[W2] Ryan's preview steps: npm publish, the action pushed and tagged, the App public",
+      "phase": "implement",
+      "owner": "ryan",
+      "depends_on": [
+        "REL-P1",
+        "REL-P2"
+      ],
+      "requirements": [
+        "PV-R01"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D35. Ryan's own steps, in his browser and his terminal: the production App made public (done on 2026-10-18); npm publish from packages/cli after REL-P1 passes; REL-P2's tree pushed to mgillr/truedone-action with the tag v0.1.0. The lead reads each back.",
+      "scope": {
+        "allow": [
+          "docs/DEPENDENCY-MAP.md",
+          "docs/releases/preview-0.1.0.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "REL-P5-AC01",
+          "mandatory": true,
+          "statement": "the production App is public: GitHub answers its page without a token",
+          "verifier": {
+            "type": "command",
+            "cmd": "curl -fsS -o /dev/null https://api.github.com/apps/truedone",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "REL-P5-AC02",
+          "mandatory": true,
+          "statement": "npm has truedone 0.1.0",
+          "verifier": {
+            "type": "command",
+            "cmd": "npm view truedone@0.1.0 version | grep -qx 0.1.0",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "REL-P5-AC03",
+          "mandatory": true,
+          "statement": "mgillr/truedone-action has the tag v0.1.0 and action.yml at its root",
+          "verifier": {
+            "type": "command",
+            "cmd": "gh api repos/mgillr/truedone-action/git/ref/tags/v0.1.0 --jq .ref | grep -qx refs/tags/v0.1.0 && gh api repos/mgillr/truedone-action/contents/action.yml --jq .name | grep -qx action.yml",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "REL-P5-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P5-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P5-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "REL-P5-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "REL-P4",
+      "title": "[W2] The preview acceptance walk: a surface flips only after its install path works from a fresh home",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "REL-P1",
+        "REL-P2",
+        "REL-P3",
+        "REL-P5",
+        "OPS-09",
+        "APP-06",
+        "APP-13",
+        "ACT-03",
+        "WEB-12",
+        "README-03"
+      ],
+      "requirements": [
+        "PV-R01"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D35, the gold standard. From a fresh home, as a new user: the site on its five examples; npx truedone@0.1.0 from npm on the same five; the action from mgillr/truedone-action@v0.1.0 in the sandbox's workflow, its run and its label; the production App installed on the sandbox from its public page, its check run and its label, equal to the verdict core gives; the plugin from the marketplace. Each surface has a row in the \"## Acceptance\" table of docs/releases/preview-0.1.0.md, \"| <surface> | <command> | <output> | <UTC time> | Works |\" or the failure. Only a surface with a Works row flips in packages/web/lib/release.mjs, and node tools/readme-status.mjs rewrites the README in the same change. The production App's global posting flag turns on only after its sandbox row works.",
+      "scope": {
+        "allow": [
+          "README.md",
+          "docs/DEPENDENCY-MAP.md",
+          "docs/releases/preview-0.1.0.md",
+          "packages/web/lib/release.mjs",
+          "packages/web/test/**",
+          "packages/web/why.html"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "REL-P4-AC01",
+          "mandatory": true,
+          "statement": "every surface set true in release.mjs has a Works row in the acceptance table, and a surface without one fails the test",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/release-acceptance.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "REL-P4-AC02",
+          "mandatory": true,
+          "statement": "the acceptance table is in the release notes",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/releases/preview-0.1.0.md",
+            "pattern": "^## Acceptance",
+            "must": "present"
+          }
+        },
+        {
+          "id": "REL-P4-AC03",
+          "mandatory": true,
+          "statement": "the README matches the release state",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/readme-status.mjs --check",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P4-AC04",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "REL-P4-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P4-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P4-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "REL-P4-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "OPS-05",
       "title": "[W4] Ryan sets the security contact and approves the privacy note and terms",
       "phase": "verify",
@@ -12298,6 +12847,122 @@
         "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "OPS-09",
+      "title": "[W2] The public App's page matches its manifest and the record",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "OPS-02"
+      ],
+      "requirements": [
+        "PV-R01"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D35. Ryan made the production App public on 2026-10-18 and the lead set up its page with his approval: the description, the logo, the callback list and the setup URL. Measured that day: the setup URL (/api/github/setup on the Worker) and the first callback (/api/github/callback) both answer 404, because the Worker routes only /health and /api/github/webhook, so a new user would land on an error page after installing. packages/app/app-manifest.json becomes the record of the live settings: public true, the description, the site's /signin/callback as the only callback, no setup URL. packages/app/logo.svg and logo.png (512 px) are the uploaded logo. tools/app-listing-check.mjs reads https://api.github.com/apps/truedone without a token and fails unless it answers 200 and its description, external_url, permissions and events equal the manifest's. docs/ops/apps.md says the production app is public, since when, and what was set.",
+      "scope": {
+        "allow": [
+          "docs/DEPENDENCY-MAP.md",
+          "docs/ops/apps.md",
+          "packages/app/app-manifest.json",
+          "packages/app/logo.png",
+          "packages/app/logo.svg",
+          "packages/app/test/**",
+          "tools/app-listing-check.mjs",
+          "tools/test/app-listing-check.test.mjs",
+          "tools/test/fixtures/app-listing/**"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "OPS-09-AC01",
+          "mandatory": true,
+          "statement": "the listing check fails on a 404, a different description, a missing permission or an extra event, and passes on a matching recorded answer",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/app-listing-check.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "OPS-09-AC02",
+          "mandatory": true,
+          "statement": "the live App page equals the manifest",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/app-listing-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "OPS-09-AC03",
+          "mandatory": true,
+          "statement": "the record says the production app is public",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/ops/apps.md",
+            "pattern": "^The production app is public",
+            "must": "present"
+          }
+        },
+        {
+          "id": "OPS-09-AC04",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "OPS-09-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "OPS-09-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "OPS-09-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "OPS-09-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
       ]
     },
     {
