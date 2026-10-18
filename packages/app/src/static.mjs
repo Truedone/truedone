@@ -51,6 +51,7 @@ export function makeStatic(env) {
     if (!allowed.allowed) return { skipped: allowed.reason };
 
     const t0 = Date.now();
+    meta.startedAt = new Date(t0).toISOString();
     const result = await analyse(env, owner, repo, pr);
     await postCheck(owner, repo, pr.head.sha, result, meta);
     await postLabel(owner, repo, pr.number, result, meta);
