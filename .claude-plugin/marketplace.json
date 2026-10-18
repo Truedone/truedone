@@ -1,0 +1,15 @@
+{
+  "name": "truedone",
+  "description": "truedone: a Claude Code plugin that checks an agent's test claims before it reports a task done",
+  "owner": {
+    "name": "mgillr",
+    "url": "https://github.com/mgillr"
+  },
+  "plugins": [
+    {
+      "name": "truedone",
+      "source": "./packages/cli/plugin",
+      "description": "One Stop hook: blocks when a changed test fails, a test was weakened, or the agent says tests pass without running them"
+    }
+  ]
+}
