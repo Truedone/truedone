@@ -4007,14 +4007,14 @@
       "id": "PROS-01",
       "title": "[W1] Gate 5 candidates: the sample's repositories ranked by agent PRs that prove nothing",
       "phase": "implement",
-      "owner": "lane-a",
+      "owner": "lane-b",
       "depends_on": [
         "GATE-01"
       ],
       "requirements": [
         "PV-G06"
       ],
-      "description": "tools/corpus/prospects.mjs reads only the committed sample in tools/corpus/data (GATE-01), with no network, and --write docs/gates/gate5-candidates.tsv writes one row per repository of the agent and baseline groups, with the header repo, agent_prs, no_test_share, latest_pr, runner, supported, statement_url: the number of agent PRs; the share of them that change source and no test, by the sample's own file classes, to four decimals; the date of the latest PR in the window; the runner that detectFromManifests finds from the repository's manifests in the sample, as gates.mjs does for gate 4, or none; yes when the repository's language is JavaScript, TypeScript or Python, else no; and an empty statement_url column, since the link to a maintainer's public statement on AI-PR load is Ryan's, in docs/gates/gate5-statements.tsv (OPS-06). Rows are sorted by agent PRs times the no-test share, highest first, ties broken by the later latest PR, then by repo. Nothing in the sheet is typed by hand.",
+      "description": "tools/corpus/prospects.mjs reads only the committed sample in tools/corpus/data (GATE-01), with no network, and --write docs/gates/gate5-candidates.tsv writes one row per repository of the agent and baseline groups, with the header repo, agent_prs, no_test_share, latest_pr, runner, supported, statement_url: the number of agent PRs; the share of them that change source and no test, by the sample's own file classes, to four decimals; the date of the latest PR in the window; the runner that detectFromManifests finds from the repository's manifests in the sample, as gates.mjs does for gate 4, or none; yes when the repository's language is JavaScript, TypeScript or Python, else no; and an empty statement_url column, since the link to a maintainer's public statement on AI-PR load is Ryan's, in docs/gates/gate5-statements.tsv (OPS-06). Rows are sorted by agent PRs times the no-test share, highest first, ties broken by the later latest PR, then by repo. Nothing in the sheet is typed by hand. Owner lane-b from 2026-10-18 06:42Z: built against a fixture sample before GATE-01 commits, finished on the committed sample the hour it lands.",
       "scope": {
         "allow": [
           "tools/corpus/prospects.mjs",
@@ -4145,7 +4145,7 @@
       "id": "GATE-02",
       "title": "[W1] Static gates 1, 2 and 4, recomputed from the committed sample",
       "phase": "implement",
-      "owner": "lane-a",
+      "owner": "lane-b",
       "depends_on": [
         "GATE-01",
         "CORE-03",
@@ -4154,7 +4154,7 @@
       "requirements": [
         "PV-G02"
       ],
-      "description": "tools/corpus/gates.mjs reads the sample shards, runs core.analyse on every PR and detectFromManifests on every repository, with no network, and prints JSON: gate1.share (agent PRs that change source and no test), gate2.gap (gate1.share minus the baseline share), gate2.pre2024 (reported only), gate4.detect_share. --write docs/gates/static.md writes the table.",
+      "description": "tools/corpus/gates.mjs reads the sample shards, runs core.analyse on every PR and detectFromManifests on every repository, with no network, and prints JSON: gate1.share (agent PRs that change source and no test), gate2.gap (gate1.share minus the baseline share), gate2.pre2024 (reported only), gate4.detect_share. --write docs/gates/static.md writes the table. Owner lane-b from 2026-10-18 06:42Z: built against a fixture sample before GATE-01 commits, finished on the committed sample the hour it lands.",
       "scope": {
         "allow": [
           "tools/corpus/gates.mjs",
@@ -4304,14 +4304,14 @@
       "id": "GATE-03",
       "title": "[W1] Gate 3 review sheet: 200 flags, at least 50 Tampered",
       "phase": "implement",
-      "owner": "lane-a",
+      "owner": "lane-b",
       "depends_on": [
         "GATE-02"
       ],
       "requirements": [
         "PV-G03"
       ],
-      "description": "tools/corpus/gate3.mjs draws 200 Tampered and Test changes: review flags from merged PRs in the sample, at least 50 Tampered (drawing more PRs if needed), and writes docs/gates/gate3-sheet.tsv, tab-separated with a header: pr_url, verdict, check, reason, file, line, reviewer_verdict, reviewer. The last two columns are empty. Tabs and newlines inside fields become spaces.",
+      "description": "tools/corpus/gate3.mjs draws 200 Tampered and Test changes: review flags from merged PRs in the sample, at least 50 Tampered (drawing more PRs if needed), and writes docs/gates/gate3-sheet.tsv, tab-separated with a header: pr_url, verdict, check, reason, file, line, reviewer_verdict, reviewer. The last two columns are empty. Tabs and newlines inside fields become spaces. Owner lane-b from 2026-10-18 06:42Z: built against a fixture sample before GATE-01 commits, finished on the committed sample the hour it lands.",
       "scope": {
         "allow": [
           "tools/corpus/gate3.mjs",
@@ -4621,7 +4621,7 @@
       "id": "IDX-01",
       "title": "[W2] The truedone index: weekly, static, published to the index-data branch",
       "phase": "implement",
-      "owner": "lane-a",
+      "owner": "lane-b",
       "depends_on": [
         "GATE-02"
       ],
@@ -4630,7 +4630,7 @@
         "PV-I02",
         "PV-I03"
       ],
-      "description": "tools/corpus/index.mjs builds the weekly index from a fresh, smaller sample by the GATE-01 method (500 agent and 500 baseline PRs, 7-day window): per agent, the share of agent-signal PRs that change source and no test, beside the baseline. It never reads visitors' pages and never executes PR code. .github/workflows/index.yml runs it weekly and pushes the result to the unprotected branch index-data (D25); truedone.pages.dev reads it from raw.githubusercontent.com. Red-green columns come only from docs/gates/redgreen.json once it records the pass (GATE-04R). docs/index/corrections.md: corrections log, contact, a correction published within one week.",
+      "description": "tools/corpus/index.mjs builds the weekly index from a fresh, smaller sample by the GATE-01 method (500 agent and 500 baseline PRs, 7-day window): per agent, the share of agent-signal PRs that change source and no test, beside the baseline. It never reads visitors' pages and never executes PR code. .github/workflows/index.yml runs it weekly and pushes the result to the unprotected branch index-data (D25); truedone.pages.dev reads it from raw.githubusercontent.com. Red-green columns come only from docs/gates/redgreen.json once it records the pass (GATE-04R). docs/index/corrections.md: corrections log, contact, a correction published within one week. Owner lane-b from 2026-10-18 06:42Z: built against a fixture sample before GATE-01 commits, finished on the committed sample the hour it lands.",
       "scope": {
         "allow": [
           "tools/corpus/index.mjs",
@@ -4746,7 +4746,7 @@
       "id": "GATE-04A",
       "title": "[W4] Red-green harness: workflow and scripts, merged before the run",
       "phase": "implement",
-      "owner": "lane-a",
+      "owner": "lane-d",
       "depends_on": [
         "RUN-04",
         "JUDGE-01",
@@ -4755,7 +4755,7 @@
       "requirements": [
         "PV-G04"
       ],
-      "description": ".github/workflows/redgreen.yml (workflow_dispatch, permissions: {}, no secrets, no cache shared with releases; S3) runs tools/corpus/redgreen.mjs on a shard of the 200-PR red-green sample per matrix job: clone the PR repository at the merge commit, install with its own lockfile, run core/run, upload truedone.report/1 plus {repo, number, run_url, ran} as an artifact. tools/corpus/redgreen.mjs --collect <run id> downloads the artifacts into docs/gates/redgreen-data.jsonl; --sheet writes docs/gates/gate4-sheet.tsv for Ryan (pr_url, result, test, file, reviewer_verdict, reviewer): every Proven result and every No red-green evidence result where a PR test changed.",
+      "description": ".github/workflows/redgreen.yml (workflow_dispatch, permissions: {}, no secrets, no cache shared with releases; S3) runs tools/corpus/redgreen.mjs on a shard of the 200-PR red-green sample per matrix job: clone the PR repository at the merge commit, install with its own lockfile, run core/run, upload truedone.report/1 plus {repo, number, run_url, ran} as an artifact. tools/corpus/redgreen.mjs --collect <run id> downloads the artifacts into docs/gates/redgreen-data.jsonl; --sheet writes docs/gates/gate4-sheet.tsv for Ryan (pr_url, result, test, file, reviewer_verdict, reviewer): every Proven result and every No red-green evidence result where a PR test changed. Owner lane-d from 2026-10-18 06:42Z: built against a fixture sample before GATE-01 commits, finished on the committed sample the hour it lands.",
       "scope": {
         "allow": [
           ".github/workflows/redgreen.yml",
