@@ -1,10 +1,12 @@
 // The Worker's entry (APP-01, DEP-01, APP-08): one fetch handler routes /health
-// and /api/github/webhook; the queue handler routes each queued delivery to the
+// and /api/github/webhook, which analyses a pull_request delivery after its
+// answer, in ctx.waitUntil, with the queue as its retry path (APP-17), and
+// queues the rest; the queue handler routes each queued delivery to the
 // stage its event belongs to, acknowledging handled messages and retrying
 // failures; the scheduled handler runs APP-05's daily sweep over the removed
 // installations' leftovers. Only Web APIs.
 import { makeHealth } from "./health.mjs";
-import { makeIntake } from "./webhook.mjs";
+import { makeIntake, REFUSED_RETRY_DELAY_S } from "./webhook.mjs";
 import { makeStatic, makeAnalyser } from "./static.mjs";
 import { makeRedGreen } from "./redgreen.mjs";
 import { listKeys, sweepLeftovers } from "./posting.mjs";
@@ -16,11 +18,12 @@ const REMOVED_PREFIX = "removed:";
 
 export function makeApp(env) {
   const health = makeHealth({ version: env.VERSION ?? "unversioned", kv: env.KV });
-  const intake = makeIntake(env);
-  return async function app(request) {
+  // APP-17: a pull_request delivery is analysed in the intake, with the queue as its retry path
+  const intake = makeIntake(env, { run: (body) => runStatic(coreFor(env), body) });
+  return async function app(request, ctx) {
     const url = new URL(request.url);
     if (url.pathname === "/health") return health(request);
-    if (url.pathname === "/api/github/webhook") return intake(request);
+    if (url.pathname === "/api/github/webhook") return intake(request, ctx);
     return new Response("not found", { status: 404 });
   };
 }
@@ -58,7 +61,8 @@ function b64url(bytes) {
   return btoa(out).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
 }
 
-export async function mintInstallationToken(env, installationId) {
+// The installation token and its expiry, as GitHub answers them.
+export async function mintInstallation(env, installationId) {
   const now = Math.floor(Date.now() / 1000);
   const input = `${b64url(new TextEncoder().encode(JSON.stringify({ alg: "RS256", typ: "JWT" })))}.${b64url(new TextEncoder().encode(JSON.stringify({ iat: now - 60, exp: now + 540, iss: env.APP_ID })))}`;
   const key = await crypto.subtle.importKey("pkcs8", pemToPkcs8(env.PRIVATE_KEY), { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"]);
@@ -68,13 +72,54 @@ export async function mintInstallationToken(env, installationId) {
     headers: { authorization: `Bearer ${input}.${b64url(new Uint8Array(signature))}`, accept: "application/vnd.github+json", "user-agent": "truedone-app" },
   });
   if (!r.ok) throw new Error(`installation token ${r.status}`);
-  return (await r.json()).token;
+  const { token, expires_at } = await r.json();
+  return { token, expires_at };
+}
+
+export async function mintInstallationToken(env, installationId) {
+  return (await mintInstallation(env, installationId)).token;
+}
+
+// APP-17: an installation token is kept in KV until TOKEN_MARGIN_S before GitHub's expires_at, and minted again after
+// that; one without an expires_at is not kept. A run that GitHub answers 401 deletes it (dropToken), so the retry
+// mints a new one. The token is never logged.
+export const TOKEN_MARGIN_S = 300;
+const tokenKey = (installationId) => `token:${installationId}`;
+
+export async function installationToken(env, installationId, mint = mintInstallation) {
+  const kept = env.KV ? await env.KV.get(tokenKey(installationId)) : null;
+  if (kept) {
+    try {
+      const { token, expires_at } = JSON.parse(kept);
+      if (token && Date.parse(expires_at) - Date.now() > TOKEN_MARGIN_S * 1000) return token;
+    } catch { /* minted again below */ }
+  }
+  const { token, expires_at } = await mint(env, installationId);
+  const ttl = Math.floor((Date.parse(expires_at) - Date.now()) / 1000) - TOKEN_MARGIN_S;
+  if (env.KV && ttl >= 60) await env.KV.put(tokenKey(installationId), JSON.stringify({ token, expires_at }), { expirationTtl: ttl });
+  return token;
+}
+
+export async function dropToken(env, installationId) {
+  if (env.KV && installationId !== undefined) await env.KV.delete(tokenKey(installationId));
+}
+
+// The static stage for one pull_request delivery, with the kept token; the intake runs it directly (APP-17).
+async function runStatic(env, body) {
+  const installationId = body.payload?.installation?.id;
+  const token = await installationToken(env, installationId);
+  try {
+    await makeStatic({ ...env, INSTALLATION_TOKEN: token })(body);
+  } catch (error) {
+    if (error?.status === 401) await dropToken(env, installationId);
+    throw error;
+  }
 }
 
 // The queue and cron handlers. deps override the stages, the mint and the
 // sweep so queue.test.mjs can drive the routing with fakes.
 export function makeConsumers(deps = {}) {
-  const mint = deps.mint ?? mintInstallationToken;
+  const mint = deps.mint ?? ((env, installationId) => installationToken(env, installationId));
   const sweep = deps.sweep ?? sweepLeftovers;
   return {
     async queue(batch, env) {
@@ -100,7 +145,13 @@ export function makeConsumers(deps = {}) {
           // and the error, so a dead-letter is seen. Never a secret, token or
           // payload.
           console.error(JSON.stringify({ stage, delivery: message.body?.delivery, error: `${error?.name ?? "Error"}: ${error?.message ?? error}` }));
-          message.retry();
+          // a token GitHub refuses is not kept for the retry, which waits out KV's cache of it (APP-17)
+          if (error?.status === 401) {
+            await dropToken(env, message.body?.payload?.installation?.id).catch(() => {});
+            message.retry({ delaySeconds: REFUSED_RETRY_DELAY_S });
+          } else {
+            message.retry();
+          }
         }
       }
     },
@@ -168,8 +219,8 @@ function redgreenFor(env, payload) {
 }
 
 export default {
-  fetch(request, env) {
-    return makeApp(env)(request);
+  fetch(request, env, ctx) {
+    return makeApp(env)(request, ctx);
   },
   async queue(batch, env) {
     return makeConsumers().queue(batch, coreFor(env));

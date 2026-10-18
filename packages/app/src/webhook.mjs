@@ -1,4 +1,4 @@
-// The truedone GitHub App webhook intake: verify, dedupe, drop, acknowledge, queue.
+// The truedone GitHub App webhook intake: verify, dedupe, drop, acknowledge, then analyse or queue.
 // Runs on Workers: Web Crypto only, no node: imports (APP-01-AC03).
 
 const WEBHOOK_SECRET_HEADER = "x-hub-signature-256";
@@ -16,6 +16,18 @@ export const ACTIONS = {
   workflow_run: new Set(["completed"]),
 };
 
+// APP-17 (#108): a pull_request delivery is analysed in the intake, after its answer, in ctx.waitUntil. Cloudflare
+// cancels a waitUntil promise 30 s after the response without a throw, so a run still going after DIRECT_BUDGET_MS
+// is handed to the queue delayed by QUEUE_DELAY_S, to start after that cancel point and never beside the direct run.
+export const DIRECT_BUDGET_MS = 20_000;
+export const QUEUE_DELAY_S = 15;
+// After a 401 the kept token is deleted, but KV can serve it from a colo's cache for up to 60 s, so the retry waits that
+// long before it reads the token again (APP-17, the lead's 4529).
+export const REFUSED_RETRY_DELAY_S = 60;
+
+const LATE = Symbol("late");
+const logLine = (delivery, error) => console.error(JSON.stringify({ stage: "intake", delivery, error: `${error?.name ?? "Error"}: ${error?.message ?? error}` }));
+
 export async function verifySignature(secret, body, header) {
   if (typeof header !== "string" || !header.startsWith("sha256=")) return false;
   const given = header.slice("sha256=".length);
@@ -32,10 +44,40 @@ export async function verifySignature(secret, body, header) {
   return crypto.subtle.verify("HMAC", key, signature, body);
 }
 
-// One worker environment: { WEBHOOK_SECRET, KV: {get,put}, QUEUE: {send} }.
-// Both fakes and the real bindings answer the same three calls.
-export function makeIntake(env) {
-  return async function intake(request) {
+// One worker environment: { WEBHOOK_SECRET, KV: {get,put,delete}, QUEUE: {send} }.
+// Both fakes and the real bindings answer the same calls. run(body) is the static stage for one delivery (APP-17);
+// without it, or without a ctx to wait on, every delivery is queued.
+export function makeIntake(env, { run, budgetMs = DIRECT_BUDGET_MS } = {}) {
+  // The direct run, then the queue when it throws or outlasts the budget (delayed, so it never runs beside it). If
+  // that send fails too, the delivery's dedupe record is deleted, so a redeliver from the App's delivery log is
+  // analysed rather than dropped as a duplicate.
+  async function handOver(body, seenKey, opts) {
+    try {
+      await (opts ? env.QUEUE.send(body, opts) : env.QUEUE.send(body));
+    } catch (error) {
+      logLine(body.delivery, error);
+      await env.KV.delete(seenKey);
+    }
+  }
+  async function direct(body, seenKey) {
+    let timer;
+    const late = new Promise((resolve) => { timer = setTimeout(() => resolve(LATE), budgetMs); });
+    const running = run(body);
+    let outcome;
+    try {
+      outcome = await Promise.race([running, late]);
+    } catch (error) {
+      logLine(body.delivery, error);
+      return handOver(body, seenKey, error?.status === 401 ? { delaySeconds: REFUSED_RETRY_DELAY_S } : undefined);
+    } finally {
+      clearTimeout(timer);
+    }
+    if (outcome !== LATE) return;
+    running.catch(() => {});   // the queue has it now; a late failure changes nothing
+    return handOver(body, seenKey, { delaySeconds: QUEUE_DELAY_S });
+  }
+
+  return async function intake(request, ctx) {
     const url = new URL(request.url);
     if (url.pathname !== "/api/github/webhook") {
       return new Response("not found", { status: 404 });
@@ -68,6 +110,10 @@ export function makeIntake(env) {
       return Response.json({ dropped: `${event}.${payload.action}` }, { status: 200 });
     }
 
+    if (event === "pull_request" && run && typeof ctx?.waitUntil === "function") {
+      ctx.waitUntil(direct({ event, delivery, payload }, seenKey));
+      return Response.json({ analysing: event }, { status: 200 });
+    }
     await env.QUEUE.send({ event, delivery, payload });
     return Response.json({ queued: event }, { status: 200 });
   };
