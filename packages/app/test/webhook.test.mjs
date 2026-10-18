@@ -85,8 +85,8 @@ test("a missing delivery id answers 400", async () => {
 test("a repeated delivery id is dropped and queues once", async () => {
   const e = env();
   const intake = makeIntake(e);
-  const first = await intake(await signedRequest({ a: 1 }));
-  const second = await intake(await signedRequest({ a: 1 }));
+  const first = await intake(await signedRequest({ action: "opened" }));
+  const second = await intake(await signedRequest({ action: "opened" }));
   assert.equal(first.status, 200);
   assert.equal(second.status, 200);
   assert.equal(e.QUEUE.messages.length, 1);
@@ -120,7 +120,7 @@ test("an installation_repositories removed event is dropped without queuing", as
 test("a workflow_run event queues with its delivery", async () => {
   const e = env();
   const intake = makeIntake(e);
-  const r = await intake(await signedRequest({ workflow_run: { id: 9 } }, { event: "workflow_run", delivery: "d-wf" }));
+  const r = await intake(await signedRequest({ action: "completed", workflow_run: { id: 9 } }, { event: "workflow_run", delivery: "d-wf" }));
   assert.equal(r.status, 200);
   assert.equal(e.QUEUE.messages[0].delivery, "d-wf");
 });
