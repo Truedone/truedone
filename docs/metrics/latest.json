@@ -1,0 +1,279 @@
+{
+  "schema": "truedone.metrics/1",
+  "generated_at": "2026-10-18T22:25:45.393Z",
+  "organisation": "Truedone",
+  "window": {
+    "from": "2026-09-18T22:25:45.393Z",
+    "to": "2026-10-18T22:25:45.393Z",
+    "days": 30
+  },
+  "figures": {
+    "public_repositories": {
+      "value": 5,
+      "window": {
+        "at": "2026-10-18T22:25:45.393Z"
+      },
+      "source": "https://api.github.com/orgs/Truedone/repos?type=public&per_page=100",
+      "n": 5
+    },
+    "stars_total": {
+      "value": 0,
+      "window": {
+        "at": "2026-10-18T22:25:45.393Z"
+      },
+      "source": "https://api.github.com/orgs/Truedone/repos?type=public&per_page=100",
+      "n": 5
+    },
+    "forks_total": {
+      "value": 0,
+      "window": {
+        "at": "2026-10-18T22:25:45.393Z"
+      },
+      "source": "https://api.github.com/orgs/Truedone/repos?type=public&per_page=100",
+      "n": 5
+    },
+    "repositories_pushed_in_window": {
+      "value": 5,
+      "window": {
+        "from": "2026-09-18T22:25:45.393Z",
+        "to": "2026-10-18T22:25:45.393Z",
+        "days": 30
+      },
+      "source": "https://api.github.com/orgs/Truedone/repos?type=public&per_page=100",
+      "n": 5
+    },
+    "releases_in_window": {
+      "value": 0,
+      "window": {
+        "from": "2026-09-18T22:25:45.393Z",
+        "to": "2026-10-18T22:25:45.393Z",
+        "days": 30
+      },
+      "source": "https://api.github.com/repos/Truedone/truedone/releases?per_page=100 https://api.github.com/repos/Truedone/truedone-sandbox/releases?per_page=100 https://api.github.com/repos/Truedone/truedone-action/releases?per_page=100 https://api.github.com/repos/Truedone/actions-probe/releases?per_page=100 https://api.github.com/repos/Truedone/.github/releases?per_page=100",
+      "n": 5
+    },
+    "workflow_runs_in_window": {
+      "value": 201,
+      "window": {
+        "from": "2026-09-18T22:25:45.393Z",
+        "to": "2026-10-18T22:25:45.393Z",
+        "days": 30
+      },
+      "source": "https://api.github.com/repos/Truedone/truedone/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/truedone-sandbox/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/truedone-action/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/actions-probe/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/.github/actions/runs?per_page=100&created=>2026-09-18",
+      "n": 5
+    },
+    "workflow_runs_success": {
+      "value": 11,
+      "window": {
+        "from": "2026-09-18T22:25:45.393Z",
+        "to": "2026-10-18T22:25:45.393Z",
+        "days": 30
+      },
+      "source": "https://api.github.com/repos/Truedone/truedone/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/truedone-sandbox/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/truedone-action/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/actions-probe/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/.github/actions/runs?per_page=100&created=>2026-09-18",
+      "n": 201
+    },
+    "workflow_runs_failure": {
+      "value": 190,
+      "window": {
+        "from": "2026-09-18T22:25:45.393Z",
+        "to": "2026-10-18T22:25:45.393Z",
+        "days": 30
+      },
+      "source": "https://api.github.com/repos/Truedone/truedone/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/truedone-sandbox/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/truedone-action/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/actions-probe/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/.github/actions/runs?per_page=100&created=>2026-09-18",
+      "n": 201
+    },
+    "workflow_runs_cancelled": {
+      "value": 0,
+      "window": {
+        "from": "2026-09-18T22:25:45.393Z",
+        "to": "2026-10-18T22:25:45.393Z",
+        "days": 30
+      },
+      "source": "https://api.github.com/repos/Truedone/truedone/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/truedone-sandbox/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/truedone-action/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/actions-probe/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/.github/actions/runs?per_page=100&created=>2026-09-18",
+      "n": 201
+    },
+    "workflow_success_rate": {
+      "value": 0.055,
+      "window": {
+        "from": "2026-09-18T22:25:45.393Z",
+        "to": "2026-10-18T22:25:45.393Z",
+        "days": 30
+      },
+      "source": "https://api.github.com/repos/Truedone/truedone/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/truedone-sandbox/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/truedone-action/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/actions-probe/actions/runs?per_page=100&created=>2026-09-18 https://api.github.com/repos/Truedone/.github/actions/runs?per_page=100&created=>2026-09-18",
+      "n": 201
+    },
+    "open_issues": {
+      "value": 7,
+      "window": {
+        "at": "2026-10-18T22:25:45.393Z"
+      },
+      "source": "https://api.github.com/repos/Truedone/truedone/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/truedone-sandbox/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/truedone-action/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/actions-probe/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/.github/issues?state=all&per_page=100&sort=created&direction=desc",
+      "n": 5
+    },
+    "open_pull_requests": {
+      "value": 0,
+      "window": {
+        "at": "2026-10-18T22:25:45.393Z"
+      },
+      "source": "https://api.github.com/repos/Truedone/truedone/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/truedone-sandbox/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/truedone-action/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/actions-probe/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/.github/issues?state=all&per_page=100&sort=created&direction=desc",
+      "n": 5
+    },
+    "issues_opened_in_window": {
+      "value": 43,
+      "window": {
+        "from": "2026-09-18T22:25:45.393Z",
+        "to": "2026-10-18T22:25:45.393Z",
+        "days": 30
+      },
+      "source": "https://api.github.com/repos/Truedone/truedone/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/truedone-sandbox/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/truedone-action/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/actions-probe/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/.github/issues?state=all&per_page=100&sort=created&direction=desc",
+      "n": 5
+    },
+    "pull_requests_opened_in_window": {
+      "value": 157,
+      "window": {
+        "from": "2026-09-18T22:25:45.393Z",
+        "to": "2026-10-18T22:25:45.393Z",
+        "days": 30
+      },
+      "source": "https://api.github.com/repos/Truedone/truedone/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/truedone-sandbox/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/truedone-action/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/actions-probe/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/.github/issues?state=all&per_page=100&sort=created&direction=desc",
+      "n": 5
+    },
+    "median_hours_to_first_issue_response": {
+      "value": 0.61,
+      "window": {
+        "from": "2026-09-18T22:25:45.393Z",
+        "to": "2026-10-18T22:25:45.393Z",
+        "days": 30
+      },
+      "source": "https://api.github.com/repos/Truedone/truedone/issues/125/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/122/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/115/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/111/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/110/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/104/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/103/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/101/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/100/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/92/comments?per_page=1",
+      "n": 10
+    }
+  },
+  "not_yet_measured": [
+    {
+      "name": "repositories_running_truedone",
+      "reason": "needs installation records from the App, or an opt-in usage count; stars and forks are not adoption"
+    },
+    {
+      "name": "active_integrations_30d",
+      "reason": "needs the same records, over a 30 day window"
+    },
+    {
+      "name": "pull_requests_checked",
+      "reason": "needs a count of verdicts from the App, the action and the command line"
+    },
+    {
+      "name": "faults_caught_beyond_ci",
+      "reason": "needs the labelled detection benchmark (BENCH-01) and reviewed real cases"
+    },
+    {
+      "name": "false_alarm_rate",
+      "reason": "needs the labelled benchmark and the review gates (GATE-02, GATE-03R)"
+    },
+    {
+      "name": "verification_success_rate",
+      "reason": "needs the count of verdicts that completed against those that did not"
+    },
+    {
+      "name": "retention_30d",
+      "reason": "needs installation records over two windows"
+    },
+    {
+      "name": "weekly_growth",
+      "reason": "needs two weekly snapshots on the metrics-data branch"
+    }
+  ],
+  "repositories": [
+    {
+      "repository": "Truedone/truedone",
+      "url": "https://github.com/Truedone/truedone",
+      "stars": 0,
+      "forks": 0,
+      "pushed_at": "2026-10-18T22:22:03Z",
+      "pushed_in_window": true,
+      "releases_in_window": 0,
+      "workflow_runs_in_window": {
+        "total": 100,
+        "success": 10,
+        "failure": 90,
+        "cancelled": 0,
+        "other": 0
+      },
+      "open_issues": 7,
+      "open_pull_requests": 0
+    },
+    {
+      "repository": "Truedone/truedone-sandbox",
+      "url": "https://github.com/Truedone/truedone-sandbox",
+      "stars": 0,
+      "forks": 0,
+      "pushed_at": "2026-10-18T22:17:16Z",
+      "pushed_in_window": true,
+      "releases_in_window": 0,
+      "workflow_runs_in_window": {
+        "total": 100,
+        "success": 0,
+        "failure": 100,
+        "cancelled": 0,
+        "other": 0
+      },
+      "open_issues": 0,
+      "open_pull_requests": 0
+    },
+    {
+      "repository": "Truedone/truedone-action",
+      "url": "https://github.com/Truedone/truedone-action",
+      "stars": 0,
+      "forks": 0,
+      "pushed_at": "2026-10-18T08:16:59Z",
+      "pushed_in_window": true,
+      "releases_in_window": 0,
+      "workflow_runs_in_window": {
+        "total": 0,
+        "success": 0,
+        "failure": 0,
+        "cancelled": 0,
+        "other": 0
+      },
+      "open_issues": 0,
+      "open_pull_requests": 0
+    },
+    {
+      "repository": "Truedone/actions-probe",
+      "url": "https://github.com/Truedone/actions-probe",
+      "stars": 0,
+      "forks": 0,
+      "pushed_at": "2026-10-18T15:41:17Z",
+      "pushed_in_window": true,
+      "releases_in_window": 0,
+      "workflow_runs_in_window": {
+        "total": 1,
+        "success": 1,
+        "failure": 0,
+        "cancelled": 0,
+        "other": 0
+      },
+      "open_issues": 0,
+      "open_pull_requests": 0
+    },
+    {
+      "repository": "Truedone/.github",
+      "url": "https://github.com/Truedone/.github",
+      "stars": 0,
+      "forks": 0,
+      "pushed_at": "2026-10-18T22:25:00Z",
+      "pushed_in_window": true,
+      "releases_in_window": 0,
+      "workflow_runs_in_window": {
+        "total": 0,
+        "success": 0,
+        "failure": 0,
+        "cancelled": 0,
+        "other": 0
+      },
+      "open_issues": 0,
+      "open_pull_requests": 0
+    }
+  ],
+  "reading": "Public GitHub metadata only. Stars, forks and activity are visibility, not adoption; a workflow run is this organisation's CI, not a user's. The metrics under not_yet_measured have no honest public source yet and are not shown as zero."
+}
