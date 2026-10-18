@@ -445,6 +445,9 @@
       ],
       "APP-24": [
         "APP-24-AC05"
+      ],
+      "APP-25": [
+        "APP-25-AC05"
       ]
     }
   },
@@ -8082,6 +8085,111 @@
         },
         {
           "id": "APP-24-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "APP-25",
+      "title": "[W2] A queued or dead-lettered delivery holds no pull request text",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "APP-24"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Truedone/truedone#125. The intake queues the whole GitHub payload (packages/app/src/webhook.mjs, the late or failed direct run and every queued event), with the pull request title, body and author login, and after max_retries = 3 the message goes to a dead-letter queue (truedone-dev-dlq, truedone-dlq) that has no consumer, where Cloudflare keeps it for four days. Measured on 2026-10-18 at 20:58Z: truedone-dev-dlq held 386 messages, 6,633,339 bytes, and truedone-dlq 1. No stage reads that text: the analyser loads the pull request from GitHub and the check summary uses only owner, repo and number. The intake now queues, for each event, only the fields its stage reads (ids, shas, the action, the repository owner and name), and the stages read only those, so a message already queued in the old shape is still handled. Each dead-letter queue gets a consumer in packages/app/wrangler.toml that logs one line of identifiers (delivery, event, attempts) and acknowledges the message, so nothing waits there for four days. docs/privacy.md stays true.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "packages/app/wrangler.toml",
+          "docs/ops/apps.md",
+          "docs/privacy.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-25-AC01",
+          "mandatory": true,
+          "statement": "a queued delivery (a late or failed direct run, and every queued event) carries only the fields its stage reads, with no pull request title, body or author login, and its stage still runs from it; a message on either dead-letter queue is logged as one line of identifiers and acknowledged; packages/app/wrangler.toml gives truedone-dev-dlq and truedone-dlq that consumer",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/queue-slim.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-25-AC02",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-25-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-25-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-25-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-25-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-25-AC07",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
