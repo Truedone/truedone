@@ -8,4 +8,6 @@ Two rulesets on Truedone/truedone, active on the default branch. GitHub reports 
 
 Repository settings: merge commits true, squash false, rebase false, delete branch on merge true.
 
-Read back on 2026-10-17 with `gh api repos/Truedone/truedone/rules/branches/main` and `gh api repos/Truedone/truedone`.
+Read back on 2026-10-17, before the move, and again on 2026-10-18 after the move to the Truedone organisation (D36), with
+`gh api repos/Truedone/truedone/rules/branches/main`, `gh api repos/Truedone/truedone/rulesets/<id>` and `gh api repos/Truedone/truedone`.
+The move kept both rulesets' rules but dropped main-review's bypass for repository admins, which I added again.
