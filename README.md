@@ -47,7 +47,9 @@ Every pull request gets exactly one verdict. The first that applies in this tabl
 
 A large pull request that was only partly analysed gets "(partial)" after its verdict. The check conclusion is neutral by default, so truedone never blocks a merge unless the repository sets `conclusion: fail-on-tampered` in `.github/truedone.yml`.
 
-**Threat model.** truedone catches careless agents and lazy shortcuts. Whoever controls a pull request also controls the test code that runs in it. The static checks flag changes to runner config and setup files, but nothing on the pull request side is a security boundary.
+**Threat model.** truedone catches careless agents and lazy shortcuts. Whoever controls a pull request also controls the test code that runs in it. The static checks flag changes to runner config and setup files, but the pull request side is not a security boundary. A weakness in truedone itself goes to the [security policy](SECURITY.md).
+
+**Privacy.** The site, the CLI and the plugin read from GitHub and keep nothing on a server. The app keeps one setting per installation and deletes it within 24 hours of an uninstall. Labels already set stay after uninstall. The [privacy note](docs/privacy.md) says what each part reads and stores, and for how long; the [terms](docs/terms.md) cover the hosted parts.
 
 ## Ways to use it
 
