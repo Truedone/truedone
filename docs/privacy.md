@@ -37,9 +37,10 @@ and the CLI and plugin from npm.
 - The site's session storage lasts until you close the tab.
 - The app's setting lasts while the app is installed, and it is deleted within 24 hours of an uninstall. Labels
   already set stay after uninstall, as do check runs and comments, since they belong to your repository.
-- The app's log lines: to be set by Ryan.
+- The app's log lines are not stored. They can be read only live, while I watch the Worker's log stream, and neither
+  truedone nor Cloudflare keeps a copy. Cloudflare keeps its own counts and timings of the Worker's requests.
 - An action report lasts as long as your repository keeps workflow artifacts.
 
 ## Who to ask
 
-Contact: to be set by Ryan.
+Contact: data@optitransfer.ch

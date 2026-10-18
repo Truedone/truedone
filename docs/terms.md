@@ -15,4 +15,4 @@ These terms cover the site at truedone.pages.dev, its token exchange, the GitHub
 - How truedone reads and stores data is in the [privacy note](privacy.md), and how to report a vulnerability is in the
   [security policy](../SECURITY.md).
 
-Contact: to be set by Ryan.
+Contact: data@optitransfer.ch

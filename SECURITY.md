@@ -5,7 +5,7 @@
 Please do not report a vulnerability in a public issue, a pull request or a discussion. Send it privately to the
 contact below, with what you found, the steps that show it, and what it lets someone do.
 
-Contact: to be set by Ryan.
+Contact: data@optitransfer.ch
 
 ## Response time
 
