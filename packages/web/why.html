@@ -36,7 +36,7 @@
 <section id="truedone-yes">
 <h2>truedone:yes</h2>
 <ol class="ladder" aria-label="The verdict ladder"><li><span class="rung">Tampered</span></li><li><span class="rung">Test changes: review</span></li><li><span class="rung">Tests changed: not run</span></li><li><span class="verdict verdict-yes">Proven</span></li></ol>
-<p class="green-line">Green comes from running the tests: add the truedone step.</p>
+<p class="green-line">Green comes from running the tests: add the truedone step (not released yet).</p>
 <h3 class="verdict verdict-yes">Proven</h3>
 <p>Given when: A test in the PR fails on base by assertion (twice), passes on head (three times out of three), and runs lines the PR changed</p>
 <p>What to do next: Review the rest of the change as usual.</p>
@@ -72,6 +72,7 @@
 <h2>Next rung: run the PR's own tests on your machine</h2>
 <p>The verdict pages read the diff only. To run a pull request's own tests against base and head, run:</p>
 <pre>npx truedone &lt;PR link&gt; --run</pre>
+<p class="not-released">The command line, the action, the App and the plugin are not released yet: <a href="https://github.com/mgillr/truedone">follow the first release</a>.</p>
 <p class="warning">Red-green on someone else's PR executes that PR's code on your machine; --docker runs it in a container.</p>
 <p>For your own agent, the truedone Claude Code plugin runs the same checks before it reports a task done.</p>
 </section>

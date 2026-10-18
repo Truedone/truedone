@@ -11,7 +11,11 @@
 // noted"; titleOf names a view for document.title.
 // WEB-11: a PR page shows the verdict ladder under its badge, the four rungs from Tampered to a green Proven with this
 // PR's rung marked, and the line on where green comes from; home carries the line beside its examples.
+// WEB-12: a surface not yet released (lib/release.mjs) says so wherever a page names it, with the link to follow the
+// first release; home lists what works today.
 // A node is { tag, text?, attrs?, children? }.
+import { RELEASED, FOLLOW, SURFACES } from './release.mjs';
+
 export const VERDICTS = {
   tampered: 'Tampered',
   review: 'Test changes: review',
@@ -85,6 +89,12 @@ export function greenLine() {
   return el('p', undefined, { class: 'green-line' }, [el('span', 'Green comes from running the tests: '), el('a', 'add the truedone step', { href: '/why#truedone-yes' })]);
 }
 
+// "Not released yet" for a surface release.mjs still holds false, with the link to follow the first release
+export function notReleased(surface) {
+  return RELEASED[surface] ? [] : [el('p', undefined, { class: `not-released not-released-${surface}` }, [el('span', 'Not released yet: '), el('a', 'follow the first release', { href: FOLLOW }), el('span', '.')])];
+}
+const greenBlock = () => [greenLine(), ...notReleased('action')];
+
 // the four rungs in order, this PR's marked by aria-current and a visible "(this PR)", so not by colour alone; Proven
 // always in the green badge style
 export function ladder(verdict) {
@@ -94,7 +104,7 @@ export function ladder(verdict) {
       el('span', VERDICTS[v], { class: v === at || v === 'proven' ? badgeClass(v) : 'rung' }),
       ...(v === at ? [el('span', ' (this PR)', { class: 'this-pr' })] : []),
     ]))),
-    greenLine(),
+    ...greenBlock(),
   ]);
 }
 
@@ -104,8 +114,10 @@ export function nextRung(link, { verdict = false } = {}) {
     el('h2', 'Next rung: run the PR\'s own tests on your machine'),
     el('p', verdict ? 'This page reads the diff only. To run the PR\'s own tests against base and head, run:' : 'To run a pull request\'s own tests against base and head, run:'),
     el('pre', link ? `npx truedone ${link} --run` : NEXT_RUNG_COMMAND),
+    ...notReleased('cli'),
     el('p', RED_GREEN_WARNING, { class: 'warning' }),
     el('p', 'For your own agent, the truedone Claude Code plugin runs the same checks before it reports a task done.'),
+    ...notReleased('plugin'),
   ]);
 }
 
@@ -195,9 +207,24 @@ export function homeView() {
       el('a', VERDICTS[verdict], { href, class: badgeClass(verdict) }),
       el('span', ` ${href.slice(1).replace(/\/pull\//, '#')}`, { class: 'example-target' }),
     ]))),
-    greenLine(),
+    ...greenBlock(),
+    ...worksToday(),
     nextRung(null),
   ]);
+}
+
+// home's "What works today": this site now, and each surface release.mjs holds false as coming with the first release
+const and = (xs) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}`);
+export function worksToday() {
+  const names = (on) => Object.keys(SURFACES).filter((s) => RELEASED[s] === on).map((s) => SURFACES[s]);
+  const now = names(true);
+  const later = names(false);
+  const items = [el('li', `This site checks any public pull request now${now.length ? `, and ${and(now)} ${now.length > 1 ? 'are' : 'is'} released` : ''}.`)];
+  if (later.length) {
+    const who = and(later);
+    items.push(el('li', undefined, undefined, [el('span', `${who[0].toUpperCase()}${who.slice(1)} come${later.length > 1 ? '' : 's'} with the first release: `), el('a', 'follow it on GitHub', { href: FOLLOW }), el('span', '.')]));
+  }
+  return [el('h2', 'What works today'), el('ul', undefined, { class: 'works-today' }, items)];
 }
 
 // reset: x-ratelimit-reset when GitHub sent it (RateLimited.reset), else null
