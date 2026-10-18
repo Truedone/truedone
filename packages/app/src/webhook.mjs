@@ -1,5 +1,6 @@
-// The truedone GitHub App webhook intake: verify, drop, dedupe, acknowledge, then analyse or queue.
+// The truedone GitHub App webhook intake: verify, drop (an uninstall marks and deletes), dedupe, acknowledge, then analyse or queue.
 // Runs on Workers: Web Crypto only, no node: imports (APP-01-AC03).
+import { markRemoved, deleteInstallationData } from "./posting.mjs";
 
 const WEBHOOK_SECRET_HEADER = "x-hub-signature-256";
 const DELIVERY_HEADER = "x-github-delivery";
@@ -26,7 +27,7 @@ export const QUEUE_DELAY_S = 15;
 export const REFUSED_RETRY_DELAY_S = 60;
 
 const LATE = Symbol("late");
-const logLine = (delivery, error) => console.error(JSON.stringify({ stage: "intake", delivery, error: `${error?.name ?? "Error"}: ${error?.message ?? error}` }));
+const logLine = (delivery, error, fields = { stage: "intake" }) => console.error(JSON.stringify({ ...fields, delivery, error: `${error?.name ?? "Error"}: ${error?.message ?? error}` }));
 
 export async function verifySignature(secret, body, header) {
   if (typeof header !== "string" || !header.startsWith("sha256=")) return false;
@@ -97,8 +98,18 @@ export function makeIntake(env, { run, budgetMs = DIRECT_BUDGET_MS } = {}) {
     // does not parse leaves no record and a redeliver of it is handled.
     const payload = JSON.parse(new TextDecoder().decode(body));
 
-    // Events for removed installations are dropped (S6), not queued.
+    // Events for removed installations are dropped (S6), not queued. An uninstall marks the installation removed before
+    // it answers, then deletes its data at once (APP-24, R6): after the answer in ctx.waitUntil, or inline with no ctx. A
+    // delete that fails or is cut off leaves the marker, and the daily sweep deletes the rest within 24 hours, with
+    // anything a raced delivery writes later. Marking is idempotent, so it needs no dedupe.
     if (event === "installation" && payload.action === "deleted") {
+      const id = payload.installation?.id;
+      if (Number.isInteger(id) && id > 0) {
+        await markRemoved(env, id);
+        const deleting = deleteInstallationData(env, id).catch((error) => logLine(delivery, error, { stage: "uninstall", installation: id }));
+        if (typeof ctx?.waitUntil === "function") ctx.waitUntil(deleting);
+        else await deleting;
+      }
       return Response.json({ dropped: "installation_deleted" }, { status: 200 });
     }
     if (event === "installation_repositories" && payload.action === "removed") {
