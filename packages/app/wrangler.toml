@@ -3,7 +3,8 @@
 # takes the top-level config, production passes --env production. Bindings per
 # the lead's 3505/3508: one KV namespace, one queue as producer and consumer
 # with its dead-letter queue (created on Ryan's go), one daily cron for the
-# sweep. APP-06's analytics dataset joins here when monitoring lands.
+# sweep, and one D1 database for the posting switch (APP-19). APP-06's analytics dataset joins here when
+# monitoring lands.
 name = "truedone-dev"
 main = "src/index.mjs"
 compatibility_date = "2026-10-01"
@@ -28,6 +29,12 @@ dead_letter_queue = "truedone-dev-dlq"
 [triggers]
 crons = ["13 4 * * *"]
 
+# APP-19 (#107): the posting switch, the D1 table flags (created in ENAM on 2026-10-18; the row posting_enabled is on).
+[[d1_databases]]
+binding = "FLAGS"
+database_name = "truedone-dev-flags"
+database_id = "3c06b511-eb99-4fec-bdbe-8077d7338d97"
+
 [env.production]
 name = "truedone"
 
@@ -50,3 +57,9 @@ dead_letter_queue = "truedone-dlq"
 
 [env.production.triggers]
 crons = ["13 4 * * *"]
+
+# APP-19 (#107): the posting switch, the D1 table flags (created in ENAM on 2026-10-18; the row posting_enabled is off).
+[[env.production.d1_databases]]
+binding = "FLAGS"
+database_name = "truedone-flags"
+database_id = "0108d913-61e6-432f-a2ab-eceb8b5f4e8c"

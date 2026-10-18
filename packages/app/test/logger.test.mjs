@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeStatic } from "../src/static.mjs";
+import { flagsDB } from "./lib/github.mjs";
 
 // APP-03-AC05 (S8): the Worker logs installation id, repository id, PR number,
 // verdict and timings, never diff content, file contents or PR text.
@@ -55,6 +56,7 @@ function makeEnv(analyseResult) {
     env: {
       INSTALLATION_TOKEN: "t",
       KV: memoryKV(),
+      FLAGS: flagsDB(),
       core: { analyse: async () => analyseResult },
       LOG: (l) => logLines.push(l),
     },

@@ -7,7 +7,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import worker from "../src/index.mjs";
-import { fakeGitHub, memoryKV, writeRoutes, delivery, pkcs1Pem, storedZip } from "./lib/github.mjs";
+import { fakeGitHub, memoryKV, writeRoutes, delivery, pkcs1Pem, storedZip, flagsDB } from "./lib/github.mjs";
 
 const B = "8888888888888888888888888888888888888888";
 const H = "9999999999999999999999999999999999999999";
@@ -55,7 +55,7 @@ async function deliver(t, fetch, body) {
   t.after(() => { globalThis.fetch = orig; });
   const m = { body, acked: 0, retried: 0, ack() { this.acked += 1; }, retry() { this.retried += 1; } };
   const from = Date.now();
-  await worker.queue({ messages: [m] }, { APP_ID: "12345", PRIVATE_KEY: await pkcs1Pem(), KV: memoryKV(), VERSION: "v" });
+  await worker.queue({ messages: [m] }, { APP_ID: "12345", PRIVATE_KEY: await pkcs1Pem(), KV: memoryKV(), FLAGS: flagsDB(), VERSION: "v" });
   const to = Date.now();
   assert.equal(m.acked, 1, `handled, retried ${m.retried}`);
   return { from, to };

@@ -17,7 +17,7 @@ import { analyse as coreAnalyse, judge as coreJudge } from "../../core/core.mjs"
 const REMOVED_PREFIX = "removed:";
 
 export function makeApp(env) {
-  const health = makeHealth({ version: env.VERSION ?? "unversioned", kv: env.KV });
+  const health = makeHealth({ version: env.VERSION ?? "unversioned", flags: env.FLAGS });
   // APP-17: a pull_request delivery is analysed in the intake, with the queue as its retry path
   const intake = makeIntake(env, { run: (body) => runStatic(coreFor(env), body) });
   return async function app(request, ctx) {
@@ -83,7 +83,9 @@ export async function mintInstallationToken(env, installationId) {
 // APP-17: an installation token is kept in KV until TOKEN_MARGIN_S before GitHub's expires_at, and minted again after
 // that; one without an expires_at is not kept. A run that GitHub answers 401 deletes it (dropToken), so the retry
 // mints a new one. The token is never logged.
-export const TOKEN_MARGIN_S = 300;
+// Not exported: the Workers runtime takes every named export of the main module for an entry point, and refuses to start
+// on one that is not a function or a handler (wrangler 3.90's workerd: "Incorrect type for map entry 'TOKEN_MARGIN_S'").
+const TOKEN_MARGIN_S = 300;
 const tokenKey = (installationId) => `token:${installationId}`;
 
 export async function installationToken(env, installationId, mint = mintInstallation) {

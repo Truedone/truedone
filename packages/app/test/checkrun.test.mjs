@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeStatic } from "../src/static.mjs";
+import { flagsDB } from "./lib/github.mjs";
 
 // A recording fetch fake: every call is answered from routes and remembered.
 function fakeFetch(routes) {
@@ -53,6 +54,7 @@ function makeEnv(analyseResult) {
     env: {
       INSTALLATION_TOKEN: "t",
       KV: memoryKV(),
+      FLAGS: flagsDB(),
       core: { analyse: async () => analyseResult },
       LOG: (l) => logLines.push(l),
     },

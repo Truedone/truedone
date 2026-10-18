@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeStatic } from "../src/static.mjs";
+import { flagsDB } from "./lib/github.mjs";
 
 // APP-03-AC04 (S7): a PR body with @mentions and Markdown cannot inject into the
 // check-run summary. The recording-fetch fake the app tests share, inline.
@@ -55,6 +56,7 @@ function makeEnv(analyseResult) {
     env: {
       INSTALLATION_TOKEN: "t",
       KV: memoryKV(),
+      FLAGS: flagsDB(),
       core: { analyse: async () => analyseResult },
       LOG: (l) => logLines.push(l),
     },

@@ -10,7 +10,7 @@ import { makeStatic } from "../src/static.mjs";
 import { analyse, classify } from "../../core/core.mjs";
 import { loadPR } from "../../web/lib/github.mjs";
 import fs from "node:fs";
-import { fakeGitHub, memoryKV, writeRoutes, delivery, checkRuns, labelWrites, rawCalls, sandbox42 } from "./lib/github.mjs";
+import { fakeGitHub, memoryKV, writeRoutes, delivery, checkRuns, labelWrites, rawCalls, sandbox42, flagsDB } from "./lib/github.mjs";
 
 const BASE_SHA = "1111111111111111111111111111111111111111";
 const HEAD_SHA = "2222222222222222222222222222222222222222";
@@ -35,7 +35,7 @@ async function stage(t, pr, files, raw) {
   globalThis.fetch = fetch;
   t.after(() => { globalThis.fetch = orig; });
   const inputs = [];
-  const env = { INSTALLATION_TOKEN: "tok", KV: memoryKV(), core: { analyse: (input) => { inputs.push(input); return analyse(input); } } };
+  const env = { INSTALLATION_TOKEN: "tok", KV: memoryKV(), FLAGS: flagsDB(), core: { analyse: (input) => { inputs.push(input); return analyse(input); } } };
   await makeStatic(env)(delivery(pr));
   return { fetch, input: inputs[0] };
 }

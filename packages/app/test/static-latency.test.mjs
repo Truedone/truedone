@@ -10,7 +10,7 @@ import worker from "../src/index.mjs";
 import { analyse, classify } from "../../core/core.mjs";
 import { loadPR } from "../../web/lib/github.mjs";
 import { LABELS } from "../src/labels.mjs";
-import { fakeGitHub, memoryKV, writeRoutes, delivery, pkcs1Pem } from "./lib/github.mjs";
+import { fakeGitHub, memoryKV, writeRoutes, delivery, pkcs1Pem, flagsDB } from "./lib/github.mjs";
 
 const B = "cccccccccccccccccccccccccccccccccccccccc";
 const H = "dddddddddddddddddddddddddddddddddddddddd";
@@ -45,14 +45,14 @@ function slow(fetch, ms = 100) {
   f.calls = calls;
   return f;
 }
-async function deliver(t, f, pull, kv = memoryKV()) {
+async function deliver(t, f, pull, kv = memoryKV(), flags = flagsDB()) {
   const key = await pkcs1Pem();
   const orig = globalThis.fetch;
   globalThis.fetch = f;
   t.after(() => { globalThis.fetch = orig; });
   const m = { body: delivery(pull), acked: 0, retried: 0, ack() { this.acked += 1; }, retry() { this.retried += 1; } };
   const from = Date.now();
-  await worker.queue({ messages: [m] }, { APP_ID: "12345", PRIVATE_KEY: key, KV: kv, VERSION: "v" });
+  await worker.queue({ messages: [m] }, { APP_ID: "12345", PRIVATE_KEY: key, KV: kv, FLAGS: flags, VERSION: "v" });
   const ms = Date.now() - from;
   globalThis.fetch = orig;
   assert.equal(m.acked, 1, `handled, retried ${m.retried}`);
@@ -95,14 +95,15 @@ test("one changed test file: the ratio, printed", async (t) => {
   assert.equal(repoWrites(f.calls).length, 2);
 });
 
-for (const [name, kv, raw] of [
-  ["posting_enabled off", () => { const k = memoryKV(); k.put("posting_enabled", "off"); return k; }, {}],
-  ["enabled: false at the base", () => memoryKV(), { [`o/r/${B}/.github/truedone.yml`]: "enabled: false\n" }],
+// the switch is the D1 row posting_enabled (APP-19)
+for (const [name, rows, raw] of [
+  ["posting_enabled off", { posting_enabled: "off" }, {}],
+  ["enabled: false at the base", undefined, { [`o/r/${B}/.github/truedone.yml`]: "enabled: false\n" }],
 ]) {
   test(`${name}: only the config is read, and nothing is written`, async (t) => {
     const g = github(["test/a.test.js"], raw);
     const f = slow(g.fake, 1);
-    await deliver(t, f, g.pull, kv());
+    await deliver(t, f, g.pull, memoryKV(), flagsDB(rows));
     assert.deepEqual(f.calls.map((c) => `${c.method} ${path(c)}`), ["POST /app/installations/3/access_tokens", `GET raw:o/r/${B}/.github/truedone.yml`]);
   });
 }

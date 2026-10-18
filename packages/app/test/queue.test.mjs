@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeConsumers } from "../src/index.mjs";
 import { sweepLeftovers } from "../src/posting.mjs";
+import { flagsDB } from "./lib/github.mjs";
 
 // APP-08-AC01: the queue handler routes a pull_request message to the static
 // stage and a workflow_run message to the red-green check, acknowledges a
@@ -23,7 +24,7 @@ function memoryKV() {
   };
 }
 
-const ENV = { APP_ID: "12345", KV: memoryKV() };
+const ENV = { APP_ID: "12345", KV: memoryKV(), FLAGS: flagsDB() };
 
 test("a pull_request message routes to the static stage and is acknowledged", async () => {
   const calls = [];

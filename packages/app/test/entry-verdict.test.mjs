@@ -12,7 +12,7 @@ import assert from "node:assert/strict";
 import worker from "../src/index.mjs";
 import { analyse, classify } from "../../core/core.mjs";
 import { loadPR } from "../../web/lib/github.mjs";
-import { fakeGitHub, memoryKV, delivery, checkRuns, labelWrites, sandbox42, pkcs1Pem } from "./lib/github.mjs";
+import { fakeGitHub, memoryKV, delivery, checkRuns, labelWrites, sandbox42, pkcs1Pem, flagsDB } from "./lib/github.mjs";
 
 test("the entry posts exactly one check run and one label, with core's verdict for the recorded #42 files", async (t) => {
   const s = sandbox42();
@@ -28,7 +28,7 @@ test("the entry posts exactly one check run and one label, with core's verdict f
   globalThis.fetch = fetch;
   t.after(() => { globalThis.fetch = orig; });
   const m = { body: delivery(s.pull), acked: 0, retried: 0, ack() { this.acked += 1; }, retry() { this.retried += 1; } };
-  await worker.queue({ messages: [m] }, { APP_ID: "12345", PRIVATE_KEY: await pkcs1Pem(), KV: memoryKV(), VERSION: "v" });
+  await worker.queue({ messages: [m] }, { APP_ID: "12345", PRIVATE_KEY: await pkcs1Pem(), KV: memoryKV(), FLAGS: flagsDB(), VERSION: "v" });
   assert.equal(m.acked, 1, `handled, retried ${m.retried}`);
 
   const checks = checkRuns(fetch);

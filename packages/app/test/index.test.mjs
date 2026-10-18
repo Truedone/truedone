@@ -2,19 +2,20 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import worker, { makeApp } from "../src/index.mjs";
+import { flagsDB } from "./lib/github.mjs";
 
-const env = (over = {}) => ({ WEBHOOK_SECRET: "s", KV: { get: async () => null, put: async () => {} }, QUEUE: { send: async () => {} }, ...over });
+const env = (over = {}) => ({ WEBHOOK_SECRET: "s", KV: { get: async () => null, put: async () => {} }, FLAGS: flagsDB(), QUEUE: { send: async () => {} }, ...over });
 
-test("/health answers the version and the global posting switch, on unless it reads off", async () => {
+test("/health answers the version and the global posting switch, on when its row reads on", async () => {
   const res = await makeApp(env({ VERSION: "abc1234" }))(new Request("https://x/health"));
   assert.equal(res.status, 200);
   assert.deepEqual(await res.json(), { version: "abc1234", posting_enabled: true });
 });
 
-test("without the vars, health says unversioned; the global key off reads off", async () => {
+test("without the vars, health says unversioned; the global row off reads off", async () => {
   const res = await worker.fetch(new Request("https://x/health"), env());
   assert.deepEqual(await res.json(), { version: "unversioned", posting_enabled: true });
-  const off = await makeApp(env({ KV: { get: async (k) => (k === "posting_enabled" ? "off" : null), put: async () => {} } }))(new Request("https://x/health"));
+  const off = await makeApp(env({ FLAGS: flagsDB({ posting_enabled: "off" }) }))(new Request("https://x/health"));
   assert.deepEqual(await off.json(), { version: "unversioned", posting_enabled: false });
 });
 

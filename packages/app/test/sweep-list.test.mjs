@@ -5,6 +5,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeConsumers } from "../src/index.mjs";
 import { deleteInstallationData } from "../src/posting.mjs";
+import { flagsDB } from "./lib/github.mjs";
 
 // Two pages for the removed: prefix, like a real paged KV.list.
 function pagedKV(pages) {
@@ -33,7 +34,7 @@ test("the scheduled sweep follows the cursor and sweeps every listed installatio
   for (const k of ["removed:11", "removed:12", "removed:13"]) await kv.put(k, "1");
   const swept = [];
   const consumers = makeConsumers({ sweep: async (env, id) => { swept.push(id); } });
-  await consumers.scheduled({}, { KV: kv });
+  await consumers.scheduled({}, { KV: kv, FLAGS: flagsDB() });
   assert.deepEqual(swept.sort(), [11, 12, 13]);
   assert.equal(kv.listCalls.length, 2, "both pages were fetched");
   assert.equal(kv.listCalls[0].cursor, undefined, "the first page carries no cursor");
@@ -46,7 +47,7 @@ test("uninstall's deleteInstallationData deletes keys across pages", async () =>
     { keys: ["11:c"], list_complete: true },
   ]);
   for (const k of ["11:a", "11:b", "11:c"]) await kv.put(k, "1");
-  const removed = await deleteInstallationData({ KV: kv }, 11);
+  const removed = await deleteInstallationData({ KV: kv, FLAGS: flagsDB() }, 11);
   assert.equal(removed, 3, "every key across both pages is counted");
   assert.equal(kv.store.size, 0, "every key across both pages is deleted");
   assert.equal(kv.listCalls.length, 2, "both pages were fetched");

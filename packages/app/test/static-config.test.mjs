@@ -6,7 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeStatic } from "../src/static.mjs";
 import { analyse } from "../../core/core.mjs";
-import { fakeGitHub, memoryKV, writeRoutes, delivery, checkRuns, labelWrites, rawCalls } from "./lib/github.mjs";
+import { fakeGitHub, memoryKV, writeRoutes, delivery, checkRuns, labelWrites, rawCalls, flagsDB } from "./lib/github.mjs";
 
 const BASE_SHA = "3333333333333333333333333333333333333333";
 const HEAD_SHA = "4444444444444444444444444444444444444444";
@@ -28,7 +28,7 @@ async function run(t, raw) {
   const orig = globalThis.fetch;
   globalThis.fetch = fetch;
   t.after(() => { globalThis.fetch = orig; });
-  const out = await makeStatic({ INSTALLATION_TOKEN: "tok", KV: memoryKV(), core: { analyse } })(delivery(PULL));
+  const out = await makeStatic({ INSTALLATION_TOKEN: "tok", KV: memoryKV(), FLAGS: flagsDB(), core: { analyse } })(delivery(PULL));
   return { fetch, out };
 }
 const contents = { [`o/r/${BASE_SHA}/test/a.test.js`]: KEPT, [`o/r/${HEAD_SHA}/test/a.test.js`]: DROPPED };

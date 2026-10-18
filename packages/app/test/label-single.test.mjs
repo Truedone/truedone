@@ -7,6 +7,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import { makeApp } from "../src/index.mjs";
+import { flagsDB } from "./lib/github.mjs";
 
 const SECRET = "single-secret";
 
@@ -76,7 +77,7 @@ async function runDelivery(t, deliveryId) {
   seen.calls = calls;
   globalThis.fetch = stub;
   t.after(() => { console.log = origLog; globalThis.fetch = orig; });
-  const env = { WEBHOOK_SECRET: SECRET, KV: kv, APP_ID: "1", PRIVATE_KEY: await generatedPkcs1Pem(), VERSION: "test" };
+  const env = { WEBHOOK_SECRET: SECRET, KV: kv, FLAGS: flagsDB(), APP_ID: "1", PRIVATE_KEY: await generatedPkcs1Pem(), VERSION: "test" };
   const app = makeApp(env);
   let waited;
   const ctx = { waitUntil: (p) => { waited = p; } };
