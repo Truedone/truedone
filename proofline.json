@@ -304,6 +304,15 @@
       ],
       "PROS-01": [
         "PROS-01-AC08"
+      ],
+      "WEB-05": [
+        "WEB-05-AC08"
+      ],
+      "APP-07": [
+        "APP-07-AC05"
+      ],
+      "DEP-02": [
+        "DEP-02-AC09"
       ]
     }
   },
@@ -2754,7 +2763,7 @@
         "PV-C09",
         "PV-X02"
       ],
-      "description": "Measured by lane-b and confirmed in main's code (truedone issue #30): packages/core/run/parse.mjs:130 keys a parsed row by meta.file || meta.classname, and node --test's JUnit report has no file attribute, so every node --test row gets the file \"test\"; run/run.mjs:89 blankRun() keys timeout rows by the test file's path; and redGreen pairs base and head rows on file and name. So (1) a test that hangs on base and passes on head never pairs, and judge() ranks the head-only row No red-green evidence instead of Could not run: timed out; and (2) two test files with a same-named test merge into one row, a false-Proven route. Rows are keyed by the real test file path and the test name for vitest, jest, mocha, node --test and pytest; a base timeout pairs with that file's head rows; two files with a same-named test stay two rows; and, as docs/spec.md now says, a test without two base runs and three head runs is Could not run with the reason \"incomplete runs\", never No red-green evidence, a row of the one table in packages/core/src/outcome.mjs. judge.mjs is shared with CORE-06 and CORE-07: lane-c lands CORE-06, then CORE-07, which moves the table to src/outcome.mjs, then RUN-06. The bundles are rebuilt with tools/bundle.mjs.",
+      "description": "Measured by lane-b and confirmed in main's code (truedone issue #30): packages/core/run/parse.mjs:130 keys a parsed row by meta.file || meta.classname, and node --test's JUnit report has no file attribute, so every node --test row gets the file \"test\"; run/run.mjs:89 blankRun() keys timeout rows by the test file's path; and redGreen pairs base and head rows on file and name. So (1) a test that hangs on base and passes on head never pairs, and judge() ranks the head-only row No red-green evidence instead of Could not run: timed out; and (2) two test files with a same-named test merge into one row, a false-Proven route. Rows are keyed by the real test file path and the test name for vitest, jest, mocha, node --test and pytest; a base timeout pairs with that file's head rows; two files with a same-named test stay two rows; and, as docs/spec.md now says, a test without two base runs and three head runs is Could not run with the reason \"incomplete runs\", never No red-green evidence, a row of the one table in packages/core/src/outcome.mjs. judge.mjs is shared with CORE-06 and CORE-07: lane-c lands CORE-06, then CORE-07, which moves the table to src/outcome.mjs, then RUN-06. The bundles are rebuilt with tools/bundle.mjs. Every committed bundle must build from this tree and match: CORE-07 9aa5b9d4 passed its own bundle criterion while an export-from line broke the cli and plugin bundle builds (lane-b, 2026-10-18 00:31Z).",
       "scope": {
         "allow": [
           "packages/core/run/**",
@@ -2849,6 +2858,17 @@
             "timeout_s": 900,
             "min_tests": 237,
             "max_skipped": 0
+          }
+        },
+        {
+          "id": "RUN-06-AC12",
+          "mandatory": true,
+          "statement": "every committed bundle builds from the sources on this tree and matches them",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/bundle.mjs && git diff --quiet -- packages/core/core.mjs packages/web/core.mjs packages/cli packages/action/dist",
+            "expect_exit": 0,
+            "timeout_s": 900
           }
         },
         {
@@ -4563,17 +4583,18 @@
       "id": "GATE-06",
       "title": "[W2] Gate 6 research script for each release",
       "phase": "implement",
-      "owner": "lane-a",
+      "owner": "lane-b",
       "depends_on": [
         "ENG-01"
       ],
       "requirements": [],
-      "description": "tools/gate6.mjs <release> reads, since the last check, the watch list Ryan checks before each release: the GitHub changelog, Copilot code review, CodeRabbit, Test Ratchet, Skylos, tamperguard, checkwash and donegate, and any GitHub guidance that recommends a test failing on the pre-change behaviour; it lists entries matching red-green, fail on base, test tamper, weakened test or skipped test, and writes docs/gates/gate6-<release>-research.md with links. Ryan reads it and writes the Window line himself (REL-W*). The question stays whether any of them ships a red-green or test-tamper check first.",
+      "description": "tools/gate6.mjs <release> reads, since the last check, the watch list Ryan checks before each release: the GitHub changelog, Copilot code review, CodeRabbit, Test Ratchet, Skylos, tamperguard, checkwash and donegate, and any GitHub guidance that recommends a test failing on the pre-change behaviour; it lists entries matching red-green, fail on base, test tamper, weakened test or skipped test, and writes docs/gates/gate6-<release>-research.md with links. Ryan reads it and writes the Window line himself (REL-W*). The question stays whether any of them ships a red-green or test-tamper check first. The sources and the URL of each public changelog, release page or repository, found and opened by the lane, are listed in docs/gates/gate6-sources.md, with \"no public changelog found\" where that is the case, so Ryan can correct the list; the script reads that file.",
       "scope": {
         "allow": [
           "tools/gate6.mjs",
           "tools/test/gate6.test.mjs",
           "tools/test/fixtures/gate6/**",
+          "docs/gates/gate6-sources.md",
           "docs/DEPENDENCY-MAP.md"
         ]
       },
@@ -4882,7 +4903,7 @@
       "id": "SEC-03",
       "title": "[W1] CI gate: restore the contract byte for byte, never edit it, judge the env-bound criteria from proofline's result (D22, D27)",
       "phase": "implement",
-      "owner": "lane-d",
+      "owner": "lane-a",
       "depends_on": [
         "SEC-02"
       ],
@@ -5171,6 +5192,106 @@
         },
         {
           "id": "APP-01-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "APP-07",
+      "title": "[W2] The Worker entry: health and the webhook routed, every other path 404",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "APP-01",
+        "DEP-01"
+      ],
+      "requirements": [
+        "PV-A01"
+      ],
+      "description": "packages/app/wrangler.toml names src/index.mjs as the Worker, and on main a4820a44 (2026-10-18) packages/app/src held only health.mjs and webhook.mjs, so the first container deploy of the development app from main could not have built even with the right wrangler flags (DEP-02). packages/app/src/index.mjs exports makeApp(env) and a default fetch handler: GET /health goes to makeHealth, with the version and the posting switch read from the Worker vars VERSION and POSTING_ENABLED (deploy.yml passes the deployed commit as VERSION; with no var the answer says \"unversioned\" and posting is off); /api/github/webhook goes to makeIntake(env); every other path is 404. Only Web APIs. packages/app/test/index.test.mjs drives the handler on the three cases with fakes for KV and the queue.",
+      "scope": {
+        "allow": [
+          "packages/app/src/index.mjs",
+          "packages/app/test/index.test.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-07-AC01",
+          "mandatory": true,
+          "statement": "the entry routes /health and /api/github/webhook and answers 404 for every other path",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/index.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-07-AC02",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-07-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 13,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-07-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-07-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-07-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-07-AC07",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
@@ -5590,6 +5711,147 @@
         },
         {
           "id": "DEP-01-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "DEP-02",
+      "title": "[W2] Deploys: wrangler reads each config by flag, and health shows the deployed commit",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "DEP-01"
+      ],
+      "requirements": [
+        "PV-W02"
+      ],
+      "description": "The first container deploys from main a4820a44 (2026-10-18) uploaded the site and then failed both Worker deploys the same way: deploy.yml ran \"wrangler deploy packages/app/wrangler.toml\" and \"wrangler deploy packages/web/exchange/wrangler.toml\", and wrangler 3.90.0 takes that positional as the script, so it stopped with \"No loader is configured for .toml files\". Each Worker deploy now names its config with --config and passes the deployed commit as the Worker var VERSION:$(git rev-parse HEAD); the production health step compares the version with that commit, because no package.json in the repository carries a version; and the token exchange step deploys only when packages/web/exchange/worker.mjs is on main (WEB-02), saying so otherwise. The pin, the push-to-main trigger and the production environment stay as DEP-01 set them.",
+      "scope": {
+        "allow": [
+          ".github/workflows/deploy.yml",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "DEP-02-AC01",
+          "mandatory": true,
+          "statement": "the app deploys read the config by flag",
+          "verifier": {
+            "type": "grep",
+            "file": ".github/workflows/deploy.yml",
+            "pattern": "wrangler@3\\.90\\.0 deploy --config packages/app/wrangler\\.toml",
+            "must": "present"
+          }
+        },
+        {
+          "id": "DEP-02-AC02",
+          "mandatory": true,
+          "statement": "no deploy passes a wrangler.toml path as the script",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -nE 'wrangler@[0-9.]+ deploy packages/' .github/workflows/deploy.yml",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "DEP-02-AC03",
+          "mandatory": true,
+          "statement": "the deployed commit is the VERSION var",
+          "verifier": {
+            "type": "grep",
+            "file": ".github/workflows/deploy.yml",
+            "pattern": "--var VERSION:\\$\\(git rev-parse HEAD\\)",
+            "must": "present"
+          }
+        },
+        {
+          "id": "DEP-02-AC04",
+          "mandatory": true,
+          "statement": "the health step compares against the deployed commit",
+          "verifier": {
+            "type": "grep",
+            "file": ".github/workflows/deploy.yml",
+            "pattern": "v=\\$\\(git rev-parse HEAD\\)",
+            "must": "present"
+          }
+        },
+        {
+          "id": "DEP-02-AC05",
+          "mandatory": true,
+          "statement": "the token exchange deploys only once its Worker is on main",
+          "verifier": {
+            "type": "grep",
+            "file": ".github/workflows/deploy.yml",
+            "pattern": "\\[ -f packages/web/exchange/worker\\.mjs \\]",
+            "must": "present"
+          }
+        },
+        {
+          "id": "DEP-02-AC06",
+          "mandatory": true,
+          "statement": "deploys run on push to main only, never on pull requests",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e 'const t=require(\"fs\").readFileSync(\".github/workflows/deploy.yml\",\"utf8\");process.exit(/on:\\s*\\n\\s*push:\\s*\\n\\s*branches:\\s*\\[?\\s*main/.test(t)&&!/pull_request/.test(t)?0:1)'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "DEP-02-AC07",
+          "mandatory": true,
+          "statement": "wrangler is pinned",
+          "verifier": {
+            "type": "grep",
+            "file": ".github/workflows/deploy.yml",
+            "pattern": "npx (--yes )?wrangler@\\d+\\.\\d+\\.\\d+",
+            "must": "present"
+          }
+        },
+        {
+          "id": "DEP-02-AC08",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "DEP-02-AC09",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "DEP-02-AC10",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "DEP-02-AC11",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
@@ -7461,6 +7723,143 @@
       ]
     },
     {
+      "id": "WEB-05",
+      "title": "[W2] truedone.pages.dev looks professional: one stylesheet, clean type, a verdict badge, dark mode",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "WEB-01",
+        "WEB-04"
+      ],
+      "requirements": [
+        "PV-W04",
+        "PV-W05"
+      ],
+      "description": "Ryan saw the live site on 2026-10-18 and asked for a professional, sleek, simple and clean look. The design lives in packages/web/style.css alone, linked from index.html and why.html; the content security policy stays as it is (style-src self, no inline style anywhere, no external fonts or images, no framework, D23). The look: a system font stack, a measure of about 70 characters, generous spacing, one accent colour, and a dark scheme under prefers-color-scheme. Every page has a header with the name truedone and one line that says what it does, and a footer with Why, Privacy, Terms and GitHub. The home page makes the paste box the one thing to do. A PR page shows the verdict as a badge whose class names the label (verdict and verdict-<label>, so tampered is red, review amber, yes green, weak olive, no-evidence and could-not-run grey, pending and unrun blue-grey, and Not applicable neutral), then the reason lines as a plain list, then the next rung as a card. /why uses the same badges. PR text still goes through textContent only (S7). packages/web/test/design.test.mjs checks the tree lib/view.mjs builds: a header and a footer with those links on every view, a badge with the right class for every verdict, and the stylesheet linked from both pages; the Chromium check still renders a recorded PR.",
+      "scope": {
+        "allow": [
+          "packages/web/index.html",
+          "packages/web/why.html",
+          "packages/web/style.css",
+          "packages/web/lib/**",
+          "packages/web/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "WEB-05-AC01",
+          "mandatory": true,
+          "statement": "every view has the header, the footer links and a verdict badge whose class names the label; both pages link the stylesheet",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/design.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-05-AC02",
+          "mandatory": true,
+          "statement": "no inline style anywhere in the site",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE 'style=|\\.style\\.|<style' packages/web/index.html packages/web/why.html packages/web/lib",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "WEB-05-AC03",
+          "mandatory": true,
+          "statement": "the stylesheet has a dark scheme",
+          "verifier": {
+            "type": "grep",
+            "file": "packages/web/style.css",
+            "pattern": "prefers-color-scheme:\\s*dark",
+            "must": "present"
+          }
+        },
+        {
+          "id": "WEB-05-AC04",
+          "mandatory": true,
+          "statement": "the content security policy is unchanged: style-src self and no unsafe-inline",
+          "verifier": {
+            "type": "command",
+            "cmd": "grep -q \"style-src 'self'\" packages/web/_headers && ! grep -n 'unsafe-inline' packages/web/_headers",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "WEB-05-AC05",
+          "mandatory": true,
+          "statement": "the page renders a recorded PR in Chromium",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/check-browser.mjs --page packages/web/index.html --fixture packages/web/test/fixtures/api",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "WEB-05-AC06",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 26,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "WEB-05-AC07",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-05-AC08",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-05-AC09",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "WEB-05-AC10",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
       "id": "CLI-02",
       "title": "[W1] npx truedone init",
       "phase": "implement",
@@ -8401,7 +8800,7 @@
       "id": "REL-02",
       "title": "[W3] SECURITY.md, privacy note, terms, threat model",
       "phase": "implement",
-      "owner": "lane-a",
+      "owner": "lane-b",
       "depends_on": [
         "ENG-01"
       ],
