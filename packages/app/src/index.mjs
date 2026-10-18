@@ -131,7 +131,7 @@ export function makeConsumers(deps = {}) {
       for (const message of batch.messages) {
         let stage = "mint";
         try {
-          const { event, delivery } = message.body;
+          const { event } = message.body;
           const installationId = message.body.payload?.installation?.id;
           const token = await mint(env, installationId);
           const stageEnv = { ...env, INSTALLATION_TOKEN: token };

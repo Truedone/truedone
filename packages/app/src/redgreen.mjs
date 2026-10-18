@@ -102,6 +102,7 @@ export function makeRedGreen(env) {
     await env.postCheck(headSha, judged, { owner, repo, number: pr.number, startedAt });
     if (pr.head.sha === headSha) await env.postLabel(pr.number, judged);
     env.LOG?.({ installation: delivery.payload.installation?.id, repository: delivery.payload.repository.id, pr: pr.number, verdict: judged.verdict, ms: Date.now() - (delivery._t0 || Date.now()) });
+    env.METRICS?.writeDataPoint({ blobs: [judged.verdict, String(delivery.payload.repository.id)], doubles: [Date.now() - (delivery._t0 || Date.now())], indexes: [String(pr.number)] });
     return { verdict: judged.verdict, pr: pr.number };
   };
 }
