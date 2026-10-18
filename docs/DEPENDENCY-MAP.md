@@ -45,7 +45,7 @@ flowchart TD
   spec ==>|update| design
   requirements ==>|update| contract
   core ==>|update| bundles
-  core_run ==>|update| bundles
+  core_run -.->|review| bundles
   readme -.->|review| design
   spec -.->|review| requirements
   spec -.->|review| contract
@@ -147,7 +147,7 @@ flowchart TD
     "root": {"paths": ["package.json", "package-lock.json", "LICENSE", "packages/*/package.json", "packages/*/README.md"], "update": [], "review": ["readme"]},
     "community": {"paths": ["CONTRIBUTING.md", "CODE_OF_CONDUCT.md", "NOTICE", "CHANGELOG.md", ".github/ISSUE_TEMPLATE/**", ".github/PULL_REQUEST_TEMPLATE.md"], "update": [], "review": ["readme"]},
     "core": {"paths": ["packages/core/src/**", "packages/core/package.json", "packages/core/README.md"], "update": ["bundles"], "review": ["core-test", "spec"]},
-    "core-run": {"paths": ["packages/core/run/**"], "update": ["bundles"], "review": ["core-test", "spec"]},
+    "core-run": {"paths": ["packages/core/run/**"], "update": [], "review": ["core-test", "spec", "bundles"]},
     "core-test": {"paths": ["packages/core/test/**"], "update": [], "review": ["core"]},
     "bundles": {"paths": ["packages/core/core.mjs", "packages/web/core.mjs", "packages/cli/truedone.mjs", "packages/cli/plugin/hooks/stop.mjs", "packages/action/dist/index.mjs"], "update": [], "review": ["web", "cli", "app", "action"]},
     "web": {"paths": ["packages/web/**"], "update": [], "review": ["readme", "design"]},
