@@ -3,13 +3,13 @@
 // GitHub responses and app.mjs runs it with ./core.mjs.
 import { route, parseTarget } from './route.mjs';
 import { API, RAW, loadPR, RateLimited, GitHubError } from './github.mjs';
-import { prView, precomputedView, homeView, rateLimitView, errorView, notFoundView, shell } from './view.mjs';
+import { prView, precomputedView, homeView, rateLimitView, errorView, notFoundView, noListView, shell } from './view.mjs';
 import { mount } from './dom.mjs';
 import { start, finish, readToken } from './signin.mjs';
 
 export async function page(loc, { fetch, doc, root, analyse, classify, storage = null, random = null, api = API, raw = RAW }) {
   const r = route(loc.pathname);
-  const show = (view) => mount(shell(view), root, doc);
+  const show = (view) => mount(shell(view, loc.pathname), root, doc);
   let calls = 0;
   try {
     if (r.kind === 'home') {
@@ -25,8 +25,11 @@ export async function page(loc, { fetch, doc, root, analyse, classify, storage =
       show(prView(analyse(got.input), got.pr, { truncated: got.truncated, analysed: got.input.files.length }));
     } else if (r.kind === 'precomputed') {
       const res = await fetch(`/precomputed/${r.owner}--${r.repo}.json`);
-      if (!res.ok) throw new GitHubError(res.status);
-      show(precomputedView(await res.json(), r.owner, r.repo));
+      // a missing list is the site's single page, served 200 as text/html: only a JSON answer is a list (WEB-07)
+      const json = /^application\/json\b/i.test(res.headers?.get?.('content-type') ?? '');
+      if (res.status === 404 || (res.ok && !json)) show(noListView(r.owner, r.repo));
+      else if (!res.ok) throw new GitHubError(res.status);
+      else show(precomputedView(await res.json(), r.owner, r.repo));
     } else if (r.kind === 'signin') {
       start(loc, storage, random);
     } else if (r.kind === 'callback') {

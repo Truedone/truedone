@@ -158,6 +158,34 @@ button:hover, .signin:hover { filter: brightness(1.08); }
 .verdict-no-evidence, .verdict-could-not-run { color: var(--grey-fg); background: var(--grey-bg); border-color: var(--grey-bd); }
 .verdict-pending, .verdict-unrun { color: var(--bluegrey-fg); background: var(--bluegrey-bg); border-color: var(--bluegrey-bd); }
 .verdict-none { color: var(--none-fg); background: var(--none-bg); border-color: var(--none-bd); }
+/* the verdict is a link to its section of /why (WEB-07) */
+.verdict-line { margin: 0 0 1rem; }
+.verdict-line .verdict { margin: 0; }
+a.verdict { text-decoration: none; }
+a.verdict:hover { text-decoration: underline; text-decoration-thickness: 1px; }
+
+/* text for screen readers and tools that read the page, out of sight */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* lesser findings under the verdict's own reasons */
+.also { margin: 0 0 .25rem; color: var(--muted); font-size: .95rem; }
+.also-list { color: var(--muted); }
+
+/* home: one example page per verdict */
+.examples { list-style: none; margin: 0 0 2rem; padding: 0; }
+.examples li { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem; padding: .35rem 0; }
+.examples .verdict { margin: 0; font-size: .85rem; }
+.example-target { color: var(--muted); font-size: .9rem; }
 
 /* the reason lines, a plain list */
 .reasons {

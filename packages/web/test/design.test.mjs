@@ -23,14 +23,15 @@ const badgeOf = (label) => `verdict-${label ? label.replace(/^truedone:/, '') : 
 const classes = (e) => String(e.attrs.class ?? '').split(/\s+/).filter(Boolean);
 
 // a mounted tree: the header with the name linked home and a tagline, the footer with the four links in order
-function chrome(tree, what) {
+function chrome(tree, what, path = '/') {
   const [header] = find(tree, (e) => e.tag === 'header');
   assert.ok(header, `${what}: a header`);
   assert.ok(find(header, (e) => e.tag === 'a' && e.attrs.href === '/' && e.textContent === 'truedone').length, `${what}: the name, linked home`);
   assert.ok(find(header, (e) => classes(e).includes('tagline') && /tests prove its change/.test(e.textContent)).length, `${what}: one line on what it does`);
   const [footer] = find(tree, (e) => e.tag === 'footer');
   assert.ok(footer, `${what}: a footer`);
-  assert.deepEqual(find(footer, (e) => e.tag === 'a').map((a) => [a.textContent, a.attrs.href]), FOOTER, `${what}: the footer links`);
+  // the four links, then sign-in back to the page (WEB-07)
+  assert.deepEqual(find(footer, (e) => e.tag === 'a').map((a) => [a.textContent, a.attrs.href]), [...FOOTER, ['Sign in with GitHub', `/signin?return=${encodeURIComponent(path)}`]], `${what}: the footer links`);
   const kids = tree.tag === 'div' ? tree.children.map((c) => c.tag) : [];
   assert.deepEqual(kids, ['header', 'main', 'footer'], `${what}: header, then the view, then the footer`);
 }
@@ -51,7 +52,7 @@ test('page() mounts the home page, a PR page and a missing page in the shell', a
   for (const [what, pathname] of [['home', '/'], ['PR', recorded.pr], ['not found', '/nothing/here']]) {
     const { doc, root } = fakeDoc();
     await page({ pathname }, { fetch: fakeFetch().fetch, doc, root, analyse: () => verdict(), classify });
-    chrome(root.children[0], what);
+    chrome(root.children[0], what, pathname);
   }
 });
 
@@ -61,7 +62,7 @@ test('the verdict badge of every verdict has the class verdict and the class its
     const { doc } = fakeDoc();
     const [badge] = find(build(prView(verdict({ verdict: v, label }), pr), doc), (e) => classes(e).includes('verdict'));
     assert.deepEqual(classes(badge), ['verdict', badgeOf(label)], v);
-    assert.equal(badge.textContent, `Verdict: ${VERDICTS[v]}`, v);
+    assert.equal(badge.textContent, VERDICTS[v], v);   // the name alone; "Verdict: " is a visually hidden label (WEB-07)
     const row = build(precomputedView({ prs: [{ number: 1, title: 'a', result: verdict({ verdict: v, label }) }] }, 'o', 'r'), doc);
     assert.deepEqual(classes(find(row, (e) => classes(e).includes('verdict'))[0]), ['verdict', badgeOf(label)], `${v} in the precomputed list`);
   }
@@ -78,7 +79,7 @@ test('/why shows each label section with the same badges, between the same heade
   }
   assert.match(html, /<header class="site-header">[\s\S]*<a href="\/">truedone<\/a>[\s\S]*class="tagline"[\s\S]*<\/header>\s*<main/);
   const footer = html.match(/<footer class="site-footer">([\s\S]*?)<\/footer>/)?.[1] ?? '';
-  assert.deepEqual([...footer.matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)].map((m) => [m[2], m[1]]), FOOTER);
+  assert.deepEqual([...footer.matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)].map((m) => [m[2], m[1]]), [...FOOTER, ['Sign in with GitHub', '/signin?return=%2Fwhy']]);
 });
 
 test('both pages link the one stylesheet, which styles every badge and has a dark scheme', () => {
