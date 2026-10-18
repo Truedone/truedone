@@ -1,0 +1,45 @@
+# Public metrics (MET-01): once a day and on demand, the collector reads the organisation's public GitHub signals and
+# writes the snapshot to the metrics-data branch, as the index does: metrics/latest.json and one file a day under
+# metrics/history. Never to main, which takes only reviewed pull requests. The workflow token is the only credential.
+name: metrics
+on:
+  schedule:
+    - cron: '23 6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: metrics
+  cancel-in-progress: false
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - name: Collect and check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node tools/metrics/collect.mjs --org "${GITHUB_REPOSITORY_OWNER}" --out /tmp/latest.json
+          node tools/metrics/check.mjs /tmp/latest.json
+      - name: Write the snapshot to metrics-data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git fetch -q origin metrics-data; then
+            git worktree add -q /tmp/data origin/metrics-data
+          else
+            git worktree add -q --detach /tmp/data
+            git -C /tmp/data checkout -q --orphan metrics-data
+            git -C /tmp/data rm -rfq . 2>/dev/null || true
+          fi
+          mkdir -p /tmp/data/metrics/history
+          cp /tmp/latest.json /tmp/data/metrics/latest.json
+          cp /tmp/latest.json "/tmp/data/metrics/history/$(date -u +%F).json"
+          git -C /tmp/data add metrics
+          if git -C /tmp/data diff --cached --quiet; then echo "the snapshot is unchanged"; exit 0; fi
+          git -C /tmp/data commit -q -m "metrics: the public snapshot of $(date -u +%F)"
+          git -C /tmp/data push -q origin HEAD:metrics-data

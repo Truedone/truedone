@@ -33,6 +33,7 @@ flowchart TD
   action["action<br/>the CI step"]
   corpus["corpus<br/>the sample and the gate scripts"]
   bench["bench<br/>latency benches"]
+  metrics["metrics<br/>public metrics, the profile"]
   github["github<br/>CI workflows and CODEOWNERS"]
   gates["gates<br/>gate records and review sheets"]
   index["index<br/>the weekly index"]
@@ -81,6 +82,7 @@ flowchart TD
   corpus -.->|review| gates
   corpus -.->|review| index
   bench -.->|review| readme
+  metrics -.->|review| readme
   github -.->|review| contract
   gates -.->|review| readme
   gates -.->|review| releases
@@ -120,6 +122,7 @@ flowchart TD
 | `action` | the CI step | `packages/action/**` |   | `readme`, `design` | live |
 | `corpus` | the sample and the gate scripts | `tools/corpus/**` |   | `gates`, `index` | planned |
 | `bench` | latency benches | `tools/bench/**`, `docs/bench/**` |   | `readme` | planned |
+| `metrics` | public metrics, the profile | `tools/metrics/**`, `docs/metrics/**`, `docs/org/**` |   | `readme` | live |
 | `github` | CI workflows and CODEOWNERS | `.github/workflows/**`, `.github/CODEOWNERS` |   | `contract` | live |
 | `gates` | gate records and review sheets | `docs/gates/**` |   | `readme`, `releases` | live |
 | `index` | the weekly index | `docs/index/**` |   | `readme` | planned |
@@ -158,6 +161,7 @@ flowchart TD
     "action": {"paths": ["packages/action/**"], "update": [], "review": ["readme", "design"]},
     "corpus": {"planned": true, "paths": ["tools/corpus/**"], "update": [], "review": ["gates", "index"]},
     "bench": {"paths": ["tools/bench/**", "docs/bench/**"], "update": [], "review": ["readme"]},
+    "metrics": {"paths": ["tools/metrics/**", "docs/metrics/**", "docs/org/**"], "update": [], "review": ["readme"]},
     "github": {"paths": [".github/workflows/**", ".github/CODEOWNERS"], "update": [], "review": ["contract"]},
     "gates": {"paths": ["docs/gates/**"], "update": [], "review": ["readme", "releases"]},
     "index": {"planned": true, "paths": ["docs/index/**"], "update": [], "review": ["readme"]},
