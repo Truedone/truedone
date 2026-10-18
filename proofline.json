@@ -329,6 +329,9 @@
       ],
       "WEB-07": [
         "WEB-07-AC08"
+      ],
+      "CORE-10": [
+        "CORE-10-AC10"
       ]
     }
   },
@@ -2650,6 +2653,174 @@
       ]
     },
     {
+      "id": "CORE-10",
+      "title": "[W2] Same-named tests pair by position, and a removed test with an equivalent replacement counts as moved",
+      "phase": "implement",
+      "owner": "lane-d",
+      "depends_on": [
+        "CORE-09"
+      ],
+      "requirements": [
+        "PV-C04",
+        "PV-C05",
+        "PV-C08"
+      ],
+      "description": "Measured on 2026-10-18 over every merged pull request of this repository, with main's core.mjs: two Tampered verdicts, both false. (#66) Pull request #22 reads \"Test a has a weaker assertion on head\" for packages/core/test/per-test.test.mjs, whose only change is an import line: the file holds two fixture tests named a (2 and 1 assertions, the same on both sides), and packages/core/src/checks.mjs:286 builds headBy as a Map by name, which keeps only the last test of a name, so base's first a is compared with head's last a. Fix: tests of one name pair by order of appearance within the file, and each pair is compared on its own. (#67) Pull request #39 reads \"Test ... was removed\" for packages/web/test/route.test.mjs, where the test was renamed with the same assertions and one more case: checks.mjs:416 to 421 count a base test as moved only when an identical body exists on head, so a rename with any edit is a deletion, and with its source kept that is Tampered, although the spec's Tampered row requires that nothing equivalent is added. Fix: a removed test that a new test in the same file matches under the existing Equivalent rule (at least as many assertions and none weaker) counts as moved, not removed. The weakened-assertion matcher of CORE-08, the next-step builder of CORE-09 and the Python side are unchanged.",
+      "scope": {
+        "allow": [
+          "packages/core/src/checks.mjs",
+          "packages/core/test/**",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/action/dist/index.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "CORE-10-AC01",
+          "mandatory": true,
+          "statement": "two tests of one name pair by position: an unrelated edit to such a file gives no weakened finding, and a real weakening of the second one is found",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/core/test/same-name.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CORE-10-AC02",
+          "mandatory": true,
+          "statement": "a removed test matched by a new test in the same file under the Equivalent rule counts as moved; one with no equivalent stays removed",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/core/test/renamed-test.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CORE-10-AC03",
+          "mandatory": true,
+          "statement": "every checks-table row keeps its verdict, in each language",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --input-type=module -e 'import fs from \"node:fs\";import {analyse} from \"./packages/core/src/analyse.mjs\";const d=\"packages/core/test/fixtures/checks/\";const want={\"skip_added\":\"tampered\",\"focus_added\":\"tampered\",\"assertion_weakened\":\"tampered\",\"test_deleted_source_kept\":\"tampered\",\"test_deleted_source_deleted\":\"review\",\"test_moved\":\"unrun\",\"snapshot_updated\":\"review\",\"param_case_removed\":\"review\",\"timeout_raised\":\"review\",\"runner_config_changed\":\"review\",\"step_repinned_release\":\"review\",\"step_changed\":\"tampered\",\"claims_adds_tests\":\"no_evidence\",\"source_no_test\":\"no_evidence\",\"tests_changed_no_report\":\"unrun\",\"docs_only\":\"not_applicable\"};const per=[\"skip_added\",\"focus_added\",\"assertion_weakened\",\"test_deleted_source_kept\",\"test_moved\",\"timeout_raised\"];for(const [r,v] of Object.entries(want))for(const l of (per.includes(r)?[\"js\",\"ts\",\"py\"]:[\"any\"])){const p=d+r+\"/\"+l+\".json\";if(!fs.existsSync(p)){console.error(\"missing\",p);process.exit(1)}const f=JSON.parse(fs.readFileSync(p,\"utf8\"));const o=analyse({files:f.files,pr:f.pr??{title:\"\",body:\"\",author:{login:\"a\",type:\"User\"}},releases:f.releases??[]});if(o.verdict!==v){console.error(p,o.verdict,\"!=\",v);process.exit(1)}if(/\\b(safe|correct|you|your)\\b/i.test(JSON.stringify([o.reasons,o.next]))){console.error(\"wording\",p);process.exit(1)}}'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "CORE-10-AC04",
+          "mandatory": true,
+          "statement": "the committed bundles match their sources",
+          "verifier": {
+            "type": "docs",
+            "cmd": "node tools/bundle.mjs",
+            "paths": [
+              "packages/core/core.mjs",
+              "packages/web/core.mjs",
+              "packages/cli/truedone.mjs",
+              "packages/cli/plugin/hooks/stop.mjs",
+              "packages/action/dist/index.mjs"
+            ]
+          }
+        },
+        {
+          "id": "CORE-10-AC05",
+          "mandatory": true,
+          "statement": "every committed bundle builds from the sources on this tree and matches them",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/bundle.mjs && git diff --quiet -- packages/core/core.mjs packages/web/core.mjs packages/cli packages/action/dist",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-10-AC06",
+          "mandatory": true,
+          "statement": "core.mjs stays under 60 KB",
+          "verifier": {
+            "type": "metric",
+            "cmd": "node tools/bundle.mjs >/dev/null && node -e 'console.log(JSON.stringify({bytes:require(\"fs\").statSync(\"packages/core/core.mjs\").size}))'",
+            "key": "bytes",
+            "op": "<",
+            "value": 61440,
+            "timeout_s": 3600,
+            "name": "core_bytes"
+          }
+        },
+        {
+          "id": "CORE-10-AC07",
+          "mandatory": true,
+          "statement": "core source does no I/O and uses no Node, Deno or Workers API",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|process\\.|Buffer\\.|fetch\\(|Deno\\.|XMLHttpRequest|localStorage\" packages/core/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-10-AC08",
+          "mandatory": true,
+          "statement": "core suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/core/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 235,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "CORE-10-AC09",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-10-AC10",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-10-AC11",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "CORE-10-AC12",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
       "id": "RUN-01",
       "title": "[W1] Runner detection: vitest, jest, mocha, node --test, pytest",
       "phase": "implement",
@@ -3397,14 +3568,14 @@
       "id": "RUN-05",
       "title": "[W5] Mutation probe on the changed lines: spike and decision",
       "phase": "implement",
-      "owner": "lane-c",
+      "owner": "lane-d",
       "depends_on": [
         "GATE-04"
       ],
       "requirements": [
         "PV-G04"
       ],
-      "description": "A test that fails on base and passes on head can still pin one value: return 4 passes f(2) == 4, and that is Proven today; docs/spec.md has no mutation check. tools/spikes/mutate.mjs applies a few mutants to a PR's changed non-test lines, one at a time (a constant return, a negated condition, an off-by-one, a deleted statement), and runs the PR's tests on each. It runs only in the gate harness, .github/workflows/mutate.yml on GitHub-hosted runners in mgillr/truedone with permissions: {}, no secrets and no cache shared with releases (S3), over every Proven result of the GATE-04 sample (docs/gates/redgreen-data.jsonl). docs/spikes/mutation-data.jsonl holds one line per Proven result, {source: its GATE-04 run_url, file, test, run_url: the mutate run, mutants: [{kind, line, failed}], extra_runs, extra_seconds}, and nothing in it is typed by hand. docs/spikes/mutation.md records \"Proven results probed: <n>\", \"No mutant failed a PR test: <k> of <n> (<p>%)\" with <p> to one decimal, \"Extra runs per PR: <r>\", \"Extra seconds per PR: p50 <a>, p95 <b>\", and one of \"Decision: in Proven\", \"Decision: opt-in\" or \"Decision: harness only (a gate 3 false-Proven estimate)\". Ryan approves the decision by adding \"Approved: Ryan Gillespie on <date>\" in a commit he signs. No verdict change ships in this task: a decision that changes a verdict comes back as a spec change and a task of its own.",
+      "description": "A test that fails on base and passes on head can still pin one value: return 4 passes f(2) == 4, and that is Proven today; docs/spec.md has no mutation check. tools/spikes/mutate.mjs applies a few mutants to a PR's changed non-test lines, one at a time (a constant return, a negated condition, an off-by-one, a deleted statement), and runs the PR's tests on each. It runs only in the gate harness, .github/workflows/mutate.yml on GitHub-hosted runners in mgillr/truedone with permissions: {}, no secrets and no cache shared with releases (S3), over every Proven result of the GATE-04 sample (docs/gates/redgreen-data.jsonl). docs/spikes/mutation-data.jsonl holds one line per Proven result, {source: its GATE-04 run_url, file, test, run_url: the mutate run, mutants: [{kind, line, failed}], extra_runs, extra_seconds}, and nothing in it is typed by hand. docs/spikes/mutation.md records \"Proven results probed: <n>\", \"No mutant failed a PR test: <k> of <n> (<p>%)\" with <p> to one decimal, \"Extra runs per PR: <r>\", \"Extra seconds per PR: p50 <a>, p95 <b>\", and one of \"Decision: in Proven\", \"Decision: opt-in\" or \"Decision: harness only (a gate 3 false-Proven estimate)\". Ryan approves the decision by adding \"Approved: Ryan Gillespie on <date>\" in a commit he signs. No verdict change ships in this task: a decision that changes a verdict comes back as a spec change and a task of its own. Owner lane-d from 2026-10-18 06:17Z.",
       "scope": {
         "allow": [
           "tools/spikes/mutate.mjs",
