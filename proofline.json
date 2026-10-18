@@ -357,6 +357,9 @@
       ],
       "WEB-12": [
         "WEB-12-AC06"
+      ],
+      "APP-10": [
+        "APP-10-AC05"
       ]
     }
   },
@@ -6280,6 +6283,108 @@
       ]
     },
     {
+      "id": "APP-10",
+      "title": "[W2] The queue consumer hands each stage the whole delivery, and a test runs the real stages through it",
+      "phase": "implement",
+      "owner": "lane-d",
+      "depends_on": [
+        "APP-09"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "description": "Measured live on 2026-10-18 09:47Z (wrangler tail truedone-dev, the sandbox installation fixed by the owner): every delivery fails at the stage after the token mint, logged by APP-09 as {\"stage\":\"static\",\"error\":\"TypeError: Cannot destructure property 'repository' of 'payload' as it is undefined.\"} and the same for red-green with 'workflow_run'. packages/app/src/index.mjs passes message.body.delivery, the delivery id string, to the stages, while makeStatic's handler reads delivery.payload (static.mjs:145) and makeRedGreen reads delivery.payload (redgreen.mjs:65); queue.test.mjs fakes both stages, so the wiring was never run. Fix: the consumer passes the whole message body ({event, delivery, payload}) to the stage. A test drives makeConsumers with the real makeStatic and makeRedGreen, only fetch, KV and the mint faked, on a recorded pull_request and workflow_run payload, and asserts each stage reaches its first write to GitHub with the payload's repository and number; queue.test.mjs's fakes assert they receive the body, not the id.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-10-AC01",
+          "mandatory": true,
+          "statement": "the real static and red-green stages, driven through the consumer with faked fetch, KV and mint, reach their first GitHub write with the payload's repository and number",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/consumer-wiring.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-10-AC02",
+          "mandatory": true,
+          "statement": "the app uses only Web APIs: no Node imports, no child processes, no eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-10-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-10-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-10-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-10-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-10-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
       "id": "APP-03",
       "title": "[W3] Static stage: check run, one label, summary, config, logs",
       "phase": "implement",
@@ -6976,7 +7081,8 @@
         "APP-05",
         "DEP-01",
         "OPS-02",
-        "APP-09"
+        "APP-09",
+        "APP-10"
       ],
       "requirements": [
         "PV-A03",
