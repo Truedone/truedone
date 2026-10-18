@@ -59,15 +59,18 @@ export function makeStatic(env) {
     if (!allowed.allowed) return { skipped: allowed.reason };
     const phase1 = Date.now() - gateStart;
 
+    // APP-20: two chains share the one analysis; the label never waits for a
+    // check-run call. Either chain's failure throws to the APP-17 queue path.
     const t0 = Date.now();
     meta.startedAt = new Date(t0).toISOString();
-    const [result, found, labels] = await Promise.all([analyse(env, owner, repo, pr), checkRunFor(owner, repo, pr.head.sha), labelState(owner, repo, pr.number)]);
-    const phase2 = Date.now() - t0;
-    const writesStart = Date.now();
-    await Promise.all([postCheck(owner, repo, pr.head.sha, result, meta, found), postLabel(owner, repo, pr.number, result, meta, labels)]);
-    const phase3 = Date.now() - writesStart;
-    // APP-18: one line per analysed delivery, numbers only, for the tail to split.
-    console.log(JSON.stringify({ stage: "static", delivery: delivery.delivery, phase1_ms: phase1, phase2_ms: phase2, phase3_ms: phase3, total_ms: Date.now() - gateStart }));
+    let analyseDone, labelDone, checkDone;
+    const analyseP = analyse(env, owner, repo, pr).then((r) => { analyseDone = Date.now(); return r; });
+    const labelChain = Promise.all([analyseP, labelState(owner, repo, pr.number)]).then(([result, labels]) => postLabel(owner, repo, pr.number, result, meta, labels).then(() => { labelDone = Date.now(); return result; }));
+    const checkChain = Promise.all([analyseP, checkRunFor(owner, repo, pr.head.sha)]).then(([result, found]) => postCheck(owner, repo, pr.head.sha, result, meta, found).then(() => { checkDone = Date.now(); return result; }));
+    const [result] = await Promise.all([labelChain, checkChain]);
+    const end = Date.now();
+    // APP-18/APP-20: one line per analysed delivery, numbers only, for the tail to split.
+    console.log(JSON.stringify({ stage: "static", delivery: delivery.delivery, phase1_ms: phase1, phase2_ms: (analyseDone ?? end) - t0, label_ms: (labelDone ?? end) - t0, check_ms: (checkDone ?? end) - t0, total_ms: end - gateStart }));
     // S8: timings and identifiers only, never diff content or PR text.
     env.LOG?.({ installation: payload.installation?.id, repository: repository.id, pr: pr.number, verdict: result.verdict, ms: Date.now() - t0 });
     return { verdict: result.verdict };
