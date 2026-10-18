@@ -74,7 +74,10 @@ export function makeIntake(env, { run, budgetMs = DIRECT_BUDGET_MS } = {}) {
   // The direct run, then the queue when it throws or outlasts the budget (delayed, so it never runs beside it). If
   // that send fails too, the delivery's dedupe record is deleted, so a redeliver from the App's delivery log is
   // analysed rather than dropped as a duplicate.
-  async function handOver(body, seenKey, opts) {
+  async function handOver(body, seenKey, opts, verdict) {
+    // APP-26: the hand-over waits for the delivery's dedupe verdict. A duplicate, or a dedupe that failed (the intake
+    // answered 500), sends nothing; a new delivery's record is written before the verdict, so the delete below follows it.
+    if (verdict && (await verdict.catch(() => "failed")) !== "new") return;
     try {
       await (opts ? env.QUEUE.send(queued(body), opts) : env.QUEUE.send(queued(body)));
     } catch (error) {
@@ -82,22 +85,22 @@ export function makeIntake(env, { run, budgetMs = DIRECT_BUDGET_MS } = {}) {
       await env.KV.delete(seenKey);
     }
   }
-  async function direct(body, seenKey) {
+  async function direct(body, seenKey, verdict) {
     let timer;
     const late = new Promise((resolve) => { timer = setTimeout(() => resolve(LATE), budgetMs); });
-    const running = run(body);
+    const running = run(body, { gate: verdict });
     let outcome;
     try {
       outcome = await Promise.race([running, late]);
     } catch (error) {
       logLine(body.delivery, error);
-      return handOver(body, seenKey, error?.status === 401 ? { delaySeconds: REFUSED_RETRY_DELAY_S } : undefined);
+      return handOver(body, seenKey, error?.status === 401 ? { delaySeconds: REFUSED_RETRY_DELAY_S } : undefined, verdict);
     } finally {
       clearTimeout(timer);
     }
     if (outcome !== LATE) return;
     running.catch(() => {});   // the queue has it now; a late failure changes nothing
-    return handOver(body, seenKey, { delaySeconds: QUEUE_DELAY_S });
+    return handOver(body, seenKey, { delaySeconds: QUEUE_DELAY_S }, verdict);
   }
 
   return async function intake(request, ctx) {
@@ -141,16 +144,27 @@ export function makeIntake(env, { run, budgetMs = DIRECT_BUDGET_MS } = {}) {
       return Response.json({ dropped: `${event}.${payload.action}` }, { status: 200 });
     }
 
-    // Each kept delivery id is handled once (S6): the KV record expires after 24 hours.
+    // Each kept delivery id is handled once (S6): the KV record expires after 24 hours. The dedupe reads the record, writes
+    // it for a new delivery, and resolves "new" or "duplicate"; a KV failure rejects it.
     const seenKey = `delivery:${delivery}`;
-    const seen = await env.KV.get(seenKey);
-    if (seen) return new Response("duplicate", { status: 200 });
-    await env.KV.put(seenKey, "1", { expirationTtl: DEDUPE_TTL_S });
+    const dedupe = async () => {
+      if (await env.KV.get(seenKey)) return "duplicate";
+      await env.KV.put(seenKey, "1", { expirationTtl: DEDUPE_TTL_S });
+      return "new";
+    };
 
+    // APP-26: a direct pull_request delivery starts its stage at once, and the dedupe runs beside the stage's switch and
+    // read phases. Only the stage's writes (the check run and the label) and a hand-over to the queue wait for its verdict,
+    // so a duplicate writes nothing. The answer still waits for it too, so GitHub sees "duplicate", or a 500 when KV
+    // fails, as before.
     if (event === "pull_request" && run && typeof ctx?.waitUntil === "function") {
-      ctx.waitUntil(direct({ event, delivery, payload }, seenKey));
+      const verdict = dedupe();
+      ctx.waitUntil(direct({ event, delivery, payload }, seenKey, verdict));
+      if ((await verdict) === "duplicate") return new Response("duplicate", { status: 200 });
       return Response.json({ analysing: event }, { status: 200 });
     }
+    // A queued delivery is deduped before its send.
+    if ((await dedupe()) === "duplicate") return new Response("duplicate", { status: 200 });
     await env.QUEUE.send(queued({ event, delivery, payload }));
     return Response.json({ queued: event }, { status: 200 });
   };

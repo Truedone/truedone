@@ -4,7 +4,7 @@
 // takes signed deliveries with a ctx that keeps the waitUntil promises:
 // - opened: answered 200, nothing queued, and once the promises settle, one read of the files and one check run.
 // - A run that throws: the delivery goes to the queue as it came, and one log line names it, without the token.
-// - The same delivery id twice: analysed once.
+// - The same delivery id twice: written once. The second copy runs its reads beside the dedupe and writes nothing (APP-26).
 // - A run that throws and a queue send that fails: the dedupe record is deleted, so the same delivery id again (a
 //   redeliver from the App's delivery log) is analysed once.
 // - workflow_run completed, a dropped action, or no ctx at all: no direct run; the first and last are queued.
@@ -123,7 +123,7 @@ test("a run that throws: the delivery goes to the queue in the slim shape, and o
   assert.ok(logs.every((l) => !l.includes(TOKEN)), "the token is in no log line");
 });
 
-test("the same delivery id twice: analysed once", async (t) => {
+test("the same delivery id twice: written once", async (t) => {
   const gh = github();
   useFetch(t, gh);
   const { env, sent } = environment();
@@ -131,7 +131,8 @@ test("the same delivery id twice: analysed once", async (t) => {
   const second = await deliver(env, "pull_request", "opened", "d-3", context());
   assert.equal(first.status, 200);
   assert.deepEqual([second.status, second.body], [200, "duplicate"]);
-  assert.equal(count(gh, "GET /repos/o/r/pulls/6/files"), 1);
+  // APP-26: the duplicate's stage starts before its dedupe read answers, so it reads the files too, and writes nothing
+  assert.equal(count(gh, "GET /repos/o/r/pulls/6/files"), 2);
   assert.equal(count(gh, "POST /repos/o/r/check-runs"), 1);
   assert.deepEqual(sent, []);
 });

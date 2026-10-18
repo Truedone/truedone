@@ -47,7 +47,10 @@ export function makeStatic(env) {
   // new one. The pull request comes from memory on the direct run (known: the delivery just received, never stored) or
   // from GitHub on a queued run, which so analyses the title, body and author as they stand when it runs. Either way the
   // analysis is at the delivery's base and head shas, where its check and label are written.
-  return async function onPullRequest(delivery, { pr: known } = {}) {
+  // APP-26: gate is the intake's dedupe verdict for a direct run, read beside phases 1 and 2. The two writes wait for it,
+  // and a duplicate writes nothing and logs no phase line; a failed dedupe throws. A queued delivery has no gate, since
+  // the intake deduped it before its send.
+  return async function onPullRequest(delivery, { pr: known, gate } = {}) {
     const payload = slim("pull_request", delivery.payload);
     // The intake drops every other action (APP-16); this covers a message queued before that.
     if (payload.action && !ACTIONS.pull_request.has(payload.action)) return { skipped: payload.action };
@@ -74,9 +77,11 @@ export function makeStatic(env) {
       .then((full) => ({ ...full, base: { ...full.base, sha: pr.base.sha }, head: { ...full.head, sha: pr.head.sha } }));
     const analyseP = analyse(env, owner, repo, fullP).then((r) => { analyseDone = Date.now(); return r; });
     let labelWritten;
-    const labelChain = Promise.all([analyseP, labelState(owner, repo, pr.number)]).then(([result, labels]) => postLabel(owner, repo, pr.number, result, meta, labels).then((written) => { labelDone = Date.now(); labelWritten = written; return result; }));
-    const checkChain = Promise.all([analyseP, checkRunFor(owner, repo, pr.head.sha)]).then(([result, found]) => postCheck(owner, repo, pr.head.sha, result, meta, found).then(() => { checkDone = Date.now(); return result; }));
+    const verdictP = gate ?? Promise.resolve("new");
+    const labelChain = Promise.all([analyseP, labelState(owner, repo, pr.number), verdictP]).then(([result, labels, verdict]) => verdict !== "new" ? result : postLabel(owner, repo, pr.number, result, meta, labels).then((written) => { labelDone = Date.now(); labelWritten = written; return result; }));
+    const checkChain = Promise.all([analyseP, checkRunFor(owner, repo, pr.head.sha), verdictP]).then(([result, found, verdict]) => verdict !== "new" ? result : postCheck(owner, repo, pr.head.sha, result, meta, found).then(() => { checkDone = Date.now(); return result; }));
     const [result] = await Promise.all([labelChain, checkChain]);
+    if ((await verdictP) !== "new") return { duplicate: delivery.delivery };
     const end = Date.now();
     // APP-18/APP-20: one line per analysed delivery, numbers only, for the tail to split.
     console.log(JSON.stringify({ stage: "static", delivery: delivery.delivery, phase1_ms: phase1, phase2_ms: (analyseDone ?? end) - t0, label_ms: (labelDone ?? end) - t0, check_ms: (checkDone ?? end) - t0, label_write_ms: labelWritten?.writeMs ?? 0, total_ms: end - gateStart }));
