@@ -5,9 +5,12 @@
 import { analyse, classify } from './core.mjs';
 import { page } from './lib/page.mjs';
 import { API, RAW } from './lib/github.mjs';
+import { randomState } from './lib/signin.mjs';
 
+const session = () => { try { return globalThis.sessionStorage; } catch { return null; } };   // blocked storage throws
 const meta = (name, fallback) => document.querySelector(`meta[name="${name}"]`)?.getAttribute('content') || fallback;
 page(location, {
   fetch: (...a) => globalThis.fetch(...a), doc: document, root: document.getElementById('app'),
-  analyse, classify, api: meta('truedone-api', API), raw: meta('truedone-raw', RAW),
+  analyse, classify, storage: session(), random: randomState(globalThis.crypto),
+  api: meta('truedone-api', API), raw: meta('truedone-raw', RAW),
 }).then(() => { document.documentElement.dataset.state = 'done'; });

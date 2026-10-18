@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { page } from '../lib/page.mjs';
 import { loadPR } from '../lib/github.mjs';
+import { prView } from '../lib/view.mjs';
 import { fakeFetch, fakeDoc, textOf, find, classify, verdict, recorded } from './lib/fakes.mjs';
 
 const loc = { pathname: recorded.pr };
@@ -83,4 +84,11 @@ test('a PR over the 300-file limit reads 3 pages and is shown as partial', async
   assert.equal(f.count('api.github.com'), 4);
   assert.match(textOf(root), /\(partial\)/);
   assert.match(textOf(root), /Analysed 300 of the 1200 changed files/);
+});
+
+test('a reason with no file is its message alone, and one with a file and a line says where', () => {
+  const pr = { owner: 'octo', repo: 'demo', number: 7, title: 't', url: 'https://github.com/octo/demo/pull/7', changed_files: 1 };
+  const tree = prView(verdict({ reasons: [{ check: 'partial', file: '', message: 'Only part of the change was read.' }, { check: 'skip_focus', file: 'src/a.test.js', line: 3, message: 'a test is skipped' }] }), pr);
+  const items = (function walk(n) { return [...(n.tag === 'li' ? [n.text] : []), ...(n.children || []).flatMap(walk)]; })(tree);
+  assert.deepEqual(items, ['Only part of the change was read.', 'src/a.test.js:3: a test is skipped']);
 });
