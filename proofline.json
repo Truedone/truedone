@@ -342,6 +342,9 @@
       "REPO-03": [
         "REPO-03-AC03",
         "REPO-03-AC06"
+      ],
+      "WEB-09": [
+        "WEB-09-AC06"
       ]
     }
   },
@@ -9062,6 +9065,118 @@
         },
         {
           "id": "WEB-08-AC10",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "WEB-09",
+      "title": "[W2] The accessibility pass: a title per page, the field's border and placeholder, named reasons lists, aria-busy while loading",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "WEB-08"
+      ],
+      "requirements": [
+        "PV-W02"
+      ],
+      "description": "Measured on the live site on 2026-10-18 (issues #82 to #85). (#82, WCAG 2.4.2) document.title is \"truedone\" on every client-rendered page; nothing in packages/web/lib sets it and index.html carries a fixed title: page.mjs sets a title per view, the verdict and owner/repo#n for a PR page (\"Tampered: mgillr/truedone-sandbox#31 - truedone\"), \"Check a pull request - truedone\" for home, the heading for the error, rate-limit, not-found and no-list pages, each ending \" - truedone\". (#83, 1.4.11) the field's only boundary is its 1px border, 1.43:1 on #ffffff and 1.55:1 on #0d1117 (style.css:112): the border colour reaches 3:1 or more against --bg in both themes. (#84, 1.4.3) no ::placeholder rule, so Chrome's default is 4.11:1 in dark: ::placeholder takes the muted token in both themes, 4.5:1 or more. (#85, 1.3.1) the two reasons lists (view.mjs:96 and :97) are unnamed: each carries an accessible name, the first \"Reasons for the verdict\" through a visually hidden label and the second tied to \"Also noted\" with aria-labelledby, so a screen reader moving by list tells them apart. Also: #app carries aria-busy=\"true\" while \"Loading\" shows and loses it when a view mounts. The tests compute the contrast ratios from the CSS tokens without a browser, check the title per route through page(), and read the names and aria-busy from the mounted DOM. The CSP is outside the scope and unchanged.",
+      "scope": {
+        "allow": [
+          "packages/web/lib/**",
+          "packages/web/index.html",
+          "packages/web/style.css",
+          "packages/web/why.html",
+          "packages/web/README.md",
+          "packages/web/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "WEB-09-AC01",
+          "mandatory": true,
+          "statement": "every route sets document.title naming its view and ending \" - truedone\"; a PR page names the verdict and owner/repo#n",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/page-title.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-09-AC02",
+          "mandatory": true,
+          "statement": "computed from the CSS tokens, the field border is 3:1 or more and the placeholder 4.5:1 or more against --bg in light and dark",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/contrast.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-09-AC03",
+          "mandatory": true,
+          "statement": "both reasons lists carry accessible names, the second tied to Also noted, and #app is aria-busy while loading and not after a view mounts",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/list-names.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-09-AC04",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 90,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "WEB-09-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-09-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-09-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "WEB-09-AC08",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
