@@ -323,6 +323,12 @@
       ],
       "CORE-08": [
         "CORE-08-AC09"
+      ],
+      "CORE-09": [
+        "CORE-09-AC09"
+      ],
+      "WEB-07": [
+        "WEB-07-AC08"
       ]
     }
   },
@@ -2469,6 +2475,166 @@
         },
         {
           "id": "CORE-08-AC11",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "CORE-09",
+      "title": "[W2] The next step follows the reasons present, and each reason carries its own verdict",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "CORE-08"
+      ],
+      "requirements": [
+        "PV-C04",
+        "PV-C05",
+        "PV-C08"
+      ],
+      "description": "Issue #56, measured on main 5f23b78d: packages/core/src/analyse.mjs:21 and packages/core/src/judge.mjs:58 map the next step per verdict, so every Tampered PR reads \"Restore an equivalent test, or pin the step to a published release.\" and a PR whose only reason is a weakened assertion is told to pin a step it never touched (the live page for pull request #52 before CORE-08). The fix: result.next is built from the reasons present, one sentence per group in a fixed order, and a group with no reason present does not appear: the test-restoring sentence for skip, focus, weakened, deleted, parametrised, timeout and snapshot; the step sentence for step and step_release; a runner sentence for runner_config; the run sentence for unrun; the existing sentences for the other verdicts. Each reason object gains verdict, the verdict that reason alone would give, so a view can mark a lesser finding under a stronger verdict (WEB-07). The red-green judge uses the same builder. The checks table keeps every verdict; the Python side is unchanged.",
+      "scope": {
+        "allow": [
+          "packages/core/src/analyse.mjs",
+          "packages/core/src/judge.mjs",
+          "packages/core/src/messages.mjs",
+          "packages/core/test/**",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/action/dist/index.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "CORE-09-AC01",
+          "mandatory": true,
+          "statement": "the next step names only the groups of reasons present (weakened alone: restore, no pin; step alone: pin, no restore; both: both), and each reason carries the verdict it alone gives",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/core/test/next-step.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CORE-09-AC02",
+          "mandatory": true,
+          "statement": "every checks-table row keeps its verdict, in each language",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --input-type=module -e 'import fs from \"node:fs\";import {analyse} from \"./packages/core/src/analyse.mjs\";const d=\"packages/core/test/fixtures/checks/\";const want={\"skip_added\":\"tampered\",\"focus_added\":\"tampered\",\"assertion_weakened\":\"tampered\",\"test_deleted_source_kept\":\"tampered\",\"test_deleted_source_deleted\":\"review\",\"test_moved\":\"unrun\",\"snapshot_updated\":\"review\",\"param_case_removed\":\"review\",\"timeout_raised\":\"review\",\"runner_config_changed\":\"review\",\"step_repinned_release\":\"review\",\"step_changed\":\"tampered\",\"claims_adds_tests\":\"no_evidence\",\"source_no_test\":\"no_evidence\",\"tests_changed_no_report\":\"unrun\",\"docs_only\":\"not_applicable\"};const per=[\"skip_added\",\"focus_added\",\"assertion_weakened\",\"test_deleted_source_kept\",\"test_moved\",\"timeout_raised\"];for(const [r,v] of Object.entries(want))for(const l of (per.includes(r)?[\"js\",\"ts\",\"py\"]:[\"any\"])){const p=d+r+\"/\"+l+\".json\";if(!fs.existsSync(p)){console.error(\"missing\",p);process.exit(1)}const f=JSON.parse(fs.readFileSync(p,\"utf8\"));const o=analyse({files:f.files,pr:f.pr??{title:\"\",body:\"\",author:{login:\"a\",type:\"User\"}},releases:f.releases??[]});if(o.verdict!==v){console.error(p,o.verdict,\"!=\",v);process.exit(1)}if(/\\b(safe|correct|you|your)\\b/i.test(JSON.stringify([o.reasons,o.next]))){console.error(\"wording\",p);process.exit(1)}}'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "CORE-09-AC03",
+          "mandatory": true,
+          "statement": "the committed bundles match their sources",
+          "verifier": {
+            "type": "docs",
+            "cmd": "node tools/bundle.mjs",
+            "paths": [
+              "packages/core/core.mjs",
+              "packages/web/core.mjs",
+              "packages/cli/truedone.mjs",
+              "packages/cli/plugin/hooks/stop.mjs",
+              "packages/action/dist/index.mjs"
+            ]
+          }
+        },
+        {
+          "id": "CORE-09-AC04",
+          "mandatory": true,
+          "statement": "every committed bundle builds from the sources on this tree and matches them",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/bundle.mjs && git diff --quiet -- packages/core/core.mjs packages/web/core.mjs packages/cli packages/action/dist",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-09-AC05",
+          "mandatory": true,
+          "statement": "core.mjs stays under 60 KB",
+          "verifier": {
+            "type": "metric",
+            "cmd": "node tools/bundle.mjs >/dev/null && node -e 'console.log(JSON.stringify({bytes:require(\"fs\").statSync(\"packages/core/core.mjs\").size}))'",
+            "key": "bytes",
+            "op": "<",
+            "value": 61440,
+            "timeout_s": 3600,
+            "name": "core_bytes"
+          }
+        },
+        {
+          "id": "CORE-09-AC06",
+          "mandatory": true,
+          "statement": "core source does no I/O and uses no Node, Deno or Workers API",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|process\\.|Buffer\\.|fetch\\(|Deno\\.|XMLHttpRequest|localStorage\" packages/core/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-09-AC07",
+          "mandatory": true,
+          "statement": "core suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/core/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 235,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "CORE-09-AC08",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-09-AC09",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-09-AC10",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "CORE-09-AC11",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
@@ -8289,6 +8455,141 @@
         },
         {
           "id": "WEB-06-AC10",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "WEB-07",
+      "title": "[W2] The site walk: a repository with no list, the verdict badge, the label line, reason lines, the next-rung card, an example, sign-in",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "WEB-06",
+        "CORE-09"
+      ],
+      "requirements": [
+        "PV-W02"
+      ],
+      "description": "Measured on the live site on 2026-10-18 (issues #55, #57, #58, #59, #60, #61, #62, #63). (#58) /p/mgillr/truedone shows the pull request error because /precomputed/mgillr--truedone.json answers 200 text/html, the single-page fallback, so packages/web/lib/page.mjs:28 passes res.ok and res.json() throws: the page accepts only an application/json answer and otherwise says the repository has no list yet. (#60, #62) The verdict at packages/web/lib/view.mjs:74 is a p element reading \"Verdict: Tests changed: not run\": it becomes a link to /why#truedone-<label suffix> whose text is the verdict name alone, so one colon at most. (#55) The line \"Label: truedone:tampered\" at view.mjs:76 reads as a GitHub label while GitHub carries none: it reads \"Label the app would set: truedone:<x>\". (#57) view.mjs:63 prefixes every reason with its file while messages such as unrun already name it: a reason whose message names its file is printed without the prefix, and reasons whose verdict (CORE-09) differs from the result's are listed after the others under the line \"Also noted\". (#59) The next rung stays on every page (PV-W05, WEB-01-AC03), under the heading \"Next rung: run the PR's own tests on your machine\"; its first line claims a diff only where a verdict was shown. (#61) homeView gains one example link per verdict to a public pull request page on this site. (#63) The site footer offers \"Sign in with GitHub\" on every page, so sign-in is reachable before the rate limit. The content security policy and the exchange are unchanged.",
+      "scope": {
+        "allow": [
+          "packages/web/lib/**",
+          "packages/web/why.html",
+          "packages/web/index.html",
+          "packages/web/style.css",
+          "packages/web/README.md",
+          "packages/web/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "WEB-07-AC01",
+          "mandatory": true,
+          "statement": "a text/html answer for a precomputed list renders \"has no list yet\", not the pull request error",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/precomputed-missing.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-07-AC02",
+          "mandatory": true,
+          "statement": "the verdict is a link to /why#truedone-<label> with the name alone, the label line says the app would set it, a reason that names its file is not prefixed, and a lesser reason is listed under Also noted",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/verdict-panel.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-07-AC03",
+          "mandatory": true,
+          "statement": "home links one example per verdict, every page offers sign-in in the footer, and the next-rung first line claims a diff only where a verdict was shown",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/site-links.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-07-AC04",
+          "mandatory": true,
+          "statement": "every page still shows the next rung with the red-green warning (PV-W05)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test packages/web/test/next-rung.test.mjs",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "WEB-07-AC05",
+          "mandatory": true,
+          "statement": "why.html keeps a section per label",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(grep -c '<section id=\"truedone-' packages/web/why.html)\" -ge 8",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "WEB-07-AC06",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 52,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "WEB-07-AC07",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-07-AC08",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-07-AC09",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "WEB-07-AC10",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
