@@ -12293,15 +12293,14 @@
       "owner": "lane-b",
       "depends_on": [
         "CORE-05",
-        "CLI-02",
-        "GATE-01"
+        "CLI-02"
       ],
       "requirements": [
         "PV-L01",
         "PV-L02",
         "PV-L04"
       ],
-      "description": "packages/cli/truedone.mjs: one file built by tools/bundle.mjs from packages/cli/src and core.mjs; bin truedone. Commands as in docs/spec.md: npx truedone (current branch against the merge-base with the default branch), npx truedone <PR link or owner/repo#n> (a pull request link on github.com or https://truedone.pages.dev; through the API with GITHUB_TOKEN if set, nothing cloned), --json (truedone.verdict/1), --fail-on <verdicts>. Exit codes 0, 1, 2, 3. --run and --docker arrive in CLI-03. The npm package holds truedone.mjs, package.json, README.md and LICENSE only. docs/bench/cli-prs.txt lists the first 50 PRs of the GATE-01 sample, in shard and line order, for the timing check, which the contract runs itself. README.md: the `npx truedone` row and the \"Not built yet\" line say what this task puts on main.",
+      "description": "packages/cli/truedone.mjs: one file built by tools/bundle.mjs from packages/cli/src and core.mjs; bin truedone. Commands as in docs/spec.md: npx truedone (current branch against the merge-base with the default branch), npx truedone <PR link or owner/repo#n> (a pull request link on github.com or https://truedone.pages.dev; through the API with GITHUB_TOKEN if set, nothing cloned), --json (truedone.verdict/1), --fail-on <verdicts>. Exit codes 0, 1, 2, 3. --run and --docker arrive in CLI-03. The npm package holds truedone.mjs, package.json, README.md and LICENSE only. docs/bench/cli-prs.txt lists 50 public pull requests opened in the corpus window (2026-07-01 to 2026-08-29), 5 each from the first 11 agent-group repositories the GATE-01 draw selected, for the timing check, which the contract runs itself; WEB-03 measures on the committed sample. README.md: the `npx truedone` row and the \"Not built yet\" line say what this task puts on main.",
       "scope": {
         "allow": [
           "packages/cli/**",
