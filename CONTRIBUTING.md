@@ -56,8 +56,11 @@ The checks need:
 - git, which the runner and gate tests drive.
 - curl, which the stand-in browser in `packages/core/test/check-browser.test.mjs` calls.
 - Python 3 with pytest (`python3 -m pip install pytest`), which `packages/core/test/run-live-pytest.test.mjs` runs.
-- Chrome or Chromium, for the browser checks that `node tools/check-browser.mjs` runs, found through `CHROMIUM_BIN` or
-  `chromium` on PATH.
+- Chrome or Chromium, for the browser checks that `node tools/check-browser.mjs` runs. It is found through `CHROMIUM_BIN`,
+  then `chromium`, `chromium-browser`, `google-chrome` or `google-chrome-stable` on PATH, then the standard install
+  paths: on macOS `/Applications/Google Chrome.app` and `/Applications/Chromium.app`, on Linux `/usr/bin/google-chrome`
+  and `/usr/bin/chromium`. For an install elsewhere, set `CHROMIUM_BIN=` to the browser's path, for example
+  `CHROMIUM_BIN=/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`.
 
 There are no dependencies, so `npm ci` installs nothing; `package-lock.json` is empty on purpose.
 
