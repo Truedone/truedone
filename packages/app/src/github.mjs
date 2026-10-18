@@ -5,12 +5,6 @@
 // carries the fresh mint.
 const API = "https://api.github.com";
 
-// APP-21: the delivery id's hash picks the trial's label-write method, 1 to 3.
-export const labelMethod = (deliveryId) => {
-  let h = 0;
-  for (const c of String(deliveryId)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  return h % 3 + 1;
-};
 
 export function makeGitHub(env) {
   async function api(p, init = {}) {
@@ -25,19 +19,6 @@ export function makeGitHub(env) {
     });
     if (!r.ok) throw Object.assign(new Error(`${r.status} ${p}`), { status: r.status });
     return r.json();
-  }
-
-  // APP-21: GraphQL for the label trial. GitHub answers 200 with an errors
-  // array when a mutation fails, so the errors are checked here and thrown.
-  async function graphql(query, variables) {
-    const r = await fetch(`${API}/graphql`, {
-      method: "POST",
-      headers: { authorization: `Bearer ${await env.INSTALLATION_TOKEN}`, "user-agent": "truedone-app", "content-type": "application/json" },
-      body: JSON.stringify({ query, variables }),
-    });
-    const body = await r.json().catch(() => ({}));
-    if (!r.ok || body.errors) throw Object.assign(new Error(`graphql ${r.status}${body.errors ? `: ${body.errors.map((e) => e.message).join("; ")}` : ""}`), { status: r.status });
-    return body.data;
   }
 
   // D18: the published truedone release SHAs come from the tags of
@@ -97,44 +78,29 @@ export function makeGitHub(env) {
   }
 
   // The stale truedone labels go and a missing label is defined together, then
-  // the wanted one is added. APP-21: the write is trialled by method, chosen by
-  // the delivery id's hash — 1 the REST POST, 2 GraphQL addLabelsToLabelable
-  // (the PR's and the label's node ids from the delivery and the repository
-  // list), 3 a REST PATCH of the issue with the kept labels plus the wanted
-  // one, so no user label is lost. Returns the method used and the write's
-  // milliseconds, for the phase line.
-  async function postLabel(owner, repo, number, result, prMeta, state, opts = {}) {
+  // the wanted one is added (APP-22: the one route — the trial's other two are
+  // gone). Returns the write's milliseconds, for the phase line.
+  async function postLabel(owner, repo, number, result, prMeta, state) {
     const key = VERDICT_LABEL[result.verdict];
     const wanted = key ?? null;
     const { onIssue, all } = state ?? await labelState(owner, repo, number);
     const current = onIssue.filter((n) => n.startsWith("truedone:"));
     if (!wanted || current.includes(wanted)) {
       await Promise.all(current.filter((name) => name !== wanted).map((name) => api(`/repos/${owner}/${repo}/issues/${number}/labels/${encodeURIComponent(name)}`, { method: "DELETE" }).catch(() => {})));
-      return { method: "rest-post", writeMs: 0 };
+      return { writeMs: 0 };
     }
     const started = Date.now();
-    let used = "rest-post";
-    if (opts.method === 3) {
-      const keep = onIssue.filter((n) => !n.startsWith("truedone:"));
-      await api(`/repos/${owner}/${repo}/issues/${number}`, { method: "PATCH", body: JSON.stringify({ labels: [...keep, wanted] }) });
-      used = "rest-patch";
-    } else if (opts.method === 2 && prMeta.nodeId && (all ?? []).some((l) => l.name === wanted && l.node_id)) {
-      const node = all.find((l) => l.name === wanted).node_id;
-      await graphql(`mutation($id: ID!, $labels: [ID!]) { addLabelsToLabelable(input: {labelableId: $id, labelIds: $labels}) { labelable { ... on Issue { number } } } }`, { id: prMeta.nodeId, labels: [node] });
-      used = "graphql";
-    } else {
-      const first = current.filter((name) => name !== wanted).map((name) => api(`/repos/${owner}/${repo}/issues/${number}/labels/${encodeURIComponent(name)}`, { method: "DELETE" }).catch(() => {}));
-      if (!(all ?? []).some((l) => l.name === wanted)) {
-        const l = LABELS.find((x) => x.name === key);
-        first.push(api(`/repos/${owner}/${repo}/labels`, { method: "POST", body: JSON.stringify({ name: l.name, color: l.color, description: l.description }) }).catch(() => {}));
-      }
-      await Promise.all(first);
-      await api(`/repos/${owner}/${repo}/issues/${number}/labels`, { method: "POST", body: JSON.stringify({ labels: [wanted] }) });
+    const first = current.filter((name) => name !== wanted).map((name) => api(`/repos/${owner}/${repo}/issues/${number}/labels/${encodeURIComponent(name)}`, { method: "DELETE" }).catch(() => {}));
+    if (!all.some((l) => l.name === wanted)) {
+      const l = LABELS.find((x) => x.name === key);
+      first.push(api(`/repos/${owner}/${repo}/labels`, { method: "POST", body: JSON.stringify({ name: l.name, color: l.color, description: l.description }) }).catch(() => {}));
     }
-    return { method: used, writeMs: Date.now() - started };
+    await Promise.all(first);
+    await api(`/repos/${owner}/${repo}/issues/${number}/labels`, { method: "POST", body: JSON.stringify({ labels: [wanted] }) });
+    return { writeMs: Date.now() - started };
   }
 
-  return { api, graphql, publishedShas, rawFile, checkRunFor, labelState, postCheck, postLabel };
+  return { api, publishedShas, rawFile, checkRunFor, labelState, postCheck, postLabel };
 }
 
 function esc(text) {

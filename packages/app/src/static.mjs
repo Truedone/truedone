@@ -3,7 +3,7 @@
 // Worker's entry hands it the core engine, APP-11). The input is read by the site's own
 // reader, so the App and truedone.pages.dev build the same input for the same pull
 // request (APP-13).
-import { makeGitHub, labelMethod } from "./github.mjs";
+import { makeGitHub } from "./github.mjs";
 import { ACTIONS } from "./webhook.mjs";
 import { parseConfig, postingAllowed } from "./posting.mjs";
 import { loadPR, LIMITS } from "../../web/lib/github.mjs";
@@ -47,8 +47,7 @@ export function makeStatic(env) {
     if (payload.action && !ACTIONS.pull_request.has(payload.action)) return { skipped: payload.action };
     const { repository, pull_request: pr } = payload;
     const owner = repository.owner.login, repo = repository.name;
-    const meta = { owner, repo, number: pr.number, nodeId: pr.node_id, title: pr.title, body: pr.body, author: pr.user };
-    const writeMethod = labelMethod(delivery.delivery);
+    const meta = { owner, repo, number: pr.number, title: pr.title, body: pr.body, author: pr.user };
     // Three phases (APP-15), each running its calls together. (1) The switch: the repository's
     // setting, read at the base so a pull request cannot switch truedone off for itself
     // (APP-13), and both posting flags. Nothing else is read before it, so a repository that
@@ -67,12 +66,12 @@ export function makeStatic(env) {
     let analyseDone, labelDone, checkDone;
     const analyseP = analyse(env, owner, repo, pr).then((r) => { analyseDone = Date.now(); return r; });
     let labelWritten;
-    const labelChain = Promise.all([analyseP, labelState(owner, repo, pr.number)]).then(([result, labels]) => postLabel(owner, repo, pr.number, result, meta, labels, { method: writeMethod }).then((written) => { labelDone = Date.now(); labelWritten = written; return result; }));
+    const labelChain = Promise.all([analyseP, labelState(owner, repo, pr.number)]).then(([result, labels]) => postLabel(owner, repo, pr.number, result, meta, labels).then((written) => { labelDone = Date.now(); labelWritten = written; return result; }));
     const checkChain = Promise.all([analyseP, checkRunFor(owner, repo, pr.head.sha)]).then(([result, found]) => postCheck(owner, repo, pr.head.sha, result, meta, found).then(() => { checkDone = Date.now(); return result; }));
     const [result] = await Promise.all([labelChain, checkChain]);
     const end = Date.now();
     // APP-18/APP-20: one line per analysed delivery, numbers only, for the tail to split.
-    console.log(JSON.stringify({ stage: "static", delivery: delivery.delivery, phase1_ms: phase1, phase2_ms: (analyseDone ?? end) - t0, label_ms: (labelDone ?? end) - t0, check_ms: (checkDone ?? end) - t0, label_write_ms: labelWritten?.writeMs ?? 0, label_method: labelWritten?.method ?? "none", total_ms: end - gateStart }));
+    console.log(JSON.stringify({ stage: "static", delivery: delivery.delivery, phase1_ms: phase1, phase2_ms: (analyseDone ?? end) - t0, label_ms: (labelDone ?? end) - t0, check_ms: (checkDone ?? end) - t0, label_write_ms: labelWritten?.writeMs ?? 0, total_ms: end - gateStart }));
     // S8: timings and identifiers only, never diff content or PR text.
     env.LOG?.({ installation: payload.installation?.id, repository: repository.id, pr: pr.number, verdict: result.verdict, ms: Date.now() - t0 });
     return { verdict: result.verdict };
