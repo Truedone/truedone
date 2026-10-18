@@ -110,9 +110,9 @@ test("the entry's queue handler updates the check run and the label for a record
     calls.push({ url: u, method: init.method || "GET", body: init.body });
     const routes = [
       [new RegExp(`${esc(API)}/app/installations/3/access_tokens`), { token: "tok-1" }],
-      [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/commits/h1/pulls`), [{ number: 41, title: "t", body: "", user: { login: "someone" }, head: { sha: "sha-branch", ref: "branch", repo: { owner: { login: "mgillr" }, name: "truedone-sandbox" } } }]],
-      [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/pulls/41/files`), [{ path: "test/a.test.js", status: "modified", patch: "@@ -1,3 +1,3 @@" }]],
-      [/raw\.githubusercontent\.com\/mgillr\/truedone-sandbox\/base\//, "const a = 1;\n"],
+      [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/commits/h1/pulls`), [{ number: 41, title: "t", body: "", user: { login: "someone" }, head: { sha: "h1", ref: "branch", repo: { owner: { login: "mgillr" }, name: "truedone-sandbox" } }, base: { sha: "base-41", ref: "main" } }]],
+      [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/pulls/41/files`), [{ filename: "test/a.test.js", status: "modified", patch: "@@ -1,3 +1,3 @@" }]],
+      [/raw\.githubusercontent\.com\/mgillr\/truedone-sandbox\/base-41\//, "const a = 1;\n"],
       [/raw\.githubusercontent\.com\/mgillr\/truedone-sandbox\/(h1|branch|sha-branch)\//, "const a = 2;\n"],
       [new RegExp(`${esc(API)}/repos/truedone/action/tags`), []],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/actions/runs/77/jobs`), { jobs: [{ name: "test", id: 1 }] }],

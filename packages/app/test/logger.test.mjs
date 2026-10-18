@@ -34,10 +34,10 @@ function memoryKV() {
 }
 
 const PR_FILES = [
-  { path: "src/a.mjs", status: "modified", patch: "@@ -1 +1 @@ secret-diff-line" },
-  { path: "test/a.test.mjs", status: "added", patch: "@@ +1" },
-  { path: "test/b.test.mjs", status: "added", patch: "@@ +1" },
-  { path: "jest.config.js", status: "modified", patch: "@@ -1 +1 @@" },
+  { filename: "src/a.mjs", status: "modified", patch: "@@ -1 +1 @@ secret-diff-line" },
+  { filename: "test/a.test.mjs", status: "added", patch: "@@ +1" },
+  { filename: "test/b.test.mjs", status: "added", patch: "@@ +1" },
+  { filename: "jest.config.js", status: "modified", patch: "@@ -1 +1 @@" },
 ];
 
 function routesFor({ analyseResult }) {
@@ -72,7 +72,7 @@ test("the log carries the ids, the verdict and timings", async () => {
   globalThis.fetch = fetch;
   try {
     const { env, logLines } = makeEnv(result({ verdict: "review" }));
-    await makeStatic(env)({ payload: { repository: { owner: { login: "o" }, name: "r", id: 7 }, installation: { id: 3 }, pull_request: { number: 1, head: { sha: "h1", ref: "main" }, title: "t", body: "b", user: { login: "u" } } } });
+    await makeStatic(env)({ payload: { repository: { owner: { login: "o" }, name: "r", id: 7 }, installation: { id: 3 }, pull_request: { number: 1, head: { sha: "h1", ref: "main" }, base: { sha: "b1", ref: "main" }, title: "t", body: "b", user: { login: "u" } } } });
     assert.equal(logLines.length, 1);
     assert.equal(logLines[0].installation, 3);
     assert.equal(logLines[0].repository, 7);
@@ -88,7 +88,7 @@ test("the log never carries PR text, file contents or diff content", async () =>
   globalThis.fetch = fetch;
   try {
     const { env, logLines } = makeEnv(result({ reasons: [{ check: "x", file: "test/a.test.mjs", message: "mentions secret-message" }] }));
-    await makeStatic(env)({ payload: { repository: { owner: { login: "o" }, name: "r", id: 7 }, installation: { id: 3 }, pull_request: { number: 1, head: { sha: "h1", ref: "main" }, title: "secret-title", body: "secret-body", user: { login: "u" } } } });
+    await makeStatic(env)({ payload: { repository: { owner: { login: "o" }, name: "r", id: 7 }, installation: { id: 3 }, pull_request: { number: 1, head: { sha: "h1", ref: "main" }, base: { sha: "b1", ref: "main" }, title: "secret-title", body: "secret-body", user: { login: "u" } } } });
     const text = JSON.stringify(logLines);
     assert.ok(!text.includes("secret-title") && !text.includes("secret-body"), "no PR text is logged");
     assert.ok(!text.includes("secret-diff-line"), "no diff content is logged");
