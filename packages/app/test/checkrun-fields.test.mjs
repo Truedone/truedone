@@ -41,7 +41,7 @@ function github({ existing = false } = {}) {
       "GET /repos/o/r/contents/.github/workflows": [{ name: "ci.yml" }],
       ...writeRoutes("o", "r", 6, H),
       ...(existing ? {
-        [`GET /repos/o/r/commits/${H}/check-runs`]: { total_count: 1, check_runs: [{ id: 9, completed_at: "2026-10-18T10:25:31Z", details_url: "https://truedone.pages.dev" }] },
+        [`GET /repos/o/r/commits/${H}/check-runs`]: { total_count: 1, check_runs: [{ id: 9, app: { id: 12345 }, completed_at: "2026-10-18T10:25:31Z", details_url: "https://truedone.pages.dev" }] },
         "PATCH /repos/o/r/check-runs/9": { id: 9 },
       } : {}),
     },

@@ -1,0 +1,143 @@
+{
+  "total_count": 2,
+  "check_runs": [
+    {
+      "id": 118017810427,
+      "name": "truedone",
+      "node_id": "CR_kwDOVNltTs8AAAAbemjf-w",
+      "head_sha": "129ecd93b9fcdf5e2e3410b034574cf5f4891068",
+      "external_id": "",
+      "url": "https://api.github.com/repos/Truedone/truedone-sandbox/check-runs/118017810427",
+      "html_url": "https://github.com/Truedone/truedone-sandbox/runs/118017810427",
+      "details_url": "https://truedone.pages.dev/Truedone/truedone-sandbox/pull/750",
+      "status": "completed",
+      "conclusion": "neutral",
+      "started_at": "2026-10-19T10:47:03Z",
+      "completed_at": "2026-10-19T10:47:05Z",
+      "output": {
+        "title": "truedone: proven new",
+        "summary": "**proven new**\n- Test mul multiplies is proven\\_new on head pass,pass,pass with coverage lines. (node-test/smoke.test.mjs)\n\nWhat would change this: Review the rest of the change as usual.\n\nWhy: https://truedone.pages.dev/Truedone/truedone-sandbox/pull/750",
+        "text": null,
+        "annotations_count": 0,
+        "annotations_url": "https://api.github.com/repos/Truedone/truedone-sandbox/check-runs/118017810427/annotations"
+      },
+      "check_suite": {
+        "id": 106328192611
+      },
+      "app": {
+        "id": 5363933,
+        "client_id": "Iv23liKU5lPXEKxM5Aja",
+        "slug": "truedone-dev",
+        "node_id": "A_kwHOFId_Ws4AUdjd",
+        "owner": {
+          "login": "Truedone",
+          "id": 344424282,
+          "node_id": "O_kgDOFId_Wg",
+          "avatar_url": "https://avatars.githubusercontent.com/u/344424282?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/Truedone",
+          "html_url": "https://github.com/Truedone",
+          "followers_url": "https://api.github.com/users/Truedone/followers",
+          "following_url": "https://api.github.com/users/Truedone/following{/other_user}",
+          "gists_url": "https://api.github.com/users/Truedone/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/Truedone/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/Truedone/subscriptions",
+          "organizations_url": "https://api.github.com/users/Truedone/orgs",
+          "repos_url": "https://api.github.com/users/Truedone/repos",
+          "events_url": "https://api.github.com/users/Truedone/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/Truedone/received_events",
+          "type": "Organization",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "name": "truedone-dev",
+        "description": "The development build of truedone, installed only on its own sandbox repository for testing. To use truedone, install the production App: [github.com/apps/truedone](https://github.com/apps/truedone).",
+        "external_url": "https://truedone.pages.dev",
+        "html_url": "https://github.com/apps/truedone-dev",
+        "created_at": "2026-10-18T01:54:46Z",
+        "updated_at": "2026-10-18T15:45:30Z",
+        "permissions": {
+          "actions": "read",
+          "checks": "write",
+          "contents": "read",
+          "metadata": "read",
+          "pull_requests": "write"
+        },
+        "events": [
+          "pull_request",
+          "workflow_run"
+        ]
+      },
+      "pull_requests": []
+    },
+    {
+      "id": 118017810199,
+      "name": "truedone",
+      "node_id": "CR_kwDOVNltTs8AAAAbemjfFw",
+      "head_sha": "129ecd93b9fcdf5e2e3410b034574cf5f4891068",
+      "external_id": "",
+      "url": "https://api.github.com/repos/Truedone/truedone-sandbox/check-runs/118017810199",
+      "html_url": "https://github.com/Truedone/truedone-sandbox/runs/118017810199",
+      "details_url": "https://truedone.pages.dev/Truedone/truedone-sandbox/pull/750",
+      "status": "completed",
+      "conclusion": "neutral",
+      "started_at": "2026-10-19T10:46:41Z",
+      "completed_at": "2026-10-19T10:46:42Z",
+      "output": {
+        "title": "truedone: unrun",
+        "summary": "**unrun**\n- Tests in node-test/smoke.test.mjs changed and have not been run. (node-test/smoke.test.mjs)\n\nWhat would change this: Run the changed tests: the next rung.\n\nWhy: https://truedone.pages.dev/Truedone/truedone-sandbox/pull/750",
+        "text": null,
+        "annotations_count": 0,
+        "annotations_url": "https://api.github.com/repos/Truedone/truedone-sandbox/check-runs/118017810199/annotations"
+      },
+      "check_suite": {
+        "id": 106328193242
+      },
+      "app": {
+        "id": 5364032,
+        "client_id": "Iv23liRefEjnoIUflx2i",
+        "slug": "truedone",
+        "node_id": "A_kwHOFId_Ws4AUdlA",
+        "owner": {
+          "login": "Truedone",
+          "id": 344424282,
+          "node_id": "O_kgDOFId_Wg",
+          "avatar_url": "https://avatars.githubusercontent.com/u/344424282?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/Truedone",
+          "html_url": "https://github.com/Truedone",
+          "followers_url": "https://api.github.com/users/Truedone/followers",
+          "following_url": "https://api.github.com/users/Truedone/following{/other_user}",
+          "gists_url": "https://api.github.com/users/Truedone/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/Truedone/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/Truedone/subscriptions",
+          "organizations_url": "https://api.github.com/users/Truedone/orgs",
+          "repos_url": "https://api.github.com/users/Truedone/repos",
+          "events_url": "https://api.github.com/users/Truedone/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/Truedone/received_events",
+          "type": "Organization",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "name": "truedone",
+        "description": "truedone checks whether a pull request's tests prove its change: red without the change, green with it. It also flags tests that were skipped, focused or weakened. Each pull request gets one verdict, as a check run and a label, so you see what the tests show before you read the diff.\r\n\r\n**On each pull request**\r\n\r\n- A check run named truedone, with the verdict and the reason for it.\r\n- One label: `truedone:yes`, `truedone:weak`, `truedone:tampered`, `truedone:review`, `truedone:no-evidence`, `truedone:unrun`, `truedone:pending` or `truedone:could-not-run`. A pull request with nothing to check gets none.\r\n\r\n**Why each permission**\r\n\r\n- Pull requests, write: read the changed files and set the label.\r\n- Checks, write: post the check run.\r\n- Contents, read: read each changed test at the base and at the head.\r\n- Actions, read: read the report the truedone action uploads, for the red-green verdict.\r\n- Metadata, read: GitHub requires it.\r\n\r\nIt never runs your code. The static checks only read files. The red-green run happens in your own workflow, through the truedone action.\r\n\r\n**To turn it off** for one repository, add `enabled: false` to `.github/truedone.yml` on your default branch, or uninstall the app.\r\n\r\nThis is a preview. [truedone.pages.dev](https://truedone.pages.dev) shows what works today. Source: [github.com/Truedone/truedone](https://github.com/Truedone/truedone) (Apache-2.0). [Privacy](https://truedone.pages.dev/privacy) and [terms](https://truedone.pages.dev/terms).",
+        "external_url": "https://truedone.pages.dev",
+        "html_url": "https://github.com/apps/truedone",
+        "created_at": "2026-10-18T02:07:10Z",
+        "updated_at": "2026-10-19T08:12:21Z",
+        "permissions": {
+          "actions": "read",
+          "checks": "write",
+          "contents": "read",
+          "metadata": "read",
+          "pull_requests": "write"
+        },
+        "events": [
+          "pull_request",
+          "workflow_run"
+        ]
+      },
+      "pull_requests": []
+    }
+  ]
+}

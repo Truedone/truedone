@@ -49,8 +49,14 @@ export function makeGitHub(env) {
   // unless they are sent again (APP-14).
   // The reads a check run write and a label write need, so a stage can start them with its other reads (APP-15): the
   // truedone run already on this head, or null; the labels on the pull request and those the repository defines.
+  // APP-30 (PV-A04): with two truedone Apps on one repository (the development and the production App, both installed on
+  // the organisation), the first run named truedone may be the other App's, and updating it answers 403 (sandbox, 10:47Z
+  // 2026-10-19: four times, then the dead-letter queue). So the read asks only for this App's runs (app_id, the App's own
+  // id) and keeps a run only when its app.id is that id; with none, postCheck creates one.
   function checkRunFor(owner, repo, head) {
-    return api(`/repos/${owner}/${repo}/commits/${head}/check-runs?check_name=truedone`).then((r) => r?.check_runs?.[0] ?? null, () => null);
+    const own = Number(env.APP_ID);
+    return api(`/repos/${owner}/${repo}/commits/${head}/check-runs?check_name=truedone&app_id=${own}`)
+      .then((r) => (r?.check_runs ?? []).find((run) => run?.app?.id === own) ?? null, () => null);
   }
   async function labelState(owner, repo, number) {
     const [onIssue, all] = await Promise.all([
