@@ -4,6 +4,7 @@
 // INSTALLATION_TOKEN is read per call, so the consumer's per-message stageEnv
 // carries the fresh mint.
 const API = "https://api.github.com";
+const RELEASE_REPO = "Truedone/truedone-action";
 
 
 export function makeGitHub(env) {
@@ -21,11 +22,11 @@ export function makeGitHub(env) {
     return r.json();
   }
 
-  // D18: the published truedone release SHAs come from the tags of
-  // truedone/action, cached on the env.
+  // D18: the published truedone release SHAs come from the tags of the release repository, Truedone/truedone-action
+  // (R3, D36), cached on the env. It read truedone/action, which answers 404, so no release was ever known (APP-27).
   async function publishedShas() {
     if (env.RELEASE_SHA_CACHE) return env.RELEASE_SHA_CACHE;
-    const r = await fetch(`${API}/repos/truedone/action/tags?per_page=100`, {
+    const r = await fetch(`${API}/repos/${RELEASE_REPO}/tags?per_page=100`, {
       headers: { accept: "application/vnd.github+json", "user-agent": "truedone-app" },
     });
     const tags = r.ok ? await r.json() : [];

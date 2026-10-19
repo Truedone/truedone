@@ -51,7 +51,7 @@ function github(atR, head = C) {
       [`o/r/${B}/test/a.test.js`]: KEPT,
       [`o/r/${R}/test/a.test.js`]: atR,
       ...(head === C ? { [`o/r/${C}/test/a.test.js`]: DROPPED } : {}),
-      "o/r/main/.github/workflows/ci.yml": `steps:\n  - uses: mgillr/truedone-action@${STEP} # v1\n`,
+      "o/r/main/.github/workflows/ci.yml": `steps:\n  - uses: Truedone/truedone-action@${STEP} # v1\n`,
     },
   });
 }

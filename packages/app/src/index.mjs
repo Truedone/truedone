@@ -199,6 +199,13 @@ function coreFor(env) {
   return env;
 }
 
+// APP-27 (#164): the truedone step the default branch pins, in either documented form, Truedone/truedone-action@<sha>
+// or the interim Truedone/truedone/packages/action@<sha>, and only when pinned by a full 40-hex SHA: an unpinned step
+// (@main, a tag) names no commit, so it matches nothing (PV-A06). Only a step line counts, not a comment. The owner and
+// name are matched without case, as GitHub reads them. Not exported (see TOKEN_MARGIN_S).
+const PINNED_STEP = /^[ \t]*(?:-[ \t]+)?uses:[ \t]*["']?truedone\/(?:truedone-action|truedone\/packages\/action)@([0-9a-f]{40})(?![0-9a-z])/im;
+const pinnedStep = (text) => text?.match(PINNED_STEP)?.[1] ?? null;
+
 // APP-12: the red-green stage's eight, built from real code against the
 // payload's repository. postCheck, postLabel, publishedShas and the fetch
 // layer are the same calls the static stage uses, shared rather than copied;
@@ -228,7 +235,7 @@ function redgreenFor(env, payload) {
     const listing = await gh.api(`/repos/${owner}/${repo}/contents/.github/workflows?ref=${encodeURIComponent(ref)}`);
     for (const f of listing) {
       const text = await gh.rawFile(owner, repo, ref, `.github/workflows/${f.name}`).catch(() => undefined);
-      const found = text?.match(/uses:\s*\S*truedone-action\S*@([0-9a-f]{40})/)?.[1];
+      const found = pinnedStep(text);
       if (found) return found;
     }
     return null;

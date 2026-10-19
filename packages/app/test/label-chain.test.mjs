@@ -63,7 +63,7 @@ test("the label POST is sent while the check-run lookup is held open", async () 
     if (u.includes("/check-runs") && init?.method === "POST") return json({ id: 1 });
     if (u.endsWith("/labels") && init?.method !== "POST") return json([]);
     if (u.includes("/labels") && init?.method === "POST") { seen.labelPosted = true; return json({ id: 2 }); }
-    if (u.includes("/repos/truedone/action/tags")) return json([]);
+    if (u.includes("/repos/Truedone/truedone-action/tags")) return json([]);
     return json({});
   };
   try {

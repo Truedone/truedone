@@ -73,7 +73,7 @@ async function runDelivery(t, { deliveryId, issueLabels }) {
     if (u.includes("/repos/o/r/issues/9/labels/truedone%3Arefuted") && method === "DELETE") { seen.deletes.push("truedone:refuted"); return json([]); }
     if (u.includes("/repos/o/r/issues/9/labels")) return json(issueLabels ?? []);
     if (u.includes("/repos/o/r/labels")) return json([{ name: "truedone:refuted", node_id: "R_node" }, { name: "bug", node_id: "B_node" }, { name: "truedone:unrun", node_id: "U_node" }]);
-    if (u.includes("/repos/truedone/action/tags")) return json([]);
+    if (u.includes("/repos/Truedone/truedone-action/tags")) return json([]);
     return json({});
   };
   stub.calls = calls;

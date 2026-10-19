@@ -78,7 +78,7 @@ test("two changed test files: under half the time in sequence, the reads togethe
   // phase 2: every read starts together, after the config read has answered
   const config = startOf(f.calls, /^GET raw:o\/r\/c+\/\.github\/truedone\.yml$/);
   // APP-25: a queued run reads the pull request from GitHub beside the other reads, and its files once it has it
-  const reads = [/^GET \/repos\/o\/r\/pulls\/6$/, /^GET \/repos\/truedone\/action\/tags$/, /^GET \/repos\/o\/r\/commits\/d+\/check-runs$/, /^GET \/repos\/o\/r\/issues\/6\/labels$/, /^GET \/repos\/o\/r\/labels$/].map((re) => startOf(f.calls, re));
+  const reads = [/^GET \/repos\/o\/r\/pulls\/6$/, /^GET \/repos\/Truedone\/truedone-action\/tags$/, /^GET \/repos\/o\/r\/commits\/d+\/check-runs$/, /^GET \/repos\/o\/r\/issues\/6\/labels$/, /^GET \/repos\/o\/r\/labels$/].map((re) => startOf(f.calls, re));
   assert.ok(Math.max(...reads) - Math.min(...reads) < 50, `the reads start together: ${reads}`);
   assert.ok(Math.min(...reads) >= config + 100, "no read starts before the switch is read");
   const prRead = startOf(f.calls, /^GET \/repos\/o\/r\/pulls\/6$/), filesRead = startOf(f.calls, /^GET \/repos\/o\/r\/pulls\/6\/files$/);
