@@ -52,6 +52,8 @@ function makeEnv(analyseResult) {
   const logLines = [];
   return {
     env: {
+      // the App's own id, which the Worker holds (APP-30: a check run is the App's own only when its app.id is this)
+      APP_ID: "12345",
       INSTALLATION_TOKEN: "t",
       KV: memoryKV(),
       FLAGS: flagsDB(),
@@ -100,7 +102,7 @@ test("only test, setup, config and workflow contents are fetched; raw contents c
 
 test("an existing check run is updated in place, not created twice", async () => {
   const routes = routesFor({});
-  routes[1] = [/\/commits\/h1\/check-runs\?check_name=truedone/, { check_runs: [{ id: 99 }] }];
+  routes[1] = [/\/commits\/h1\/check-runs\?check_name=truedone/, { check_runs: [{ id: 99, app: { id: 12345 } }] }];
   routes.push([/repos\/o\/r\/check-runs\/99$/, { id: 99 }]);
   const fetch = fakeFetch(routes);
   const oldFetch = globalThis.fetch;

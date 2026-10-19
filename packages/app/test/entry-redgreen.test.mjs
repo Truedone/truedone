@@ -125,7 +125,7 @@ test("the entry's queue handler updates the check run and the label for a record
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/git/ref/heads/main$`), { ref: "refs/heads/main", object: { sha: MAIN, type: "commit" } }],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/contents/.github/workflows`), [{ name: "ci.yml" }]],
       [new RegExp(`raw\\.githubusercontent\\.com/mgillr/truedone-sandbox/${MAIN}/\\.github/workflows/ci\\.yml`), `steps:\n  - uses: Truedone/truedone-action@${"1".repeat(40)} # v1.2.3\n`],
-      [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/commits/(h1|sha-branch)/check-runs`), { check_runs: [{ id: 5 }] }],
+      [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/commits/(h1|sha-branch)/check-runs`), { check_runs: [{ id: 5, app: { id: 12345 } }] }],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/labels`), []],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/issues/41/labels`), []],
     ];
