@@ -61,7 +61,11 @@ The red-green stage believes a report only when its `proved_step` is the truedon
 or the commit of a published release (PV-A06; APP-27, #164). The step counts in either form, `Truedone/truedone-action@<sha>`
 or the interim `Truedone/truedone/packages/action@<sha>`, and only when it is pinned by a full 40-hex SHA on a step's `uses:`
 line: `@main`, a tag or a short SHA names no commit and matches nothing, and so does a comment or a step of another
-repository, the action's old address on the mgillr account included. The published releases are the tags of
+repository, the action's old address on the mgillr account included. The workflows are read at the default branch's head
+commit, the sha its git ref names, never through the branch's raw address, which a cache answers for up to five minutes
+(`cache-control: max-age=300`, measured 2026-10-19). Read that way, a step just added or moved could still read as the old
+file and a good report be refused as `proved_step`: on sandbox #746 the production App left `truedone: unrun` while the
+development App, on the same build, set `truedone:yes` (APP-29). The published releases are the tags of
 `Truedone/truedone-action`. Until APP-27 the App read the tags of `truedone/action`, which answers 404, and matched only the
 first form, so the sandbox's interim step was never found. On 2026-10-19 `Truedone/truedone-action` had no tags, so for now a
 report is believed only through the default branch's step. Each refused report logs one line (`"stage": "red-green"`, with

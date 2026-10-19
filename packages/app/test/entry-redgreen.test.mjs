@@ -10,6 +10,8 @@ import worker from "../src/index.mjs";
 
 const API = "https://api.github.com";
 const esc = (s) => s.replace(/[./]/g, "\\$&");
+// the default branch's head commit
+const MAIN = "6c2eac62418533b8309d9e933ad9897c055ae053";
 
 function memoryKV() {
   const store = new Map();
@@ -119,8 +121,10 @@ test("the entry's queue handler updates the check run and the label for a record
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/actions/runs/77/artifacts`), { artifacts: [{ name: "truedone-report-test", expired: false, size_in_bytes: 22, archive_download_url: `${API}/z/1` }] }],
       [new RegExp(`${esc(API)}/z/1`), ZIP],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox$`), { default_branch: "main" }],
+      // APP-29: the default branch's workflows are read at its head commit, which its git ref names
+      [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/git/ref/heads/main$`), { ref: "refs/heads/main", object: { sha: MAIN, type: "commit" } }],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/contents/.github/workflows`), [{ name: "ci.yml" }]],
-      [/raw\.githubusercontent\.com\/mgillr\/truedone-sandbox\/main\/\.github\/workflows\/ci\.yml/, `steps:\n  - uses: Truedone/truedone-action@${"1".repeat(40)} # v1.2.3\n`],
+      [new RegExp(`raw\\.githubusercontent\\.com/mgillr/truedone-sandbox/${MAIN}/\\.github/workflows/ci\\.yml`), `steps:\n  - uses: Truedone/truedone-action@${"1".repeat(40)} # v1.2.3\n`],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/commits/(h1|sha-branch)/check-runs`), { check_runs: [{ id: 5 }] }],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/labels`), []],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/issues/41/labels`), []],

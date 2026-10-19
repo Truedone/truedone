@@ -229,12 +229,17 @@ function redgreenFor(env, payload) {
     cache.set(sha, result);
     return result;
   };
+  // APP-29: the workflows are read at the default branch's head commit, which the branch's git ref names. The branch's
+  // raw address is answered from a cache for up to 300 s (cache-control: max-age=300, measured 2026-10-19), so a step added or
+  // moved there could read as the old file; a commit's address never changes.
   const defaultStepSha = async () => {
     const info = await gh.api(`/repos/${owner}/${repo}`);
-    const ref = info.default_branch;
-    const listing = await gh.api(`/repos/${owner}/${repo}/contents/.github/workflows?ref=${encodeURIComponent(ref)}`);
+    const branch = info.default_branch.split("/").map(encodeURIComponent).join("/");
+    const head = await gh.api(`/repos/${owner}/${repo}/git/ref/heads/${branch}`);
+    const sha = head.object.sha;
+    const listing = await gh.api(`/repos/${owner}/${repo}/contents/.github/workflows?ref=${sha}`);
     for (const f of listing) {
-      const text = await gh.rawFile(owner, repo, ref, `.github/workflows/${f.name}`).catch(() => undefined);
+      const text = await gh.rawFile(owner, repo, sha, `.github/workflows/${f.name}`).catch(() => undefined);
       const found = pinnedStep(text);
       if (found) return found;
     }

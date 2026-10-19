@@ -18,6 +18,8 @@ const B = "5555555555555555555555555555555555555555"; // the base
 const R = "6666666666666666666666666666666666666666"; // the commit the report ran on
 const C = "7777777777777777777777777777777777777777"; // the pull request's head now
 const STEP = "1111111111111111111111111111111111111111";
+// the default branch's head commit, where its workflows are read (APP-29)
+const MAIN = "6c2eac62418533b8309d9e933ad9897c055ae053";
 const KEPT = "import { test } from 'node:test';\nimport assert from 'node:assert/strict';\ntest('a', () => {\n  assert.equal(f(), 1);\n});\n";
 const ADDED_CASE = `${KEPT}test('b', () => {\n  assert.equal(f(), 1);\n});\n`;
 const DROPPED = "import { test } from 'node:test';\nimport assert from 'node:assert/strict';\ntest('a', () => {\n  f();\n});\n";
@@ -43,6 +45,7 @@ function github(atR, head = C) {
       "GET /repos/o/r/actions/runs/77/artifacts": { artifacts: [{ name: "truedone-report-test", expired: false, size_in_bytes: zip.length, archive_download_url: "https://api.github.com/artifact/1" }] },
       "GET /artifact/1": () => new Response(zip),
       "GET /repos/o/r": { default_branch: "main" },
+      "GET /repos/o/r/git/ref/heads/main": { ref: "refs/heads/main", object: { sha: MAIN, type: "commit" } },
       "GET /repos/o/r/contents/.github/workflows": [{ name: "ci.yml" }],
       ...writeRoutes("o", "r", 6, C),
       ...writeRoutes("o", "r", 6, R),
@@ -51,7 +54,7 @@ function github(atR, head = C) {
       [`o/r/${B}/test/a.test.js`]: KEPT,
       [`o/r/${R}/test/a.test.js`]: atR,
       ...(head === C ? { [`o/r/${C}/test/a.test.js`]: DROPPED } : {}),
-      "o/r/main/.github/workflows/ci.yml": `steps:\n  - uses: Truedone/truedone-action@${STEP} # v1\n`,
+      [`o/r/${MAIN}/.github/workflows/ci.yml`]: `steps:\n  - uses: Truedone/truedone-action@${STEP} # v1\n`,
     },
   });
 }
