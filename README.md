@@ -93,11 +93,11 @@ The site, the CLI and the plugin read from GitHub and keep nothing on a server. 
 <!-- status: written by node tools/readme-status.mjs from the contract and main; do not edit -->
 Released: docs/releases/w4.md says "Decision: GO".
 
-At main 0ab0ecd9a5fa (2026-10-19), 117 of the 152 tasks in the signed contract, [proofline.json](proofline.json), are on main:
+At main c8830c176d92 (2026-10-19), 118 of the 154 tasks in the signed contract, [proofline.json](proofline.json), are on main:
 
 - truedone.pages.dev: 14 of 16 (WEB-01, WEB-02, WEB-04, WEB-05, WEB-06, WEB-07, WEB-08, WEB-09, WEB-10, WEB-11, WEB-12, WEB-13, WEB-14, WEB-15).
-- `npx truedone`: 3 of 5 (CLI-02, CLI-01, CLI-03).
-- Claude Code plugin: 5 of 7 (PLG-00, PLG-01, PLG-02, PLG-04, PLG-05).
+- `npx truedone`: 4 of 5 (CLI-02, CLI-01, CLI-03, CLI-05).
+- Claude Code plugin: 5 of 9 (PLG-00, PLG-01, PLG-02, PLG-04, PLG-05).
 - GitHub App: 29 of 29 (APP-02, APP-01, APP-07, APP-08, APP-09, APP-10, APP-11, APP-12, APP-13, APP-14, APP-15, APP-16, APP-17, APP-18, APP-19, APP-20, APP-21, APP-22, APP-23, APP-24, APP-25, APP-26, APP-27, APP-28, APP-29, APP-03, APP-05, APP-06, APP-04).
 - GitHub Action: 3 of 4 (ACT-01, ACT-02, ACT-03).
 - The engine they share: 18 of 19 (CORE-01, CORE-02, CORE-03, CORE-05, CORE-04, CORE-06, CORE-07, CORE-08, CORE-09, CORE-10, CORE-11, RUN-01, RUN-02, RUN-03, RUN-06, RUN-07, RUN-04, JUDGE-01).
