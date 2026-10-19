@@ -83,3 +83,13 @@ answered 404, and a new user would have landed on an error page after installing
 and approved it: description saved, one callback, no setup URL, logo set, badge #0d1117. `node tools/app-listing-check.mjs`
 reads the public page without a token and fails unless it equals the manifest (description, homepage, permissions, events); with
 `--urls` it also reads the homepage and each callback live and fails on any answer other than 200 or a redirect.
+
+The Marketplace listing's plan changes come to the same intake (APP-28). GitHub Marketplace lists an app only when the
+publisher receives `marketplace_purchase` events (purchased, changed, cancelled, pending_change and
+pending_change_cancelled), for a free app too, and it signs them with the listing's own webhook secret, not the App's. The
+intake verifies a `marketplace_purchase` only with the Worker secret `MARKETPLACE_WEBHOOK_SECRET`, and refuses every one
+with 401 while that secret is unset. It never verifies one with `WEBHOOK_SECRET`, and the listing's secret never verifies
+an App event. A verified delivery is answered 200 and logged in one line (`"stage": "marketplace"`, with the delivery id,
+the action, the plan id and the account's id and type, never a login or an email), and nothing is queued, kept or written
+to GitHub. The listing's webhook URL is `https://truedone.ledgerguard-global.workers.dev/api/github/webhook`, and the
+secret is set with `wrangler secret put MARKETPLACE_WEBHOOK_SECRET --env production` from the listing's settings.
