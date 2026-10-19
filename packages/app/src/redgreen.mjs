@@ -87,7 +87,11 @@ export function makeRedGreen(env) {
 
     const defaultBranchStep = await env.defaultStepSha(owner, repo);
     const check = reportChecks(text, { headSha, defaultBranchStep, publishedShas: await env.publishedShas() });
-    if (!check.ok) return { refused: check.why, pr: pr.number };
+    if (!check.ok) {
+      // APP-27 (#164): a refused report is visible in the Worker log, one line of identifiers and the reason only (S8)
+      console.log(JSON.stringify({ stage: "red-green", delivery: delivery.delivery, repository: payload.repository.id, pr: pr.number, refused: check.why }));
+      return { refused: check.why, pr: pr.number };
+    }
 
     const judged = await env.core.judge(await env.staticResult(headSha), [check.report]);
     // D10: the app's own static verdict stands; no report overrides tampered or review.
