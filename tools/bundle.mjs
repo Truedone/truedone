@@ -255,6 +255,14 @@ function takeExports(body) {
   return { found, body: out.join('\n') };
 }
 
+// A module's export list, one name per line (PLG-11): the plugin directory's scanner could not read a 349-character
+// line of the plugin's hook file, the brace list a bundled module returns, and held the plugin for it. Only line
+// breaks are added, so with them removed every bundle is byte for byte what it was; lines from the sources stay as
+// their authors wrote them.
+function exportList(names) {
+  return `return {${names.map((n) => `\n${n}`).join(',')}\n};`;
+}
+
 function build(src) {
   const names = fs.readdirSync(src).filter((n) => n.endsWith('.mjs')).sort();
   const files = names.map((n) => path.join(src, n));
@@ -280,8 +288,7 @@ function build(src) {
     const part = parts.get(file);
     const head = part.aliases.length ? `${part.aliases.join('\n')}\n` : '';
     const inner = strip(`${head}${part.body}`).replace(/^\n+/, '');
-    const ret = part.found.map((e) => e.name).join(',');
-    chunks.push(`const ${id}=(()=>{\n${inner}\nreturn {${ret}};\n})();\n`);
+    chunks.push(`const ${id}=(()=>{\n${inner}\n${exportList(part.found.map((e) => e.name))}\n})();\n`);
     for (const e of part.found) {
       if (seen.has(e.name)) {
         console.error(`duplicate export ${e.name}`);
@@ -393,7 +400,7 @@ function entryBundle(entryRel, { redgreen, version } = {}) {
     const { id, takes, body, exp } = bodies.get(file);
     const inner = strip(`${takes.join('\n')}\n${body}`).replace(/^\n+/, '');
     if (file === entry) out += `${inner}\n`;
-    else out += `const ${id}=(()=>{\n${inner}\nreturn {${exp.join(',')}};\n})();\n`;
+    else out += `const ${id}=(()=>{\n${inner}\n${exportList(exp)}\n})();\n`;
   }
   if (redgreen) {
     let on = false;

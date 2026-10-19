@@ -4,7 +4,9 @@ const name = String(login || '').toLowerCase();
 return name.includes('copilot') || name.includes('devin');
 }
 
-return {isAgent};
+return {
+isAgent
+};
 })();
 export function isAgent(...a){return __bundle_agents.isAgent(...a)}
 const __bundle_bots=(()=>{
@@ -22,7 +24,9 @@ function isListedBot(login) {
 return LISTED.includes(String(login || '').toLowerCase());
 }
 
-return {isListedBot};
+return {
+isListedBot
+};
 })();
 export function isListedBot(...a){return __bundle_bots.isListedBot(...a)}
 const __bundle_classify=(()=>{
@@ -236,7 +240,9 @@ if (/^\.github\/workflows\/[^/]+\.ya?ml$/.test(path)) return 'workflow';
   return 'source';
 }
 
-return {classify};
+return {
+classify
+};
 })();
 export function classify(...a){return __bundle_classify.classify(...a)}
 const __bundle_config=(()=>{
@@ -299,7 +305,9 @@ config.ignore = value.split(',').map((s) => s.trim()).filter(Boolean);
 return { config, reasons };
 }
 
-return {readConfig};
+return {
+readConfig
+};
 })();
 export function readConfig(...a){return __bundle_config.readConfig(...a)}
 const __bundle_limits=(()=>{
@@ -307,7 +315,11 @@ const FILES = 300;
 const LINES = 20000;
 const FETCHED = 100;
 
-return {FILES,LINES,FETCHED};
+return {
+FILES,
+LINES,
+FETCHED
+};
 })();
 export const FILES=__bundle_limits.FILES;
 export const LINES=__bundle_limits.LINES;
@@ -366,7 +378,31 @@ out.push(verdict === 'tampered' && ifTampered ? ifTampered : otherwise);
 return out.length ? out.join(' ') : NEXT[verdict] || '';
 }
 
-return {tampered,review,unrun,no_evidence,not_applicable,language,skip_focus,partial,bot,skip,focus,weakened,deleted,snapshot,parametrised,timeout,runner_config,step_release,step,claim,no_test,NEXT,nextStep};
+return {
+tampered,
+review,
+unrun,
+no_evidence,
+not_applicable,
+language,
+skip_focus,
+partial,
+bot,
+skip,
+focus,
+weakened,
+deleted,
+snapshot,
+parametrised,
+timeout,
+runner_config,
+step_release,
+step,
+claim,
+no_test,
+NEXT,
+nextStep
+};
 })();
 export const tampered=__bundle_messages.tampered;
 export const review=__bundle_messages.review;
@@ -867,7 +903,10 @@ function staticVerdict(input = {}) {
 return staticFindings(input).verdict;
 }
 
-return {staticFindings,staticVerdict};
+return {
+staticFindings,
+staticVerdict
+};
 })();
 export function staticFindings(...a){return __bundle_checks.staticFindings(...a)}
 export function staticVerdict(...a){return __bundle_checks.staticVerdict(...a)}
@@ -986,7 +1025,9 @@ if (partial && verdict === 'not_applicable') verdict = 'review';
 return pack(verdict, reasons.concat(found.reasons), partial);
 }
 
-return {analyse};
+return {
+analyse
+};
 })();
 export function analyse(...a){return __bundle_analyse.analyse(...a)}
 const __bundle_outcome=(()=>{
@@ -1059,7 +1100,12 @@ if (text.startsWith('Could not run')) return 'could_not_run';
 return 'no_evidence';
 }
 
-return {baseToken,headToken,outcome,verdictId};
+return {
+baseToken,
+headToken,
+outcome,
+verdictId
+};
 })();
 export function baseToken(...a){return __bundle_outcome.baseToken(...a)}
 export function headToken(...a){return __bundle_outcome.headToken(...a)}
@@ -1169,6 +1215,8 @@ lines.push({ check: 'report', file: '', message: `Report ${other.job || 'a job'}
 return result(verdict, lines, partial);
 }
 
-return {judge};
+return {
+judge
+};
 })();
 export function judge(...a){return __bundle_judge.judge(...a)}
