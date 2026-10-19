@@ -3,6 +3,11 @@
 // truedone_check_branch {path?}. A call answers with the --pr-line line as text and core's truedone.verdict/1 result as
 // structured content. Nothing but protocol messages goes to stdout; a notification gets no answer; an unknown method answers
 // -32601. The server ends when stdin ends, or when the client closes stdout.
+// MCP-02: each tool's annotations say what the code does. Both only read: no file, ref or remote is written, and the same
+// call again changes nothing. Both reach GitHub, so openWorldHint is true for both: truedone_check_pr reads the pull request
+// from api.github.com and raw.githubusercontent.com (github.mjs loadPR), and truedone_check_branch, which otherwise reads the
+// local repository with git, reads the published action releases from api.github.com when the branch changes a workflow
+// (cli.mjs staticVerdict, D18). annotations.title repeats the title for a client on 2025-03-26, which has no other.
 import readline from 'node:readline';
 import { VERSION } from './version.mjs';
 import { parseTarget } from './target.mjs';
@@ -10,18 +15,25 @@ import { prLine } from './output.mjs';
 
 export const PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 
+// ToolAnnotations: both tools only read, so nothing they do is destructive and a repeat has no further effect
+const READS = { readOnlyHint: true, destructiveHint: false, idempotentHint: true };
+const PR_TITLE = 'Check a pull request with truedone';
+const BRANCH_TITLE = 'Check the current branch with truedone';
+
 export const TOOLS = [
   {
     name: 'truedone_check_pr',
-    title: 'Check a pull request with truedone',
+    title: PR_TITLE,
     description: 'Whether a pull request\'s tests prove its change: tests disabled, focused or weakened, and source changed with no test, read statically from GitHub. Returns the verdict line for a pull request description and the truedone.verdict/1 result.',
     inputSchema: { type: 'object', properties: { url: { type: 'string', description: 'A pull request link on github.com or truedone.pages.dev, or owner/repo#n' } }, required: ['url'], additionalProperties: false },
+    annotations: { title: PR_TITLE, ...READS, openWorldHint: true },   // reads GitHub
   },
   {
     name: 'truedone_check_branch',
-    title: 'Check the current branch with truedone',
+    title: BRANCH_TITLE,
     description: 'The same check on a local branch and working tree, against the merge-base with the default branch. Run it before reporting a task done; put the returned line in the pull request description.',
     inputSchema: { type: 'object', properties: { path: { type: 'string', description: 'The repository directory; the server\'s working directory when omitted' } }, additionalProperties: false },
+    annotations: { title: BRANCH_TITLE, ...READS, openWorldHint: true },   // reads GitHub's action releases on a workflow change
   },
 ];
 

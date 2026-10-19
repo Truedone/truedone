@@ -2835,18 +2835,24 @@ const { prLine } = __m17;
 
 const PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 
+const READS = { readOnlyHint: true, destructiveHint: false, idempotentHint: true };
+const PR_TITLE = 'Check a pull request with truedone';
+const BRANCH_TITLE = 'Check the current branch with truedone';
+
 const TOOLS = [
 {
 name: 'truedone_check_pr',
-title: 'Check a pull request with truedone',
+title: PR_TITLE,
 description: 'Whether a pull request\'s tests prove its change: tests disabled, focused or weakened, and source changed with no test, read statically from GitHub. Returns the verdict line for a pull request description and the truedone.verdict/1 result.',
 inputSchema: { type: 'object', properties: { url: { type: 'string', description: 'A pull request link on github.com or truedone.pages.dev, or owner/repo#n' } }, required: ['url'], additionalProperties: false },
+annotations: { title: PR_TITLE, ...READS, openWorldHint: true },   
 },
 {
 name: 'truedone_check_branch',
-title: 'Check the current branch with truedone',
+title: BRANCH_TITLE,
 description: 'The same check on a local branch and working tree, against the merge-base with the default branch. Run it before reporting a task done; put the returned line in the pull request description.',
 inputSchema: { type: 'object', properties: { path: { type: 'string', description: 'The repository directory; the server\'s working directory when omitted' } }, additionalProperties: false },
+annotations: { title: BRANCH_TITLE, ...READS, openWorldHint: true },   
 },
 ];
 
