@@ -8,8 +8,17 @@
 // The commands and the measured lines go to the "## The command line" section of docs/releases/preview-0.1.0.md.
 // The examples are live GitHub reads (GITHUB_TOKEN is passed through when the caller sets one); before them the script
 // reads /rate_limit, which costs no quota, and stops with exit 4 and the reset time when too few requests are left,
-// so a rate limit never reads as a verdict miss. Exit 0 when every check holds, 1 when one does not, 2 for a usage
-// error. Publishing stays Ryan's, from his terminal (REL-P5).
+// so a rate limit never reads as a verdict miss. Exit 0 when every check holds, and only then is the section written;
+// 1 when one does not, with the notes left as they were; 2 for a usage error. Publishing stays Ryan's, from his terminal (REL-P5).
+//   node tools/release-preview.mjs plugin [--local <path>]
+// (REL-P3) adds the marketplace Truedone/truedone with the claude CLI in a scratch HOME (or, with --local, the
+// marketplace in a clone at <path>, labelled so in the notes, while the plugin is not yet on GitHub's main), installs
+// truedone@truedone from it, and checks the installed copy: its Stop hook is registered in hooks/hooks.json and its
+// file is there, its manifest's version is packages/cli/package.json's and its homepage is the site. It then runs the
+// installed hook the way Claude Code runs it (sh -c with CLAUDE_PLUGIN_ROOT and CLAUDE_PLUGIN_DATA set) in a scratch
+// git repository on the recorded transcript of the plugin's own case "row 3" (packages/cli/test/fixtures/
+// transcripts/index.json), expecting the block its tests expect, and on its case "row 3, not met", expecting nothing.
+// The lines go to "## The plugin".
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -31,6 +40,11 @@ export const SECRETS = [
 ];
 export const NOTES = 'docs/releases/preview-0.1.0.md';
 export const SECTION = '## The command line';
+export const PLUGIN_SECTION = '## The plugin';
+// the plugin's own recorded cases the installed hook runs: the claim with no test run after the last edit, which it
+// blocks, and the same claim after a test run, which it lets through with nothing to say, so a hook that blocks every
+// turn fails as surely as one that blocks none
+export const PLUGIN_CASES = [['row 3:', 'block'], ['row 3, not met: the claim follows a test run', 'nothing']];
 const CALLS_PER_EXAMPLE = 4;   // the pull request, its file page, the release tags, and one spare
 
 // A gzipped tar as npm pack writes it (ustar), read into [{ name, size, data }] for its regular files. Pax and GNU
@@ -102,6 +116,13 @@ export async function siteExamples() {
   return EXAMPLES;
 }
 
+// Only a passing run writes its section: a failed one leaves the notes as they were, so a failing check never dirties
+// the tree it checks, and the committed lines are always a passing run's.
+function unchanged() {
+  console.log(`${NOTES} unchanged: only a passing run writes its section`);
+  return 1;
+}
+
 async function cli() {
   const lines = [];
   const say = (s) => { console.log(s); lines.push(s); };
@@ -164,16 +185,121 @@ async function cli() {
     fs.rmSync(scratch, { recursive: true, force: true });
   }
   say(failed ? 'result: FAIL' : 'result: pass');
+  if (failed) return unchanged();
   const notes = path.join(ROOT, NOTES);
   const before = fs.existsSync(notes) ? fs.readFileSync(notes, 'utf8') : '# The 0.1.0 preview\n\nEach section is written by `node tools/release-preview.mjs <surface>` from what it measured (D35).\n';
   fs.mkdirSync(path.dirname(notes), { recursive: true });
   fs.writeFileSync(notes, writeSection(before, SECTION, `Written by \`node tools/release-preview.mjs cli\`.\n\n\`\`\`text\n${lines.join('\n')}\n\`\`\``));
-  return failed ? 1 : 0;
+  return 0;
 }
 
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+// The installed copy of plugin@marketplace from a claude CLI's installed_plugins.json (version 2): { installPath,
+// version, gitCommitSha }, or null.
+export function installedPlugin(json, id = 'truedone@truedone') {
+  const rows = json?.plugins?.[id];
+  return Array.isArray(rows) && rows.length ? rows[rows.length - 1] : null;
+}
+// The command of the plugin's Stop hook from its hooks.json, or null.
+// The notes line for the installed copy. From a clone the copy is its working tree. From GitHub it is a commit of main,
+// which every landing moves, so the line names the source and not the commit: a passing run writes the notes the last
+// passing run wrote, and the commit is printed outside the notes.
+export function installedLine(inst, { local, source, home }) {
+  const root = inst.installPath;
+  return `installed: version ${inst.version}, ${local ? 'from this clone' : `from ${source} on GitHub`}, at <scratch HOME>${root.startsWith(home) ? root.slice(home.length) : root}`;
+}
+
+export function stopCommand(hooks) {
+  const cmd = hooks?.hooks?.Stop?.[0]?.hooks?.find((h) => h.type === 'command')?.command;
+  return typeof cmd === 'string' ? cmd : null;
+}
+
+async function plugin(args) {
+  const lines = [];
+  const say = (s) => { console.log(s); lines.push(s); };
+  const at = args.indexOf('--local');
+  const local = at >= 0 ? path.resolve(args[at + 1] || ROOT) : null;
+  const source = local ?? 'Truedone/truedone';
+  const version = JSON.parse(fs.readFileSync(path.join(ROOT, 'packages/cli/package.json'), 'utf8')).version;
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'truedone-plugin-'));
+  const home = path.join(scratch, 'home'), data = path.join(scratch, 'data'), repo = path.join(scratch, 'repo');
+  for (const d of [home, data, repo]) fs.mkdirSync(d);
+  const env = { PATH: process.env.PATH, HOME: home, TERM: 'dumb' };
+  let failed = false;
+  const check = (ok, line) => { say(ok ? line : `${line}   FAIL`); if (!ok) failed = true; };
+  try {
+    const claude = (a) => {
+      try { return execFileSync('claude', a, { env, encoding: 'utf8', timeout: 180000, stdio: ['ignore', 'pipe', 'pipe'] }).trim(); } catch (e) {
+        throw new Error(`claude ${a.join(' ')} failed (exit ${e.status}): ${String(e.stderr || e.stdout || '').trim().split('\n').slice(-2).join(' | ')}`);
+      }
+    };
+    say(`$ claude --version\n${claude(['--version'])}`);
+    say(`$ claude plugin marketplace add ${local ? '<this clone>' : source}   (HOME in a scratch directory)`);
+    if (local) say('  a local path: the marketplace in this clone, not yet Truedone/truedone on GitHub, until the plugin is on main');
+    say(`  ${claude(['plugin', 'marketplace', 'add', source]).split('\n').pop()}`);
+    say('$ claude plugin install truedone@truedone');
+    say(`  ${claude(['plugin', 'install', 'truedone@truedone']).split('\n').pop()}`);
+    const inst = installedPlugin(JSON.parse(fs.readFileSync(path.join(home, '.claude/plugins/installed_plugins.json'), 'utf8')));
+    if (!inst) throw new Error('installed_plugins.json names no truedone@truedone');
+    const root = inst.installPath;
+    if (!local) console.log(`  installed from commit ${inst.gitCommitSha ?? 'none recorded'} (printed here, not written to the notes)`);
+    say(installedLine(inst, { local, source, home }));
+    const manifest = JSON.parse(fs.readFileSync(path.join(root, '.claude-plugin/plugin.json'), 'utf8'));
+    check(manifest.version === version, `manifest version ${manifest.version} (the release is ${version})`);
+    check(manifest.homepage === 'https://truedone.pages.dev', `manifest homepage ${manifest.homepage}`);
+    const cmd = stopCommand(JSON.parse(fs.readFileSync(path.join(root, 'hooks/hooks.json'), 'utf8')));
+    check(cmd === 'node "${CLAUDE_PLUGIN_ROOT}/hooks/stop.mjs"' && fs.existsSync(path.join(root, 'hooks/stop.mjs')), `Stop hook registered: ${cmd}`);
+    const hookText = fs.readFileSync(path.join(root, 'hooks/stop.mjs'), 'utf8');
+    const rg = /^const REDGREEN_ENABLED = (true|false);$/m.exec(hookText)?.[1];
+    say(`red-green in the hook: ${rg === 'true' ? 'on' : 'off'} (const REDGREEN_ENABLED = ${rg};): ${rg === 'true' ? 'PLG-03 is in this build' : "this preview's hook has no red-green; it comes with PLG-03"}`);
+
+    // the scratch repository: main holds a module and its test; the working branch changes both, and the test passes
+    const git = (...a) => execFileSync('git', a, { cwd: repo, env: { ...env, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1', GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@example.com', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@example.com' }, encoding: 'utf8' });
+    const put = (p, t) => { fs.mkdirSync(path.dirname(path.join(repo, p)), { recursive: true }); fs.writeFileSync(path.join(repo, p), t); };
+    git('init', '-q', '-b', 'main');
+    put('package.json', JSON.stringify({ name: 'demo', type: 'module', scripts: { test: 'node --test' } }, null, 2) + '\n');
+    put('src/add.mjs', 'export const add = (a, b) => a + b;\n');
+    put('test/add.test.mjs', "import { test } from 'node:test';\nimport assert from 'node:assert/strict';\nimport { add } from '../src/add.mjs';\ntest('add sums', () => {\n  assert.equal(add(1, 2), 3);\n});\n");
+    git('add', '-A'); git('commit', '-qm', 'add');
+    git('checkout', '-qb', 'work');
+    put('src/add.mjs', 'export const add = (a, b) => Number(a) + Number(b);\n');
+    put('test/add.test.mjs', "import { test } from 'node:test';\nimport assert from 'node:assert/strict';\nimport { add } from '../src/add.mjs';\ntest('add sums', () => {\n  assert.equal(add(1, 2), 3);\n  assert.equal(add(2, 2), 4);\n});\n");
+    const { cases } = JSON.parse(fs.readFileSync(path.join(ROOT, 'packages/cli/test/fixtures/transcripts/index.json'), 'utf8'));
+    say(`$ ${cmd}   (sh -c, CLAUDE_PLUGIN_ROOT the installed copy, in a scratch repository on branch work: src/add.mjs and test/add.test.mjs changed, the test passing)`);
+    for (const [prefix, want] of PLUGIN_CASES) {
+      const c = cases.find((x) => x.name.startsWith(prefix));
+      if (!c) throw new Error(`no recorded case "${prefix}" in the plugin's transcripts`);
+      const transcript = path.join(scratch, `session-${want}.jsonl`);
+      fs.writeFileSync(transcript, c.transcript.map((r) => JSON.stringify(r)).join('\n') + '\n');
+      const stdin = JSON.stringify({ session_id: `release-preview-${want}`, transcript_path: transcript, cwd: repo, hook_event_name: 'Stop', stop_hook_active: false, last_assistant_message: c.last_assistant_message });
+      say(`  on the recorded transcript of the plugin's case "${c.name}", last message "${c.last_assistant_message}"`);
+      const out = execFileSync('sh', ['-c', cmd], { cwd: repo, env: { ...env, CLAUDE_PLUGIN_ROOT: root, CLAUDE_PLUGIN_DATA: data }, input: stdin, encoding: 'utf8', timeout: 300000 }).trim();
+      let answer = null;
+      try { answer = out ? JSON.parse(out) : {}; } catch { /* checked below */ }
+      say(`  -> ${out || '(nothing)'}`);
+      if (want === 'block') check(answer?.decision === 'block' && new RegExp(c.expect.reason).test(answer?.reason ?? ''), `the hook blocks with "${c.expect.reason}", as the plugin's own test expects`);
+      else check(answer !== null && answer.decision === undefined && answer.systemMessage === undefined, 'the hook lets the turn end and says nothing, as the plugin\'s own test expects');
+    }
+  } catch (e) {
+    say(`FAIL: ${e.message}`);
+    failed = true;
+  } finally {
+    fs.rmSync(scratch, { recursive: true, force: true });
+  }
+  say(failed ? 'result: FAIL' : 'result: pass');
+  if (failed) return unchanged();
+  const notes = path.join(ROOT, NOTES);
+  const before = fs.existsSync(notes) ? fs.readFileSync(notes, 'utf8') : '# The 0.1.0 preview\n\nEach section is written by `node tools/release-preview.mjs <surface>` from what it measured (D35).\n';
+  fs.mkdirSync(path.dirname(notes), { recursive: true });
+  fs.writeFileSync(notes, writeSection(before, PLUGIN_SECTION, `Written by \`node tools/release-preview.mjs plugin${local ? ' --local <this clone>' : ''}\`.\n\n\`\`\`text\n${lines.join('\n')}\n\`\`\``));
+  return 0;
+}
+
+// compared as real paths: run through a symlink (macOS's /tmp and /var are ones), the plain comparison failed, and the
+// script did nothing and exited 0, a pass for any criterion that expects exit 0
+const isMain = process.argv[1] && fs.realpathSync(path.resolve(process.argv[1])) === fs.realpathSync(fileURLToPath(import.meta.url));
 if (isMain) {
   const what = process.argv[2];
   if (what === 'cli') process.exitCode = await cli();
-  else { console.error('usage: node tools/release-preview.mjs cli'); process.exitCode = 2; }
+  else if (what === 'plugin') process.exitCode = await plugin(process.argv.slice(3));
+  else { console.error('usage: node tools/release-preview.mjs cli | plugin [--local <path>]'); process.exitCode = 2; }
 }
