@@ -2231,6 +2231,31 @@ restore(root);
 }
 const headSide = await runSide({ ...shared, tests: chosen, side: 'head', times: HEAD_RUNS });
 
+const addedPaths = new Set((files || [])
+.filter((f) => f && (f.status === 'A' || f.status === 'added'))
+.map((f) => f.path ?? f.to ?? f.from));
+const headNames = namesOf(headSide.passes);
+const loadFiles = new Set(baseSide.passes.flat()
+.filter((run) => run.status === 'fail'
+&& addedPaths.has(run.file)
+&& !(headNames.get(run.file) || []).includes(run.name))
+.map((run) => run.file));
+const loadFailures = [];
+if (loadFiles.size) {
+for (const file of loadFiles) {
+loadFailures.push({
+file,
+detail: 'the base leg could not load this test file: the swap removes a module the pull request adds, so the import failure is the red for every test the file has on head',
+});
+}
+baseSide.passes = baseSide.passes.map((pass) => [
+...pass.filter((run) => !(loadFiles.has(run.file) && !(headNames.get(run.file) || []).includes(run.name))),
+...[...loadFiles].flatMap((file) => (headNames.get(file) || []).map((name) => ({
+file, name, status: 'fail', failure: 'missing', errorType: 'ModuleNotFoundError', duration_ms: 0,
+}))),
+]);
+}
+
 const names = namesOf([...baseSide.passes, ...headSide.passes]);
 const baseTests = zipRuns(expand(baseSide.passes, names), BASE_RUNS);
 const headTests = zipRuns(expand(headSide.passes, names), HEAD_RUNS);
@@ -2257,6 +2282,7 @@ runner: headSide.runner || baseSide.runner,
 job: null,
 tests: items.map((item) => item.entry),
 could_not_run: couldNot(items, baseSide.problem || headSide.problem),
+load_failures: loadFailures.length ? loadFailures : undefined,
 truncated,
 };
 }
