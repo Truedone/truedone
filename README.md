@@ -2,20 +2,13 @@
 
 truedone checks whether a pull request's tests prove its change: red without the change, green with it. It also flags tests that were skipped, focused or weakened. Each pull request gets one verdict, so a reviewer sees what the tests show before reading the diff. This matters most when a coding agent opened the pull request.
 
-## Why it exists
-
-- A green CI run says the tests pass. It does not say they fail without the change. A test that passes on the base branch and on the pull request proves nothing about the change.
-- A failing test can be silenced by skipping it (`it.skip`, `@pytest.mark.skip`), by focusing another test (`.only`), or by weakening its assertion (`toBe(3)` changed to `toBeDefined()`). In a large diff these lines are easy to miss.
-- Maintainers describe a flood of pull requests from coding agents. truedone gives each one a verdict and a label (none for Not applicable), so a maintainer can filter the pull request list without reading anything.
-
 ## How it works
 
-truedone sorts each changed file into a class, then runs its checks on each test, matched by name. These static checks run no code. The next rung is the red-green run: each changed test runs twice on the base, without the change, and three times on the head, with it.
+The static checks read the diff and run no code. The next rung is the red-green run: each changed test runs twice on the base, without the change, and three times on the head, with it.
 
 ```mermaid
 flowchart TD
-  PR["Pull request"] --> CL["Classify each changed file<br/>test, setup, runner config, workflow, docs, source, ..."]
-  CL --> ST["Static checks, per test, matched by name"]
+  PR["Pull request"] --> ST["Static checks on the diff, per test<br/>no code runs"]
   ST --> Q1{"A test that existed at base disabled,<br/>focused or weakened, or the truedone step edited?"}
   Q1 -->|yes| TA["Tampered"]
   Q1 -->|no| Q2{"Snapshot, parametrised case, timeout,<br/>runner config, setup file or workflow changed?"}
@@ -29,6 +22,28 @@ flowchart TD
   RG -->|"green on base, or red on head"| NE
   RG -->|"flaky, errored or timed out"| CN["Could not run, with the reason"]
 ```
+
+## Quick start
+
+You need git and Node 22 or later. The command line is one file with no dependencies, so there is nothing to install.
+
+1. Open a verdict in the browser: [truedone.pages.dev/Truedone/truedone-sandbox/pull/31](https://truedone.pages.dev/Truedone/truedone-sandbox/pull/31). For any public pull request, replace github.com with truedone.pages.dev in its address.
+
+2. Clone the repository.
+
+   ```sh
+   git clone https://github.com/Truedone/truedone && cd truedone
+   ```
+
+3. Check the same pull request from the terminal. The first line it prints is `truedone: Tampered`.
+
+   ```sh
+   node packages/cli/truedone.mjs https://github.com/Truedone/truedone-sandbox/pull/31
+   ```
+
+When the npm package is released, `npx truedone <PR link>` replaces steps 2 and 3, and `npx truedone` on its own checks the branch you are on.
+
+## Verdicts
 
 Every pull request gets exactly one verdict. The first that applies in this table wins. When several tests ran, the best result of any test stands and the others are listed. A verdict states what was observed about the change.
 
@@ -47,10 +62,6 @@ Every pull request gets exactly one verdict. The first that applies in this tabl
 
 A large pull request that was only partly analysed gets "(partial)" after its verdict. The check conclusion is neutral by default, so truedone never blocks a merge unless the repository sets `conclusion: fail-on-tampered` in `.github/truedone.yml`.
 
-**Threat model.** truedone catches careless agents and lazy shortcuts. Whoever controls a pull request also controls the test code that runs in it. The static checks flag changes to runner config and setup files, but the pull request side is not a security boundary. A weakness in truedone itself goes to the [security policy](SECURITY.md).
-
-**Privacy.** The site, the CLI and the plugin read from GitHub and keep nothing on a server. The app keeps one setting per installation and deletes it within 24 hours of an uninstall. Labels already set stay after uninstall. The [privacy note](docs/privacy.md) says what each part reads and stores, and for how long; the [terms](docs/terms.md) cover the hosted parts.
-
 ## Ways to use it
 
 <!-- ways: written by node tools/readme-status.mjs from packages/web/lib/release.mjs; do not edit -->
@@ -58,44 +69,24 @@ The site is live: truedone.pages.dev checks any public pull request now. The com
 
 | Surface | Who it is for | Status |
 |---|---|---|
-| [truedone.pages.dev](https://truedone.pages.dev) | Anyone reading a public pull request: open `truedone.pages.dev/owner/repo/pull/n` for the static verdict in the browser, with nothing to install. | Live |
-| `npx truedone` | Developers, from the terminal: the current branch, or a pull request link. `--run` adds red-green, `--json` prints `truedone.verdict/1`, and `init` adds three lines to `AGENTS.md` or `CLAUDE.md` that ask a coding agent to run it. | Not released yet |
+| [truedone.pages.dev](https://truedone.pages.dev) | Anyone reading a public pull request: open `truedone.pages.dev/owner/repo/pull/n` for the static verdict in the browser, with nothing to install. Live, unannounced, since DEP-01 merged (D32). | Live |
+| `npx truedone` | Developers, from the terminal: the current branch, or a pull request link. `--run` adds red-green, `--json` prints `truedone.verdict/1`, `--pr-line` prints one line for a pull request description, `init` adds four lines to `AGENTS.md` or `CLAUDE.md` that ask a coding agent to run it, and `mcp` serves the check to any agent that speaks the Model Context Protocol. | Not released yet |
 | Claude Code plugin | People working with Claude Code: a Stop hook keeps the agent from finishing when a test it changed fails, a test was weakened or disabled, or it says tests pass but has not run them since its last edit. | Not released yet |
 | GitHub App | Maintainers: one check run named `truedone` and at most one `truedone:*` label per pull request. It never runs the pull request's code. | Not released yet |
 | GitHub Action | Repositories that want red-green in CI: one `uses:` line in an existing job, nothing installed. It writes a report the GitHub App reads. | Not released yet |
 <!-- ways: end -->
 
-## Quick start
+## Why it exists
 
-You need git, Node 22 or later, and Python 3 with pytest, which two tests use. There are no packages to install: the repository has no dependencies.
+- A green CI run says the tests pass. It does not say they fail without the change. A test that passes on the base branch and on the pull request proves nothing about the change.
+- A failing test can be silenced by skipping it (`it.skip`, `@pytest.mark.skip`), by focusing another test (`.only`), or by weakening its assertion (`toBe(3)` changed to `toBeDefined()`). In a large diff these lines are easy to miss.
+- Maintainers describe a flood of pull requests from coding agents. truedone gives each one a verdict and a label (none for Not applicable), so a maintainer can filter the pull request list without reading anything.
 
-1. Clone the repository.
+## Threat model and privacy
 
-   ```sh
-   git clone https://github.com/Truedone/truedone && cd truedone
-   ```
+truedone catches careless agents and lazy shortcuts. Whoever controls a pull request also controls the test code that runs in it. The static checks flag changes to runner config and setup files, but the pull request side is not a security boundary. A weakness in truedone itself goes to the [security policy](SECURITY.md).
 
-2. Run the tests, which use `node:test`.
-
-   ```sh
-   npm test
-   ```
-
-3. Look at a fixture: a pull request that changes `toBe(1)` to `toBeDefined()` in a test that already exists.
-
-   ```sh
-   cat packages/core/test/fixtures/checks/assertion_weakened/js.json
-   ```
-
-4. Run the static checks from the single-file core on it, then on a change to source with no test. The first prints `verdict: 'tampered'`, the second `verdict: 'no_evidence'`.
-
-   ```sh
-   for f in assertion_weakened/js.json source_no_test/any.json; do
-     node --input-type=module -e "import { analyse } from './packages/core/core.mjs'; import { readFileSync } from 'node:fs'; console.log(analyse(JSON.parse(readFileSync(process.argv[1], 'utf8'))))" "packages/core/test/fixtures/checks/$f"
-   done
-   ```
-
-When the first release ships, this quick start becomes `npx truedone` on your own branch.
+The site, the CLI and the plugin read from GitHub and keep nothing on a server. The app keeps one setting per installation and deletes it within 24 hours of an uninstall. Labels already set stay after uninstall. The [privacy note](docs/privacy.md) says what each part reads and stores, and for how long; the [terms](docs/terms.md) cover the hosted parts.
 
 ## Status
 
@@ -117,4 +108,4 @@ At main 59bc77bfca45 (2026-10-19), 105 of the 137 tasks in the signed contract, 
 
 ## Contributing
 
-Every change lands as one task from the signed contract in `proofline.json`, with a test that fails without the change and passes with it. Start with [CONTRIBUTING.md](CONTRIBUTING.md). The full specification is [docs/spec.md](docs/spec.md), and [docs/DEPENDENCY-MAP.md](docs/DEPENDENCY-MAP.md) shows how the files depend on each other. truedone is licensed under [Apache-2.0](LICENSE), and everyone taking part follows the [code of conduct](CODE_OF_CONDUCT.md).
+Every change lands as one task from the signed contract in `proofline.json`, with a test that fails without the change and passes with it. Start with [CONTRIBUTING.md](CONTRIBUTING.md). `npm test` runs every test with `node:test`; two of them also need Python 3 with pytest. The full specification is [docs/spec.md](docs/spec.md), and [docs/DEPENDENCY-MAP.md](docs/DEPENDENCY-MAP.md) shows how the files depend on each other. truedone is licensed under [Apache-2.0](LICENSE), and everyone taking part follows the [code of conduct](CODE_OF_CONDUCT.md).
