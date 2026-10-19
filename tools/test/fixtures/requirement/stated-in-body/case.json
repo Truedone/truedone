@@ -1,0 +1,9 @@
+{
+  "id": "stated-in-body",
+  "kind": "fixture",
+  "pr": {
+    "title": "Reject expired tokens",
+    "body": "Requirement: an expired token is rejected.\n\nAlso stamps the date on the log line."
+  },
+  "note": "the first test names the stated criterion and asserts its outcome, so it is tied; the second checks the log line, which no criterion states, so it is untied; the second sentence of the body describes the change and states no criterion"
+}

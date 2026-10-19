@@ -1,0 +1,9 @@
+{
+  "id": "contradicts",
+  "kind": "fixture",
+  "pr": {
+    "title": "Simplify token validation",
+    "body": "Requirement: expired access tokens are rejected."
+  },
+  "note": "two tests name the criterion's subject and assert that an expired token is valid; one says so in its name and one hides it behind a name that agrees with the criterion, and both are untied as contradicting it; the live-token test shares one word only"
+}

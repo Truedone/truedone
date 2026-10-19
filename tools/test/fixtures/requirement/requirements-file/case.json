@@ -1,0 +1,9 @@
+{
+  "id": "requirements-file",
+  "kind": "fixture",
+  "pr": {
+    "title": "The checkout rules",
+    "body": "Implements the checkout rules. Fixes #12."
+  },
+  "note": "the criteria are in REQUIREMENTS.md in the - ID: text form; requirements.txt is a dependency manifest and is not read; the linked issue is recorded but not read"
+}

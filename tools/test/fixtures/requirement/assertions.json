@@ -1,0 +1,22 @@
+[
+  { "text": "assert.equal(isValid({ expires: 10 }, 20), false)", "side": -1 },
+  { "text": "assert.equal(isValid({ expires: 30 }, 20), true)", "side": 1 },
+  { "text": "assert.notEqual(isValid(token), true)", "side": -1 },
+  { "text": "assert.ok(!isValid(token))", "side": -1 },
+  { "text": "assert(isValid(token))", "side": 1 },
+  { "text": "assert.ok(isValid(token) === false)", "side": -1 },
+  { "text": "assert.throws(() => lookup({ a: 1 }, '  '))", "side": -1 },
+  { "text": "expect(isValid(token)).toBe(false)", "side": -1 },
+  { "text": "expect(isValid(token)).not.toBe(false)", "side": 1 },
+  { "text": "expect(isValid(token)).toBeTruthy()", "side": 1 },
+  { "text": "expect(() => charge(null)).toThrow()", "side": -1 },
+  { "text": "assert not is_valid(token, now)", "side": -1 },
+  { "text": "assert is_valid(token, now) is True", "side": 1 },
+  { "text": "assert is_valid(token, now) != True", "side": -1 },
+  { "text": "with pytest.raises(ValueError):", "side": -1 },
+  { "text": "self.assertFalse(is_valid(token))", "side": -1 },
+  { "text": "assert.equal(total([40, 60]), 100)", "side": 0 },
+  { "text": "assert calc.add(0, 0) == 0", "side": 0 },
+  { "text": "assert.equal(result.ok, true)", "side": 0 },
+  { "text": "assert.ok(total([40, 60]) !== undefined)", "side": 0 }
+]
