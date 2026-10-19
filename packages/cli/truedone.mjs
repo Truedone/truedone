@@ -4,6 +4,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
+import readline from 'node:readline';
 import os from 'node:os';
 import { spawn as nodeSpawn } from 'node:child_process';
 const __m1=(()=>{
@@ -2602,7 +2603,88 @@ return `${FORM}?${q}`;
 
 return {FORM,reportLink};
 })();
-const __m20=(()=>{
+const __m19=(()=>{
+const { VERSION } = __m15;
+const { parseTarget } = __m13;
+const { prLine } = __m17;
+
+const PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
+
+const TOOLS = [
+{
+name: 'truedone_check_pr',
+title: 'Check a pull request with truedone',
+description: 'Whether a pull request\'s tests prove its change: tests disabled, focused or weakened, and source changed with no test, read statically from GitHub. Returns the verdict line for a pull request description and the truedone.verdict/1 result.',
+inputSchema: { type: 'object', properties: { url: { type: 'string', description: 'A pull request link on github.com or truedone.pages.dev, or owner/repo#n' } }, required: ['url'], additionalProperties: false },
+},
+{
+name: 'truedone_check_branch',
+title: 'Check the current branch with truedone',
+description: 'The same check on a local branch and working tree, against the merge-base with the default branch. Run it before reporting a task done; put the returned line in the pull request description.',
+inputSchema: { type: 'object', properties: { path: { type: 'string', description: 'The repository directory; the server\'s working directory when omitted' } }, additionalProperties: false },
+},
+];
+
+const ok = (id, result) => ({ jsonrpc: '2.0', id, result });
+const err = (id, code, message) => ({ jsonrpc: '2.0', id, error: { code, message } });
+
+async function serveMcp({ stdin, stdout, cwd, check }) {
+const lines = readline.createInterface({ input: stdin, crlfDelay: Infinity });
+
+let gone = false;
+stdout.on?.('error', () => { gone = true; lines.close(); });
+const send = (m) => { if (!gone) stdout.write(`${JSON.stringify(m)}\n`); };
+async function handle(msg) {
+const hasId = Object.hasOwn(msg, 'id') && msg.id !== null;
+if (typeof msg.method !== 'string') { if (hasId) send(err(msg.id, -32600, 'Invalid request')); return; }
+if (!hasId) return;   
+const p = msg.params ?? {};
+switch (msg.method) {
+case 'initialize':
+return send(ok(msg.id, {
+protocolVersion: PROTOCOL_VERSIONS.includes(p.protocolVersion) ? p.protocolVersion : PROTOCOL_VERSIONS[0],
+capabilities: { tools: { listChanged: false } },
+serverInfo: { name: 'truedone', version: VERSION },
+
+instructions: 'Before reporting a task done, run the branch check, and put the line it returns in the pull request description.',
+}));
+case 'ping':
+return send(ok(msg.id, {}));
+case 'tools/list':
+return send(ok(msg.id, { tools: TOOLS }));
+case 'tools/call': {
+const args = p.arguments ?? {};
+let target = null, dir = null;
+if (p.name === 'truedone_check_pr') {
+target = typeof args.url === 'string' ? parseTarget(args.url) : null;
+if (!target) return send(ok(msg.id, { content: [{ type: 'text', text: 'truedone: url is not a pull request link or owner/repo#n' }], isError: true }));
+} else if (p.name === 'truedone_check_branch') {
+dir = typeof args.path === 'string' && args.path ? args.path : cwd;
+} else return send(err(msg.id, -32602, `unknown tool ${p.name}`));
+try {
+const { result } = await check({ target, dir });
+return send(ok(msg.id, { content: [{ type: 'text', text: prLine(result, target) }], structuredContent: result, isError: false }));
+} catch (e) {
+return send(ok(msg.id, { content: [{ type: 'text', text: `truedone: ${String(e?.message ?? e).split('\n')[0]}` }], isError: true }));
+}
+}
+default:
+return send(err(msg.id, -32601, `Method not found: ${msg.method}`));
+}
+}
+for await (const line of lines) {
+if (!line.trim()) continue;
+let msg;
+try { msg = JSON.parse(line); } catch { send(err(null, -32700, 'Parse error')); continue; }
+if (Array.isArray(msg) || typeof msg !== 'object' || msg === null) { send(err(null, -32600, 'Invalid request')); continue; }
+await handle(msg);
+}
+return 0;
+}
+
+return {PROTOCOL_VERSIONS,TOOLS,serveMcp};
+})();
+const __m21=(()=>{
 const NODE_IMAGE = 'node:24-slim';
 const PYTHON_IMAGE = 'python:3.12-slim';
 const HOST_ONLY = new Set(['PATH', 'HOME', 'PWD', 'OLDPWD', 'TMPDIR', 'SHELL', 'USER', 'LOGNAME', 'TERM_PROGRAM', 'TERM_PROGRAM_VERSION', 'TERM_SESSION_ID', '__CF_USER_TEXT_ENCODING', 'XPC_FLAGS', 'XPC_SERVICE_NAME', 'SSH_AUTH_SOCK']);
@@ -2672,11 +2754,11 @@ truncated: reports.some((r) => r.truncated),
 
 return {NODE_IMAGE,PYTHON_IMAGE,imageFor,groupsByImage,containerEnv,dockerRunArgs,dockerExecArgs,spawnCollect,startContainer,dockerOnPath,mergeReports};
 })();
-const __m19=(()=>{
+const __m20=(()=>{
 const { localInput, makeGit, NoRepository } = __m16;
 const { fetchPullBase, RateLimited, GitHubError } = __m14;
 const { emit } = __m17;
-const { groupsByImage, startContainer, dockerOnPath, mergeReports } = __m20;
+const { groupsByImage, startContainer, dockerOnPath, mergeReports } = __m21;
 
 const SECRET_SUFFIX = /(_TOKEN|_SECRET|_KEY|_PASSWORD)$/;
 const SECRET_PREFIX = /^(AWS_|AZURE_|NPM_CONFIG_|npm_config_)/;
@@ -2791,14 +2873,15 @@ const { loadPR, fetchReleases, RateLimited, GitHubError } = __m14;
 const { localInput, makeGit, NoRepository } = __m16;
 const { emit, VERDICTS } = __m17;
 const { reportLink } = __m18;
-const { runMode } = __m19;
+const { serveMcp } = __m19;
+const { runMode } = __m20;
 
-const USAGE = 'usage: npx truedone [<PR link> | <owner/repo#n>] [--run [--docker] [--yes]] [--json | --pr-line] [--fail-on <verdict>[,<verdict>...]]\n       npx truedone init [--global]\n       npx truedone report <PR link | owner/repo#n>';
+const USAGE = 'usage: npx truedone [<PR link> | <owner/repo#n>] [--run [--docker] [--yes]] [--json | --pr-line] [--fail-on <verdict>[,<verdict>...]]\n       npx truedone init [--global]\n       npx truedone report <PR link | owner/repo#n>\n       npx truedone mcp';
 class UsageError extends Error {}
 
 function parse(argv) {
 if (argv.includes('--help') || argv.includes('-h')) return { help: true };
-const o = { json: false, failOn: null, init: false, target: null, run: false, docker: false, yes: false, prLine: false, global: false, report: false };
+const o = { json: false, failOn: null, init: false, target: null, run: false, docker: false, yes: false, prLine: false, global: false, report: false, mcp: false };
 const rest = [];
 for (let i = 0; i < argv.length; i++) {
 const a = argv[i];
@@ -2825,6 +2908,9 @@ if (o.global && rest[0] !== 'init') throw new UsageError('--global is for init: 
 if (rest[0] === 'init') {
 if (rest.length > 1 || o.json || o.failOn || o.run || o.prLine) throw new UsageError('init takes only --global');
 o.init = true;
+} else if (rest[0] === 'mcp') {
+if (rest.length > 1 || o.json || o.failOn || o.run || o.prLine) throw new UsageError('mcp takes no other arguments');
+o.mcp = true;
 } else if (rest[0] === 'report') {
 if (rest.length !== 2 || o.json || o.failOn || o.run || o.prLine) throw new UsageError('report takes one PR link or owner/repo#n and nothing else');
 o.report = true;
@@ -2861,6 +2947,7 @@ initGlobal(env.HOME, { log });
 } else init(cwd, { log });
 return 0;
 }
+if (o.mcp) return await serveMcp({ stdin: deps.stdin ?? process.stdin, stdout, cwd, check: ({ target, dir }) => staticVerdict({ target, dir }, deps) });
 if (o.run) return await runMode(o, deps);
 const v = await staticVerdict({ target: o.target, dir: cwd }, deps);
 if (o.report) {
