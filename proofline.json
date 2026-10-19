@@ -3423,7 +3423,7 @@
       "id": "CORE-13",
       "title": "[W2] A test runner's modifier that keeps a test running keeps it the same test",
       "phase": "implement",
-      "owner": "lane-a",
+      "owner": "lane-d",
       "depends_on": [
         "CORE-11",
         "CORE-12"
@@ -17804,7 +17804,7 @@
       "id": "REL-P8",
       "title": "[W3] The plugin's own repository: the plugin folder at its root, built from main",
       "phase": "implement",
-      "owner": "lane-a",
+      "owner": "lane-d",
       "depends_on": [
         "REL-P2",
         "PLG-10",
