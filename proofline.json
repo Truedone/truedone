@@ -604,6 +604,10 @@
       ],
       "CORE-13": [
         "CORE-13-AC07"
+      ],
+      "PLG-12": [
+        "PLG-12-AC02",
+        "PLG-12-AC06"
       ]
     }
   },
@@ -16083,7 +16087,7 @@
       "id": "PLG-06",
       "title": "[W3] One truedone skill, in the plugin and at the repository root",
       "phase": "implement",
-      "owner": "lane-b",
+      "owner": "lane-a",
       "depends_on": [
         "PLG-05",
         "AGENT-02"
@@ -16503,7 +16507,7 @@
       "id": "PLG-10",
       "title": "[W3] Anthropic's pre-submission checklist, in code, holds the plugin folder",
       "phase": "implement",
-      "owner": "lane-b",
+      "owner": "lane-a",
       "depends_on": [
         "PLG-09"
       ],
@@ -16515,7 +16519,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "tools/plugin-checklist.mjs <plugin folder> checks every row of https://claude.com/docs/plugins/pre-submission-checklist (read 2026-10-19) that files can show, and prints each finding with the row and the result the checklist gives it (Blocks, Held for a reviewer, Warning). It exits 1 on any Blocks finding and on any held finding other than those named in its own list of reviewer confirmations, each with its reason; today that list holds one entry, \"Uses a credential from the user's machine\" (the hook passes the session's environment to the project's own tests and sends nothing). The rows: the folder holds .claude-plugin/plugin.json; every hook command and component path stays inside it; no symbolic link, submodule or LFS pointer; no .DS_Store, Thumbs.db, desktop.ini or __MACOSX; file and folder names valid on Windows and macOS (no colon, no trailing dot or space, no device name, no two names that differ only by case) and folder names of letters, digits, dots, hyphens and underscores; no export-ignore, export-subst or filter in a .gitattributes that applies; every file under 5 MiB, every file that is not an image or font under 256 KiB, at most 512 files, only text, PNG, JPEG, GIF, WebP and fonts; no bundled image named from a hook or script or in backticks; the name matches ^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$, is not a reserved word on its own (claude, anthropic, official, plugin, mcp, test), and displayName and author.name are plain ASCII with no invisible character; description, author and version are set; the component keys are spelled as the plugins reference spells them and none sits under experimental; a README of at least 40 words outside code blocks and a licence; every launcher (npx, bunx, pnpm dlx, yarn dlx, uvx, pipx run, uv run) in a hook or MCP command pinned to an exact version; no .npmrc, bunfig.toml or uv.toml that sets a package source; no credential-shaped literal in any file (ghp_, github_pat_, sk-ant-, AKIA, xoxb-, xoxp-, a PEM private key); each hook command written in full from ${CLAUDE_PLUGIN_ROOT} with no other variable, substitution, wildcard or inline program; hooks/hooks.json valid with a top-level hooks object, known events and types, an https URL on each HTTP hook, and not listed again in plugin.json; each skill, command and agent file with YAML front matter whose description is text. The test builds one fixture folder per rule that breaks only that rule, and the real plugin folder, which passes.",
+      "description": "tools/plugin-checklist.mjs <plugin folder> checks every row of https://claude.com/docs/plugins/pre-submission-checklist (read 2026-10-19) that files can show, and prints each finding with the row and the result the checklist gives it (Blocks, Held for a reviewer, Warning). It exits 1 on any Blocks finding and on any held finding other than those named in its own list of reviewer confirmations, each with its reason; today that list holds one entry, \"Uses a credential from the user's machine\" (the hook passes the session's environment to the project's own tests and sends nothing). The rows: the folder holds .claude-plugin/plugin.json; every hook command and component path stays inside it; no symbolic link, submodule or LFS pointer; no .DS_Store, Thumbs.db, desktop.ini or __MACOSX; file and folder names valid on Windows and macOS (no colon, no trailing dot or space, no device name, no two names that differ only by case) and folder names of letters, digits, dots, hyphens and underscores; no export-ignore, export-subst or filter in a .gitattributes that applies; every file under 5 MiB, every file that is not an image or font under 256 KiB, at most 512 files, only text, PNG, JPEG, GIF, WebP and fonts; no bundled image named from a hook or script or in backticks; the name matches ^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$, is not a reserved word on its own (claude, anthropic, official, plugin, mcp, test), and displayName and author.name are plain ASCII with no invisible character; description, author and version are set; the component keys are spelled as the plugins reference spells them and none sits under experimental; a README of at least 40 words outside code blocks and a licence; every launcher (npx, bunx, pnpm dlx, yarn dlx, uvx, pipx run, uv run) in a hook or MCP command pinned to an exact version; no .npmrc, bunfig.toml or uv.toml that sets a package source; no credential-shaped literal in any file (ghp_, github_pat_, sk-ant-, AKIA, xoxb-, xoxp-, a PEM private key); each hook command written in full from ${CLAUDE_PLUGIN_ROOT} with no other variable, substitution, wildcard or inline program; hooks/hooks.json valid with a top-level hooks object, known events and types, an https URL on each HTTP hook, and not listed again in plugin.json; each skill, command and agent file with YAML front matter whose description is text. The test builds one fixture folder per rule that breaks only that rule, and the real plugin folder, which passes. The one reviewer confirmation is the hold the portal names \"Uses a credential from the user's machine\" for the test runner (packages/core/run): the changed tests run with the session's environment, because the project's own tests may need it, and the hook sends nothing anywhere.",
       "scope": {
         "allow": [
           "tools/plugin-checklist.mjs",
@@ -16602,7 +16606,7 @@
       "id": "PLG-11",
       "title": "[W3] No bundle line is too long for a reader to follow",
       "phase": "implement",
-      "owner": "lane-b",
+      "owner": "lane-a",
       "depends_on": [
         "PLG-10",
         "CLI-05"
@@ -16721,6 +16725,123 @@
         },
         {
           "id": "PLG-11-AC09",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PLG-12",
+      "title": "[W3] git runs with an environment that holds no credential",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "CLI-07"
+      ],
+      "requirements": [
+        "PV-L03",
+        "PV-L05",
+        "PV-L06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "packages/cli/src/local.mjs makeGit(cwd, env = process.env) hands git the whole environment, so a token in it (GITHUB_TOKEN, GH_TOKEN, an API key) reaches a process that reads only the local repository; Anthropic's plugin portal holds the plugin for it (measured: with no environment handed to git the hold is gone). makeGit's default environment is built from a fixed list of names git needs to read a local repository and the user's own git configuration: PATH, HOME, USER, LOGNAME, LANG, LC_ALL, LC_CTYPE, TMPDIR, TZ, XDG_CONFIG_HOME, GIT_CONFIG_GLOBAL, GIT_CONFIG_NOSYSTEM, GIT_CEILING_DIRECTORIES, and on Windows SYSTEMROOT, COMSPEC, PATHEXT; a name on the list that is not set is left out. A caller that passes env (the tests) still decides. The command line and the plugin share the change; the plugin README and docs/privacy.md, which say what the plugin reads, need no change. The test runs the real makeGit against a scratch repository with GITHUB_TOKEN, GH_TOKEN, AWS_SECRET_ACCESS_KEY and NPM_TOKEN set, records the environment git sees (GIT_EXTERNAL_DIFF or a wrapper on PATH), and holds that none of them reaches it while every git call localInput makes still answers.",
+      "scope": {
+        "allow": [
+          "packages/cli/src/local.mjs",
+          "packages/cli/test/**",
+          "docs/DEPENDENCY-MAP.md",
+          "tools/bundle.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/action/dist/index.mjs",
+          "tools/test/bundle-version.test.mjs"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "PLG-12-AC01",
+          "mandatory": true,
+          "statement": "git sees no credential from the environment, and every git call localInput makes still answers",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/cli/test/git-env.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "PLG-12-AC02",
+          "mandatory": true,
+          "statement": "Claude Code validates the plugin folder",
+          "verifier": {
+            "type": "command",
+            "cmd": "env -u CLAUDECODE claude plugin validate ./packages/cli/plugin",
+            "expect_exit": 0,
+            "timeout_s": 120
+          }
+        },
+        {
+          "id": "PLG-12-AC03",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-12-AC04",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-12-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-12-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-12-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "PLG-12-AC08",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
@@ -17565,7 +17686,8 @@
       "depends_on": [
         "REL-P2",
         "PLG-10",
-        "PLG-11"
+        "PLG-11",
+        "PLG-12"
       ],
       "requirements": [
         "PV-R01"
