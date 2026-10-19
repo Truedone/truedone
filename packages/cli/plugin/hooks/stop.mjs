@@ -2308,7 +2308,19 @@ class NoRepository extends Error {
 constructor(why) { super(why); this.name = 'NoRepository'; }
 }
 
-function makeGit(cwd, env = process.env) {
+const GIT_ENV = ['PATH', 'HOME', 'USER', 'LOGNAME', 'LANG', 'LC_ALL', 'LC_CTYPE', 'TMPDIR', 'TZ', 'XDG_CONFIG_HOME',
+'GIT_CONFIG_GLOBAL', 'GIT_CONFIG_NOSYSTEM', 'GIT_CEILING_DIRECTORIES'];
+const GIT_ENV_WINDOWS = ['SYSTEMROOT', 'COMSPEC', 'PATHEXT'];
+
+function gitEnv() {
+const env = {};
+for (const name of process.platform === 'win32' ? [...GIT_ENV, ...GIT_ENV_WINDOWS] : GIT_ENV) {
+if (process.env[name] !== undefined) env[name] = process.env[name];
+}
+return env;
+}
+
+function makeGit(cwd, env = gitEnv()) {
 return (args, { raw = false, quiet = false } = {}) => {
 try {
 const out = execFileSync('git', args, { cwd, env, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] });
