@@ -542,6 +542,9 @@
         "REL-P7-AC01",
         "REL-P7-AC02",
         "REL-P7-AC05"
+      ],
+      "APP-29": [
+        "APP-29-AC05"
       ]
     }
   },
@@ -9230,6 +9233,110 @@
       ]
     },
     {
+      "id": "APP-29",
+      "title": "[W4] The App reads the default branch's workflow at the branch's commit, not through a cached branch address",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "APP-27"
+      ],
+      "requirements": [
+        "PV-A06",
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "PV-A06. defaultStepSha (packages/app/src/index.mjs) finds the pinned truedone step in the default branch's workflows. It reads each file at https://raw.githubusercontent.com/<owner>/<repo>/<branch name>/<path>, which a varnish cache answers for up to 300 s (cache-control: max-age=300, measured 2026-10-19), so for five minutes after the step is added or its pin moves the App can read the old file and refuse a good report as proved_step. On sandbox #746 the production App left truedone: unrun while the development App, on the same build, set truedone:yes. The default branch's head commit is read through the REST API (GET /repos/<owner>/<repo>/commits/<branch> or the branch's git ref), and the workflow listing and every workflow file are read at that commit sha, an address whose content never changes. Nothing else in the stage changes. The test drives defaultStepSha with a fake GitHub in the real answers' shape (read one real answer of each call first), in which the branch address serves the old file and the commit address the new one: before the change it returns the old pin, after it the new one, and it never requests a branch-named raw address.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/ops/apps.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-29-AC01",
+          "mandatory": true,
+          "statement": "the default-branch step is read at the branch's head commit, so a cached branch address cannot hide a new pin",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/default-step.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-29-AC02",
+          "mandatory": true,
+          "statement": "the app imports nothing from Node and evaluates no code",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-29-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-29-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-29-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-29-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-29-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "COLLECT-02",
       "title": "[W2] Every check run carries a link to report a wrong verdict",
       "phase": "implement",
@@ -13641,6 +13748,7 @@
           "docs/DEPENDENCY-MAP.md",
           "tools/bundle.mjs",
           "packages/core/core.mjs",
+          "packages/core/run/run.mjs",
           "packages/web/core.mjs",
           "packages/cli/truedone.mjs",
           "packages/cli/plugin/hooks/stop.mjs",
@@ -13903,7 +14011,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "D40. One test, tools/test/agent-text.test.mjs, reads every text truedone gives an agent from the tree: packages/web/llms.txt, init's SNIPPET (packages/cli/src/init.mjs), the MCP server's instructions (packages/cli/src/mcp.mjs), every SKILL.md under skills/ and packages/cli/plugin/skills/, and packages/cli/plugin/README.md when it exists. It fails when a sentence asks the reader to install, add, recommend, share, spread, post, star or promote truedone, or to write to a file or repository other than the one being worked on, or uses the words viral, wildfire or spread; and when llms.txt gives an install command or a uses: line for a surface that packages/web/lib/release.mjs has false, unless that line says it is not released yet. On main it fails: llms.txt gives uses: Truedone/truedone-action@v0.1.0, and Truedone/truedone-action is empty (measured 2026-10-19) with RELEASED.action false. llms.txt is corrected from the code: the action line says it is not released yet; it gains the MCP client entry {\"command\": \"npx\", \"args\": [\"-y\", \"truedone\", \"mcp\"]}, the plugin's two install commands, and what truedone never does (it posts nothing to a repository that did not install the App; init writes only the files it prints; the command line talks only to the GitHub API, read from the code). The home page, /why and the pull request page link /llms.txt in their footer as \"For coding agents\", and name it in their head (<link rel=\"alternate\" type=\"text/plain\" href=\"/llms.txt\">). The README's sentence that begins \"When the npm package is released\" says what npx truedone does now that 0.1.0 is on npm, and the README names llms.txt for coding agents. release.mjs is not changed here (REL-P4 flips it). The root AGENTS.md gets no truedone lines: it is the proofline loop that other repositories copy (D40).",
+      "description": "D40. One test, tools/test/agent-text.test.mjs, reads every text truedone gives an agent from the tree: packages/web/llms.txt, init's SNIPPET (packages/cli/src/init.mjs), the MCP server's instructions (packages/cli/src/mcp.mjs), every SKILL.md under skills/ and packages/cli/plugin/skills/, and packages/cli/plugin/README.md when it exists. It fails when a sentence asks the reader to install, add, recommend, share, spread, post, star or promote truedone, or to write to a file or repository other than the one being worked on, or uses the words viral, wildfire or spread; an install command the reader runs for their own use is documentation and passes, while a sentence asking the reader to install truedone for someone else or in another repository fails; and when llms.txt gives an install command or a uses: line for a surface that packages/web/lib/release.mjs has false, unless that line says it is not released yet. On main it fails: llms.txt gives uses: Truedone/truedone-action@v0.1.0, and Truedone/truedone-action is empty (measured 2026-10-19) with RELEASED.action false. llms.txt is corrected from the code: the action line says it is not released yet; it gains the MCP client entry {\"command\": \"npx\", \"args\": [\"-y\", \"truedone\", \"mcp\"]}, the plugin's two install commands, and what truedone never does (it posts nothing to a repository that did not install the App; init writes only the files it prints; the command line talks only to the GitHub API, read from the code). The home page, /why and the pull request page link /llms.txt in their footer as \"For coding agents\", and name it in their head (<link rel=\"alternate\" type=\"text/plain\" href=\"/llms.txt\">). The README's sentence that begins \"When the npm package is released\" says what npx truedone does now that 0.1.0 is on npm, and the README names llms.txt for coding agents. release.mjs is not changed here (REL-P4 flips it). The root AGENTS.md gets no truedone lines: it is the proofline loop that other repositories copy (D40).",
       "scope": {
         "allow": [
           "packages/web/llms.txt",
@@ -14568,10 +14676,11 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "Anthropic's plugin directory blocks a plugin folder without a README of at least 40 words outside code blocks, and its review expects the README to describe everything the plugin runs, sends or fetches. packages/cli/plugin/README.md says, read from packages/cli/plugin/hooks/stop.mjs and its sources: when the Stop hook runs and what it reads (the transcript, the working tree), every command it starts, its network use (the spec says none, PV-P01; the README states what the code does), what it stores and where (${CLAUDE_PLUGIN_DATA}), when it blocks and when it only tells the user, how to turn it off and uninstall it, the licence, and where to report a wrong verdict. It asks nothing of the reader beyond using the plugin (D40). No statement is aspirational. claude plugin validate passes on the folder.",
+      "description": "Anthropic's plugin directory blocks a plugin folder without a README of at least 40 words outside code blocks, and its review expects the README to describe everything the plugin runs, sends or fetches. packages/cli/plugin/README.md says, read from packages/cli/plugin/hooks/stop.mjs and its sources: when the Stop hook runs and what it reads (the transcript, the working tree), every command it starts, its network use (the spec says none, PV-P01; the README states what the code does), what it stores and where (${CLAUDE_PLUGIN_DATA}), when it blocks and when it only tells the user, how to turn it off and uninstall it, the licence, and where to report a wrong verdict. It asks nothing of the reader beyond using the plugin (D40). No statement is aspirational. claude plugin validate passes on the folder. packages/cli/test/plugin-manifest.test.mjs (PLG-02) lists the files the plugin folder may hold; its expected list gains README.md and nothing else changes in that test. It gives the two install commands (/plugin marketplace add Truedone/truedone, then /plugin install truedone@truedone): a command the reader runs for their own use is documentation, not a request (D40).",
       "scope": {
         "allow": [
           "packages/cli/plugin/README.md",
+          "packages/cli/test/plugin-manifest.test.mjs",
           "packages/cli/test/plugin-readme.test.mjs",
           "docs/plugin-hooks.md",
           "docs/DEPENDENCY-MAP.md"
@@ -14667,10 +14776,11 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "D40, and the plugin paragraph of docs/spec.md (1c009a1). One skill in the Agent Skills format, packages/cli/plugin/skills/truedone/SKILL.md, and a byte-identical copy at skills/truedone/SKILL.md in the repository root, where agents that read skills from a repository find it. Its frontmatter has name: truedone and a description of at most 1024 characters saying when to use it: before reporting coding work done, and when checking whether a pull request's tests prove its change. The body says, read from the code and docs/spec.md: the commands (npx truedone, npx truedone <PR link>, --run and what it asks first on someone else's pull request, --json, --pr-line), what each verdict means, with https://truedone.pages.dev/why, the rules (never weaken, skip or delete a test to make it pass; report the verdict as printed; put the --pr-line line in the pull request description), and what truedone never does. It asks nothing beyond checking the reader's own work (D40). The plugin README names the skill. The plugin still has one hook.",
+      "description": "D40, and the plugin paragraph of docs/spec.md (1c009a1). One skill in the Agent Skills format, packages/cli/plugin/skills/truedone/SKILL.md, and a byte-identical copy at skills/truedone/SKILL.md in the repository root, where agents that read skills from a repository find it. Its frontmatter has name: truedone and a description of at most 1024 characters saying when to use it: before reporting coding work done, and when checking whether a pull request's tests prove its change. The body says, read from the code and docs/spec.md: the commands (npx truedone, npx truedone <PR link>, --run and what it asks first on someone else's pull request, --json, --pr-line), what each verdict means, with https://truedone.pages.dev/why, the rules (never weaken, skip or delete a test to make it pass; report the verdict as printed; put the --pr-line line in the pull request description), and what truedone never does. It asks nothing beyond checking the reader's own work (D40). The plugin README names the skill. The plugin still has one hook. packages/cli/test/plugin-manifest.test.mjs (PLG-02) lists the files the plugin folder may hold; its expected list gains skills/truedone/SKILL.md and nothing else changes in that test.",
       "scope": {
         "allow": [
           "packages/cli/plugin/skills/**",
+          "packages/cli/test/plugin-manifest.test.mjs",
           "skills/**",
           "packages/cli/plugin/README.md",
           "packages/cli/test/plugin-skill.test.mjs",
