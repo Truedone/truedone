@@ -622,6 +622,13 @@
       ],
       "CLI-10": [
         "CLI-10-AC05"
+      ],
+      "SPK-03": [
+        "SPK-03-AC02",
+        "SPK-03-AC06"
+      ],
+      "CORE-14": [
+        "CORE-14-AC09"
       ]
     }
   },
@@ -3560,6 +3567,166 @@
       ]
     },
     {
+      "id": "CORE-14",
+      "title": "[W2] A fork pull request's head content is read from the base repository",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "CORE-12"
+      ],
+      "requirements": [
+        "PV-C02",
+        "PV-C04",
+        "PV-C07",
+        "PV-C10",
+        "PV-C11",
+        "PV-C12",
+        "PV-C15",
+        "PV-W01",
+        "PV-A03"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Measured by CORE-12's worker: sindresorhus/ky#871 (head repository mahirhir/ky, deleted) is called tampered with test/hooks.ts +59 -0, because head content is read at raw.githubusercontent.com/<head repo>/<head sha>/<path>, which answers 404 once a fork is deleted or made private, while the base repository serves the same commit (refs/pull/<n>/head). The site, the command line and the App read head content at the base repository and the head sha; the head repository is not needed for content. The tests use ky#871's recorded answers in GitHub's shape: before the change the verdict is tampered, after it no test is removed. A missing head file is an error the verdict states, never a removed test.",
+      "scope": {
+        "allow": [
+          "packages/web/lib/**",
+          "packages/web/test/**",
+          "packages/cli/src/**",
+          "packages/cli/test/**",
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/DEPENDENCY-MAP.md",
+          "tools/bundle.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/action/dist/index.mjs",
+          "tools/test/bundle-version.test.mjs"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "CORE-14-AC01",
+          "mandatory": true,
+          "statement": "the site reads a fork pull request's head at the base repository",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/fork-head.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CORE-14-AC02",
+          "mandatory": true,
+          "statement": "the command line does the same",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/cli/test/fork-head.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CORE-14-AC03",
+          "mandatory": true,
+          "statement": "the App's static stage does the same",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/fork-head.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CORE-14-AC04",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-14-AC05",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-14-AC06",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "CORE-14-AC07",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-14-AC08",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-14-AC09",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-14-AC10",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "CORE-14-AC11",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "RUN-01",
       "title": "[W1] Runner detection: vitest, jest, mocha, node --test, pytest",
       "phase": "implement",
@@ -6417,6 +6584,116 @@
         },
         {
           "id": "SPK-02-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "SPK-03",
+      "title": "[W4] Spike: a proofline contract in a structured pull request, measured as an upgrade to truedone",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "E2E-01"
+      ],
+      "requirements": [
+        "PV-G04"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "The owner asks whether a proofline contract carried in a structured pull request adds value as an upgrade to truedone. truedone today judges a pull request from its diff and its tests: whether a test proves the change red-green, and whether a test was weakened. It does not know what the change was for. A contract states it: the task, its acceptance criteria with verifiers (commands, tests that must fail on base and pass on head, greps), its scope, and the stop rules. The arm: in the three E2E forks (Truedone/e2e-agentkey, e2e-crdt-merge-ts, e2e-crdt-merge), on branches spk3/* only, by the lead's order, pull requests that each carry a one-task contract (proofline.json in the pull request, or a fenced block in its description, whichever the prototype reads; both are tried) for a real improvement, run three ways: truedone alone, proofline's gate alone (proofline verify and gate against the merge base), and both. The cases include the ones truedone cannot see today and a contract can: a red-green test that proves the wrong thing (it passes, but an acceptance criterion's command fails), a change outside the declared scope, a criterion skipped by the author, a lowered threshold; and the ones both see (a weakened test), so neither is credited for what the other already does. Each case is measured: what each way says, whether it is right against the case's known truth, the time it takes, and what the author had to write. tools/spikes/contract-pr.mjs is the prototype that reads a contract from a pull request and runs proofline against it; docs/spikes/spk-03/data.json holds every measurement, and a fresh run of the prototype over the recorded cases gives the same data. docs/spikes/spk-03/decision.md ends with a recommendation for Ryan: adopt (with the design of the upgrade: where the contract lives, what the App and the action show), adopt in part, or not, with the numbers that decide it. Nothing in truedone's released surfaces changes in this task.",
+      "scope": {
+        "allow": [
+          "tools/spikes/contract-pr.mjs",
+          "tools/test/spike-contract-pr.test.mjs",
+          "tools/test/fixtures/spike-contract-pr/**",
+          "docs/spikes/spk-03/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "SPK-03-AC01",
+          "mandatory": true,
+          "statement": "the prototype reads a contract from a pull request and reports each criterion and the scope, and fails a case that breaks one",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/spike-contract-pr.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "SPK-03-AC02",
+          "mandatory": true,
+          "statement": "the committed data equals a fresh run of the prototype over the recorded cases",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/spikes/contract-pr.mjs --check docs/spikes/spk-03/data.json",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "SPK-03-AC03",
+          "mandatory": true,
+          "statement": "the spike ends in a recommendation for Ryan",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/spikes/spk-03/decision.md",
+            "pattern": "^Recommendation: (adopt|adopt in part|do not adopt)",
+            "must": "present"
+          }
+        },
+        {
+          "id": "SPK-03-AC04",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "SPK-03-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "SPK-03-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "SPK-03-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "SPK-03-AC08",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
@@ -18240,7 +18517,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "The owner asked for every check, end to end, on pull requests in his own projects, with the test workflow running in GitHub Actions. His account's Actions are locked for billing, so the projects are organisation forks with Actions on: Truedone/e2e-agentkey (node --test), Truedone/e2e-crdt-merge-ts (jest) and Truedone/e2e-crdt-merge (pytest); the production App is installed on the organisation. By the lead's order, lane-d pushes branches and opens pull requests in these three repositories only. (1) Each fork's default branch gets .github/workflows/truedone.yml: the project's own install and test command, then uses: Truedone/truedone/packages/action@<40-hex main sha> pinned, as the App requires (PV-A06), from main at the time; the commit and the sha are recorded. (2) In each fork, pull requests that each make one verdict, the cases the project's runner can show: a source fix with a test that fails without it (truedone:yes from the action's red-green); a weakened or deleted assertion (tampered); a skipped or focused test; a source change with no test (no evidence or unrun); a docs-only change (not applicable); a test-only change. Each case is a small, real change to that project's code. (3) For each pull request, recorded in docs/e2e/2026-10-19/run.json (repository, number, head sha, the case, the expected verdict and label): the App's check run (app slug truedone, title, details link), its label and the label event's actor (truedone[bot]), the workflow run and its conclusion, the action's report artifact, the seconds from opening to the final label; the site's verdict for the same pull request (headless Chrome with --use-mock-keychain, read from the page); npx truedone <link> --json and the MCP server's truedone_check_pr answer for it. Every surface must give the same verdict; a difference is a finding. (4) docs/e2e/2026-10-19/report.md: the table, then \"## Findings\", each with the step, what was expected, what happened, the command and its output, and file:line where found, then what worked. A fault found is reported to the lead and is not fixed here. (5) tools/e2e-verify.mjs <run.json> reads each recorded pull request back from GitHub now and exits 1 when a label, an actor, a check run's app or a workflow conclusion differs from the record; its test uses recorded answers in GitHub's shape. Pull requests stay open, so the owner can open each one and its Actions run. No probe runs claude or gh under a scratch HOME.",
+      "description": "The owner asked for every check, end to end, on pull requests in his own projects, with the test workflow running in GitHub Actions. His account's Actions are locked for billing, so the projects are organisation forks with Actions on: Truedone/e2e-agentkey (node --test), Truedone/e2e-crdt-merge-ts (jest) and Truedone/e2e-crdt-merge (pytest); the production App is installed on the organisation. By the lead's order, lane-d pushes branches and opens pull requests in these three repositories only. (1) Each fork's default branch gets .github/workflows/truedone.yml: the project's own install and test command, then uses: Truedone/truedone/packages/action@<40-hex main sha> pinned, as the App requires (PV-A06), from main at the time; the commit and the sha are recorded. (2) In each fork, pull requests that each make one verdict, the cases the project's runner can show: a source fix with a test that fails without it (truedone:yes from the action's red-green); a weakened or deleted assertion (tampered); a skipped or focused test; a source change with no test (no evidence or unrun); a docs-only change (not applicable); a test-only change. Each case is a small, real change to that project's code. (3) For each pull request, recorded in docs/e2e/2026-10-19/run.json (repository, number, head sha, the case, the expected verdict and label): the App's check run (app slug truedone, title, details link), its label and the label event's actor (truedone[bot]), the workflow run and its conclusion, the action's report artifact, the seconds from opening to the final label; the site's verdict for the same pull request (headless Chrome with --use-mock-keychain, read from the page); npx truedone <link> --json and the MCP server's truedone_check_pr answer for it. Every surface must give the same verdict; a difference is a finding. (4) docs/e2e/2026-10-19/report.md: the table, then \"## Findings\", each with the step, what was expected, what happened, the command and its output, and file:line where found, then what worked. A fault found is reported to the lead and is not fixed here. (5) tools/e2e-verify.mjs <run.json> reads each recorded pull request back from GitHub now and exits 1 when a label, an actor, a check run's app or a workflow conclusion differs from the record; its test uses recorded answers in GitHub's shape. Pull requests stay open, so the owner can open each one and its Actions run. No probe runs claude or gh under a scratch HOME. Owner, 12:2xZ: the cases are real, practical improvements: each proven case fixes a real defect or adds a real, useful capability found in the project (its issues, TODOs, edge cases, error paths), with a test that fails before and passes after; each tampered, skipped and no-test case is a realistic version of what an agent might do to that project's real tests. run.json and the report say for each change why it is a real improvement.",
       "scope": {
         "allow": [
           "tools/e2e-verify.mjs",
