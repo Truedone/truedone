@@ -26,7 +26,14 @@ export function readable(result, what) {
   lines.push(
     '',
     'Next rung: the truedone Claude Code plugin runs these checks on an agent\'s change before the agent reports the task done.',
-    'Red-green runs the change\'s own tests against base and head with --run, which this version does not have yet. On someone else\'s PR, red-green executes that PR\'s code on the machine that runs it.',
+    'Red-green runs the change\'s own tests against base and head: add --run. On someone else\'s PR, red-green executes that PR\'s code on the machine that runs it; --docker runs it in a container.',
   );
   return lines.join('\n') + '\n';
+}
+
+// Prints a result, as --json or readable, and returns the exit code: 1 when --fail-on names the verdict, else 0
+export function emit(result, what, { json, failOn }, stdout) {
+  if (result?.schema !== SCHEMA) throw new Error(`core returned no ${SCHEMA} result`);
+  stdout.write(json ? `${JSON.stringify(result)}\n` : readable(result, what));
+  return failOn?.has(result.verdict) ? 1 : 0;
 }

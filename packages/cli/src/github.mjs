@@ -50,6 +50,14 @@ export async function fetchReleases({ fetch, token = null }) {
   }
 }
 
+// The branch a PR targets, for --run's merge-base on the clone (CLI-03, D6): one API call
+export async function fetchPullBase({ owner, repo, number }, { fetch, token = null }) {
+  const pr = await client(fetch, token).get(`${API}/repos/${owner}/${repo}/pulls/${number}`);
+  const baseRef = pr?.base?.ref;
+  if (typeof baseRef !== 'string' || !/^[A-Za-z0-9._\/-]+$/.test(baseRef) || baseRef.includes('..')) throw new GitHubError('without a usable base branch');
+  return { baseRef };
+}
+
 export async function loadPR({ owner, repo, number }, { fetch, classify, token = null, limits = LIMITS }) {
   const c = client(fetch, token);
   const prUrl = `${API}/repos/${owner}/${repo}/pulls/${number}`;

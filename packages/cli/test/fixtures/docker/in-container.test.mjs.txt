@@ -1,0 +1,4 @@
+// Runs inside node:24-slim in docker.test.mjs: proves a real node --test ran in the container.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+test('runs on linux under node 24', () => { assert.equal(process.platform, 'linux'); assert.equal(process.versions.node.split('.')[0], '24'); });
