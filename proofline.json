@@ -629,6 +629,21 @@
       ],
       "CORE-14": [
         "CORE-14-AC09"
+      ],
+      "CORE-15": [
+        "CORE-15-AC08"
+      ],
+      "APP-33": [
+        "APP-33-AC08"
+      ],
+      "APP-34": [
+        "APP-34-AC09"
+      ],
+      "CLI-11": [
+        "CLI-11-AC07"
+      ],
+      "WEB-18": [
+        "WEB-18-AC05"
       ]
     }
   },
@@ -3718,6 +3733,150 @@
         },
         {
           "id": "CORE-14-AC11",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CORE-15",
+      "title": "[W2] Each finding carries its lines and its fix, and the Result its steps to Proven",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "CORE-12"
+      ],
+      "requirements": [
+        "PV-C02",
+        "PV-C04",
+        "PV-C07",
+        "PV-C10",
+        "PV-C11",
+        "PV-C12",
+        "PV-C15",
+        "PV-W01",
+        "PV-A03"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D41 (docs/spec.md): the owner asked that truedone say on the pull request itself what it found and what would make it green, after Truedone/e2e-agentkey#3 showed its maintainer only the label truedone:tampered while GitHub's merge box said All checks have passed. Core gives each reason, where the check knows them, its line on head (line) and on base (base_line), the line as it was (before) and as it is (after), each cut to 200 characters, and fix: one sentence that names the test or file and its line and says the one change that clears this finding, such as removing .skip from a named test, restoring a named assertion at least as strong as base's (with base's line quoted), or confirming a snapshot update. The Result gains steps, the way to Proven: deciding again with the current verdict's reasons cleared, in the precedence order, each step names the verdict it starts from and what clears it, until the verdict would be Proven, Proven (new behaviour) or Not applicable; a source change with no test ends in adding a test that fails on base and passes on head for the named source files, and a repository without the truedone step ends in what runs red-green there. next keeps D33's rule unchanged, and every field is additive, so truedone.verdict/1 stays the schema. The wording follows the verdicts table's rule: what was observed, never addressed to the author. The tests use the shapes of the E2E pull requests: Truedone/e2e-agentkey#1 (a test.skip at test/bind.test.mjs:55 and assert.equal weakened to assert.ok at test/bind.test.mjs:40, with src/bind.mjs changed) and the same cases in jest and pytest.",
+      "scope": {
+        "allow": [
+          "packages/core/src/**",
+          "packages/core/test/**",
+          "docs/DEPENDENCY-MAP.md",
+          "tools/bundle.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/action/dist/index.mjs",
+          "tools/test/bundle-version.test.mjs"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "CORE-15-AC01",
+          "mandatory": true,
+          "statement": "each finding carries its lines, the line before and after, and a fix naming the test and its line, for node:test, jest and pytest",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/core/test/finding-detail.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CORE-15-AC02",
+          "mandatory": true,
+          "statement": "the Result's steps lead from each verdict to Proven, and next is unchanged",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/core/test/steps.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CORE-15-AC03",
+          "mandatory": true,
+          "statement": "core suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/core/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-15-AC04",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-15-AC05",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-15-AC06",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-15-AC07",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-15-AC08",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-15-AC09",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "CORE-15-AC10",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
@@ -10294,6 +10453,289 @@
       ]
     },
     {
+      "id": "APP-33",
+      "title": "[W2] The check run says the verdict plainly: findings, fixes, steps and annotations",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "CORE-15"
+      ],
+      "requirements": [
+        "PV-A06",
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D41 (docs/spec.md): the owner asked that truedone say on the pull request itself what it found and what would make it green, after Truedone/e2e-agentkey#3 showed its maintainer only the label truedone:tampered while GitHub's merge box said All checks have passed. The check run's title gives the verdict and a count of what was found, such as \"Tampered: 1 test skipped, 1 assertion weakened\", so the merge box row says it. The summary gives each finding, up to 10, with its file and line linked to the file at the head commit, the line on base and on head in fenced blocks whose fence is longer than any backtick run in them, and its fix; then what would change the verdict, the steps to Proven, the truedone.pages.dev link and D39's wrong-verdict link. Text from the pull request stays data (S7): escaped, with mentions neutralised. Each finding with a line on head is an annotation on that line, at most 50: warning for a finding that alone gives Tampered or Test changes: review, notice for the rest. The conclusion is neutral, and failure for Tampered when .github/truedone.yml sets conclusion: fail-on-tampered (D19, issue #193: today postCheck always sends neutral). The tests use recorded GitHub answers in GitHub's shape for Truedone/e2e-agentkey#1 and #3.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-33-AC01",
+          "mandatory": true,
+          "statement": "the check run's title counts the findings, and its summary gives each with file:line, before and after, its fix, and the steps",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/check-detail.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-33-AC02",
+          "mandatory": true,
+          "statement": "each finding with a head line is an annotation on that line, at most 50, warning or notice by its verdict",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/check-annotations.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-33-AC03",
+          "mandatory": true,
+          "statement": "conclusion: fail-on-tampered gives a failed check for Tampered, and neutral stays the default",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/check-conclusion.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-33-AC04",
+          "mandatory": true,
+          "statement": "the App stays a Worker: no Node built-ins, require, child processes or eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-33-AC05",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-33-AC06",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-33-AC07",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-33-AC08",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-33-AC09",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-33-AC10",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "APP-34",
+      "title": "[W2] One comment, edited in place, while the verdict asks the maintainer to act",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "APP-33"
+      ],
+      "requirements": [
+        "PV-A06",
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D41 (docs/spec.md): the owner asked that truedone say on the pull request itself what it found and what would make it green, after Truedone/e2e-agentkey#3 showed its maintainer only the label truedone:tampered while GitHub's merge box said All checks have passed. comments takes off, auto and on, and auto is the default. With auto the App posts one comment while the verdict asks the maintainer to act (every verdict but Proven, Proven (new behaviour) and Not applicable) and edits that same comment on every later head; when a later head no longer asks, the comment shrinks to one line saying so, and when no comment exists none is opened. on posts it for every verdict, off never and leaves an existing one as it is. The App finds its comment by a hidden marker and by the App as author, never by text a pull request could copy. The comment carries the check run's findings, fixes and steps, follows S7, and never addresses the author (PV-C15, D40). Every text that says when the App comments follows: the privacy note (docs/privacy.md, then node tools/build-legal.mjs for packages/web/privacy.html) and any page, README or listing that says it, each found by searching for the old wording. The App's permission pull_requests: write already covers comments on a pull request.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/privacy.md",
+          "packages/web/privacy.html",
+          "packages/web/why.html",
+          "packages/web/test/**",
+          "README.md",
+          "llms.txt",
+          "packages/web/llms.txt",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-34-AC01",
+          "mandatory": true,
+          "statement": "with comments: auto the App opens one comment for a verdict that asks for action, edits it on the next head, shrinks it to one line when the verdict no longer asks, and opens none for a Proven pull request",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/comment-auto.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-34-AC02",
+          "mandatory": true,
+          "statement": "comments: on comments on every verdict and off on none; the comment is found by its marker and author only, follows S7 and never addresses the author",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/comment-modes.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-34-AC03",
+          "mandatory": true,
+          "statement": "the privacy note says when the App comments, as the App does",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/privacy.md",
+            "pattern": "comments: auto",
+            "must": "present"
+          }
+        },
+        {
+          "id": "APP-34-AC04",
+          "mandatory": true,
+          "statement": "the App stays a Worker: no Node built-ins, require, child processes or eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-34-AC05",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-34-AC06",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-34-AC07",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-34-AC08",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-34-AC09",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-34-AC10",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-34-AC11",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "COLLECT-02",
       "title": "[W2] Every check run carries a link to report a wrong verdict",
       "phase": "implement",
@@ -14333,6 +14775,102 @@
       ]
     },
     {
+      "id": "WEB-18",
+      "title": "[W2] The pull request page shows each finding's lines, its fix and the steps",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "CORE-15"
+      ],
+      "requirements": [
+        "PV-W02"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D41 (docs/spec.md): the owner asked that truedone say on the pull request itself what it found and what would make it green, after Truedone/e2e-agentkey#3 showed its maintainer only the label truedone:tampered while GitHub's merge box said All checks have passed. The site's pull request page shows each finding with its file and line linked to GitHub, the line before and after, and its fix, then the steps to Proven, built with textContent only (S7). The test renders the page from Truedone/e2e-agentkey#1's recorded answers.",
+      "scope": {
+        "allow": [
+          "packages/web/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "WEB-18-AC01",
+          "mandatory": true,
+          "statement": "the pull request page shows each finding's file:line, before and after, its fix and the steps, with no innerHTML",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/finding-detail.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-18-AC02",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-18-AC03",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-18-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-18-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-18-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "WEB-18-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "CLI-02",
       "title": "[W1] npx truedone init",
       "phase": "implement",
@@ -15577,6 +16115,134 @@
         },
         {
           "id": "CLI-10-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CLI-11",
+      "title": "[W2] The command line and the plugin's Stop hook show each finding's lines, its fix and the steps",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "CORE-15"
+      ],
+      "requirements": [
+        "PV-L03",
+        "PV-L05",
+        "PV-L06",
+        "PV-C08"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D41 (docs/spec.md): the owner asked that truedone say on the pull request itself what it found and what would make it green, after Truedone/e2e-agentkey#3 showed its maintainer only the label truedone:tampered while GitHub's merge box said All checks have passed. npx truedone prints, under the verdict, each finding with its file and line, the line before and after, and its fix, then the steps to Proven; --json carries the same fields from core, and --pr-line stays one line (D38). The plugin's Stop hook gives the agent the same findings and fixes when it blocks, so the agent knows the one change that clears each. The tests run the real command line and the real hook on a scratch repository holding Truedone/e2e-agentkey#1's change.",
+      "scope": {
+        "allow": [
+          "packages/cli/src/**",
+          "packages/cli/test/**",
+          "docs/DEPENDENCY-MAP.md",
+          "tools/bundle.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/action/dist/index.mjs",
+          "tools/test/bundle-version.test.mjs"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "CLI-11-AC01",
+          "mandatory": true,
+          "statement": "npx truedone's output gives each finding's file:line, before and after, its fix and the steps",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/cli/test/finding-detail.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CLI-11-AC02",
+          "mandatory": true,
+          "statement": "the plugin's Stop hook gives the agent each finding's fix when it blocks",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/cli/test/hook-detail.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CLI-11-AC03",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-11-AC04",
+          "mandatory": true,
+          "statement": "core suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/core/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-11-AC05",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-11-AC06",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-11-AC07",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-11-AC08",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "CLI-11-AC09",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
