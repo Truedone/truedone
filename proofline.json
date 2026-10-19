@@ -487,6 +487,10 @@
       ],
       "BENCH-02": [
         "BENCH-02-AC05"
+      ],
+      "PLG-04": [
+        "PLG-04-AC05",
+        "PLG-04-AC08"
       ]
     }
   },
@@ -13644,6 +13648,138 @@
       ]
     },
     {
+      "id": "PLG-04",
+      "title": "[W3] The plugin names the live site and the organisation",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "PLG-02"
+      ],
+      "requirements": [
+        "PV-P04"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Measured on REL-P3 c4b88ac3 (lane-b, bus 5064): the plugin installed from GitHub carries \"homepage\": \"https://truedone.dev\", a domain that does not exist, so the release preview's manifest check fails. The plugin manifest packages/cli/plugin/.claude-plugin/plugin.json names https://truedone.pages.dev as its homepage (D26), and the marketplace .claude-plugin/marketplace.json names the organisation as its owner: name Truedone, url https://github.com/Truedone. The manifest test holds both. This lands before REL-P3, so REL-P3's run from GitHub tests the fixed manifest before REL-P3 merges.",
+      "scope": {
+        "allow": [
+          ".claude-plugin/marketplace.json",
+          "packages/cli/plugin/.claude-plugin/plugin.json",
+          "packages/cli/test/plugin-manifest.test.mjs",
+          "docs/plugin-hooks.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "PLG-04-AC01",
+          "mandatory": true,
+          "statement": "the manifest test holds the plugin's homepage to https://truedone.pages.dev and the marketplace's owner to Truedone",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/cli/test/plugin-manifest.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "PLG-04-AC02",
+          "mandatory": true,
+          "statement": "the plugin's homepage is the live site (D26)",
+          "verifier": {
+            "type": "grep",
+            "file": "packages/cli/plugin/.claude-plugin/plugin.json",
+            "pattern": "\"homepage\": \"https://truedone\\.pages\\.dev\"",
+            "must": "present"
+          }
+        },
+        {
+          "id": "PLG-04-AC03",
+          "mandatory": true,
+          "statement": "the plugin names no homepage on truedone.dev",
+          "verifier": {
+            "type": "grep",
+            "file": "packages/cli/plugin/.claude-plugin/plugin.json",
+            "pattern": "truedone\\.dev",
+            "must": "absent"
+          }
+        },
+        {
+          "id": "PLG-04-AC04",
+          "mandatory": true,
+          "statement": "the marketplace's owner is the organisation",
+          "verifier": {
+            "type": "grep",
+            "file": ".claude-plugin/marketplace.json",
+            "pattern": "\"url\": \"https://github\\.com/Truedone\"",
+            "must": "present"
+          }
+        },
+        {
+          "id": "PLG-04-AC05",
+          "mandatory": true,
+          "statement": "the plugin still installs from the checkout into a throwaway home",
+          "verifier": {
+            "type": "command",
+            "cmd": "H=$(mktemp -d) && R=$(pwd) && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin marketplace add \"$R\" && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin install truedone@truedone",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "PLG-04-AC06",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-04-AC07",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-04-AC08",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-04-AC09",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "PLG-04-AC10",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "PLG-03",
       "title": "[W6] Plugin red-green, after the red-green gates",
       "phase": "implement",
@@ -14092,7 +14228,9 @@
       "phase": "implement",
       "owner": "lane-b",
       "depends_on": [
-        "PLG-02"
+        "PLG-02",
+        "PLG-04",
+        "REL-P1"
       ],
       "requirements": [
         "PV-R01"
