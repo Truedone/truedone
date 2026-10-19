@@ -579,6 +579,19 @@
         "PLG-09-AC02",
         "PLG-09-AC03",
         "PLG-09-AC06"
+      ],
+      "PLG-10": [
+        "PLG-10-AC05"
+      ],
+      "PLG-11": [
+        "PLG-11-AC07"
+      ],
+      "REL-P8": [
+        "REL-P8-AC05"
+      ],
+      "REL-P9": [
+        "REL-P9-AC03",
+        "REL-P9-AC06"
       ]
     }
   },
@@ -15934,6 +15947,236 @@
       ]
     },
     {
+      "id": "PLG-10",
+      "title": "[W3] Anthropic's pre-submission checklist, in code, holds the plugin folder",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "PLG-09"
+      ],
+      "requirements": [
+        "PV-P04"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "tools/plugin-checklist.mjs <plugin folder> checks every row of https://claude.com/docs/plugins/pre-submission-checklist (read 2026-10-19) that files can show, and prints each finding with the row and the result the checklist gives it (Blocks, Held for a reviewer, Warning). It exits 1 on any Blocks finding and on any held finding other than those named in its own list of reviewer confirmations, each with its reason; today that list holds one entry, \"Uses a credential from the user's machine\" (the hook passes the session's environment to the project's own tests and sends nothing). The rows: the folder holds .claude-plugin/plugin.json; every hook command and component path stays inside it; no symbolic link, submodule or LFS pointer; no .DS_Store, Thumbs.db, desktop.ini or __MACOSX; file and folder names valid on Windows and macOS (no colon, no trailing dot or space, no device name, no two names that differ only by case) and folder names of letters, digits, dots, hyphens and underscores; no export-ignore, export-subst or filter in a .gitattributes that applies; every file under 5 MiB, every file that is not an image or font under 256 KiB, at most 512 files, only text, PNG, JPEG, GIF, WebP and fonts; no bundled image named from a hook or script or in backticks; the name matches ^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$, is not a reserved word on its own (claude, anthropic, official, plugin, mcp, test), and displayName and author.name are plain ASCII with no invisible character; description, author and version are set; the component keys are spelled as the plugins reference spells them and none sits under experimental; a README of at least 40 words outside code blocks and a licence; every launcher (npx, bunx, pnpm dlx, yarn dlx, uvx, pipx run, uv run) in a hook or MCP command pinned to an exact version; no .npmrc, bunfig.toml or uv.toml that sets a package source; no credential-shaped literal in any file (ghp_, github_pat_, sk-ant-, AKIA, xoxb-, xoxp-, a PEM private key); each hook command written in full from ${CLAUDE_PLUGIN_ROOT} with no other variable, substitution, wildcard or inline program; hooks/hooks.json valid with a top-level hooks object, known events and types, an https URL on each HTTP hook, and not listed again in plugin.json; each skill, command and agent file with YAML front matter whose description is text. The test builds one fixture folder per rule that breaks only that rule, and the real plugin folder, which passes.",
+      "scope": {
+        "allow": [
+          "tools/plugin-checklist.mjs",
+          "tools/test/plugin-checklist.test.mjs",
+          "tools/test/fixtures/plugin-checklist/**",
+          "docs/plugin-hooks.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "PLG-10-AC01",
+          "mandatory": true,
+          "statement": "each checklist rule fails a fixture that breaks it, and passes the real plugin folder",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/plugin-checklist.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "PLG-10-AC02",
+          "mandatory": true,
+          "statement": "the plugin folder on main meets the checklist",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/plugin-checklist.mjs packages/cli/plugin",
+            "expect_exit": 0,
+            "timeout_s": 120
+          }
+        },
+        {
+          "id": "PLG-10-AC03",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-10-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-10-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-10-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "PLG-10-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PLG-11",
+      "title": "[W3] No bundle line is too long for a reader to follow",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "PLG-10",
+        "CLI-05"
+      ],
+      "requirements": [
+        "PV-L01",
+        "PV-L02",
+        "PV-L04"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "The directory's scanner could not read one word of packages/cli/plugin/hooks/stop.mjs, a 349-character line (stop.mjs:1183) that returns a brace list of every name a bundled module exports, and at the repository root it held the plugin for that (UNREAD_ASSET_REFERENCED). tools/bundle.mjs writes each module's export list one name per line, and no line of any bundle is longer than 200 characters; the code does what it did, byte for byte apart from line breaks inside those lists. A test holds every bundle's longest line under 200 characters, and the bundle-version and suite tests stay green. tools/plugin-checklist.mjs gains the rule.",
+      "scope": {
+        "allow": [
+          "tools/test/bundle-lines.test.mjs",
+          "tools/plugin-checklist.mjs",
+          "tools/test/plugin-checklist.test.mjs",
+          "tools/test/fixtures/plugin-checklist/**",
+          "docs/DEPENDENCY-MAP.md",
+          "tools/bundle.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/action/dist/index.mjs",
+          "tools/test/bundle-version.test.mjs"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "PLG-11-AC01",
+          "mandatory": true,
+          "statement": "every bundle line is under 200 characters",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/bundle-lines.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "PLG-11-AC02",
+          "mandatory": true,
+          "statement": "the plugin folder on main meets the checklist",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/plugin-checklist.mjs packages/cli/plugin",
+            "expect_exit": 0,
+            "timeout_s": 120
+          }
+        },
+        {
+          "id": "PLG-11-AC03",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-11-AC04",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-11-AC05",
+          "mandatory": true,
+          "statement": "action suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/action/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-11-AC06",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-11-AC07",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-11-AC08",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "PLG-11-AC09",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "PLG-03",
       "title": "[W6] Plugin red-green, after the red-green gates",
       "phase": "implement",
@@ -16753,6 +16996,217 @@
         },
         {
           "id": "REL-P7-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "REL-P8",
+      "title": "[W3] The plugin's own repository: the plugin folder at its root, built from main",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "REL-P2",
+        "PLG-10",
+        "PLG-11"
+      ],
+      "requirements": [
+        "PV-R01"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Anthropic's directory follows a repository, and holds a plugin whose folder is a subfolder of it (\"Scripts the validator couldn't follow\"; measured gone with the plugin at a repository root, sandbox scan v5). tools/mirror-plugin.mjs <out dir> writes the tree Truedone/truedone-plugin carries, from main and nothing else: the files of packages/cli/plugin at the root, LICENSE and NOTICE; two runs give the same bytes; it prints each file's SHA-256 and the commands that send the tree (refused without MIRROR_TOKEN, as tools/mirror-action.mjs is, which it follows). The tree meets tools/plugin-checklist.mjs. The section \"## The plugin repository\" of docs/releases/preview-0.1.1.md lists the files and their hashes. The repository Truedone/truedone-plugin, public and empty, is created by the lead as the owner's proxy before the first send (REL-P9).",
+      "scope": {
+        "allow": [
+          "tools/mirror-plugin.mjs",
+          "tools/test/mirror-plugin.test.mjs",
+          "docs/releases/preview-0.1.1.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "REL-P8-AC01",
+          "mandatory": true,
+          "statement": "the plugin mirror holds the plugin folder at its root with LICENSE and NOTICE, the same bytes twice, and meets the checklist",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/mirror-plugin.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "REL-P8-AC02",
+          "mandatory": true,
+          "statement": "the release notes list the plugin repository files",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/releases/preview-0.1.1.md",
+            "pattern": "^## The plugin repository",
+            "must": "present"
+          }
+        },
+        {
+          "id": "REL-P8-AC03",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P8-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P8-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P8-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "REL-P8-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "REL-P9",
+      "title": "[W3] Ryan submits the plugin to Anthropic's directory, and the record names every finding",
+      "phase": "implement",
+      "owner": "ryan",
+      "depends_on": [
+        "REL-P8",
+        "PLG-09",
+        "PLG-10",
+        "PLG-11"
+      ],
+      "requirements": [
+        "PV-R01"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D35, D40. The lead sends the tree tools/mirror-plugin.mjs builds to Truedone/truedone-plugin as Ryan's proxy, runs the portal's Validate on that repository's default branch, and records the report in docs/releases/plugin-directory.md: the commit, every finding with its result, \"Blocking: none\", and each hold with the reason a reviewer reads. The privacy note names what the plugin reads and keeps before Ryan confirms the portal's privacy statement. Ryan submits from his own claude.ai account (Ryan Gillespie), with the contact data@optitransfer.ch, listed on Claude Code only until the plugin is tested on another surface, and ticks the compliance statements himself. The record names the submission's date and its state on the plugin's page.",
+      "scope": {
+        "allow": [
+          "docs/releases/plugin-directory.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "REL-P9-AC01",
+          "mandatory": true,
+          "statement": "the record holds the portal's report for the submitted commit",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/releases/plugin-directory.md",
+            "pattern": "^## Validation",
+            "must": "present"
+          }
+        },
+        {
+          "id": "REL-P9-AC02",
+          "mandatory": true,
+          "statement": "the report had no Blocking finding",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/releases/plugin-directory.md",
+            "pattern": "^Blocking: none$",
+            "must": "present"
+          }
+        },
+        {
+          "id": "REL-P9-AC03",
+          "mandatory": true,
+          "statement": "the plugin repository's default branch holds the tree main builds",
+          "verifier": {
+            "type": "command",
+            "cmd": "D=$(mktemp -d) && node tools/mirror-plugin.mjs \"$D\" > /dev/null && git clone -q --depth 1 https://github.com/Truedone/truedone-plugin \"$D.r\" && diff -r -x .git \"$D\" \"$D.r\"",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "REL-P9-AC04",
+          "mandatory": true,
+          "statement": "the record names the submission",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/releases/plugin-directory.md",
+            "pattern": "^## Submission",
+            "must": "present"
+          }
+        },
+        {
+          "id": "REL-P9-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P9-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P9-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "REL-P9-AC08",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
