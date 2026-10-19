@@ -20,6 +20,8 @@ const B = "cccccccccccccccccccccccccccccccccccccccc";
 const H = "dddddddddddddddddddddddddddddddddddddddd";
 const STEP = "a1b2c3d4e5a1b2c3d4e5a1b2c3d4e5a1b2c3d4e5";
 const RELEASE = "0f9e8d7c6b0f9e8d7c6b0f9e8d7c6b0f9e8d7c6b";
+// the default branch's head commit, where its workflows are read (APP-29)
+const MAIN = "6c2eac62418533b8309d9e933ad9897c055ae053";
 const OLDER = "5a4b3c2d1e5a4b3c2d1e5a4b3c2d1e5a4b3c2d1e";
 const REPO = { id: 7, name: "r", full_name: "o/r", owner: { login: "o" } };
 const TAGS = "https://api.github.com/repos/Truedone/truedone-action/tags?per_page=100";
@@ -42,8 +44,8 @@ const report = (provedStep) => JSON.stringify({
 const workflow = (uses) => `name: ci\non: [pull_request]\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n${uses}\n`;
 const listing = (name) => ({
   name, path: `.github/workflows/${name}`, sha: "f".repeat(40), size: 200, type: "file",
-  url: `https://api.github.com/repos/o/r/contents/.github/workflows/${name}?ref=main`,
-  download_url: `https://raw.githubusercontent.com/o/r/main/.github/workflows/${name}`,
+  url: `https://api.github.com/repos/o/r/contents/.github/workflows/${name}?ref=${MAIN}`,
+  download_url: `https://raw.githubusercontent.com/o/r/${MAIN}/.github/workflows/${name}`,
 });
 
 // GitHub for o/r's workflow run 77 on H, pull request 41: the default branch's ci.yml holds uses, the run's artifact
@@ -60,6 +62,7 @@ function github({ uses, provedStep, tags = [], text = report(provedStep) }) {
       "GET /repos/o/r/actions/runs/77/artifacts": { total_count: 1, artifacts: [{ id: 9, name: "truedone-report-test", expired: false, size_in_bytes: 400, archive_download_url: "https://api.github.com/repos/o/r/actions/artifacts/9/zip" }] },
       "GET /repos/o/r/actions/artifacts/9/zip": () => new Response(storedZip(text)),
       "GET /repos/o/r": { ...REPO, private: false, default_branch: "main" },
+      "GET /repos/o/r/git/ref/heads/main": { ref: "refs/heads/main", url: "https://api.github.com/repos/o/r/git/refs/heads/main", object: { sha: MAIN, type: "commit", url: `https://api.github.com/repos/o/r/git/commits/${MAIN}` } },
       "GET /repos/o/r/contents/.github/workflows": [listing("ci.yml")],
       "GET /repos/Truedone/truedone-action/tags": tags,
       ...writeRoutes("o", "r", 41, H),
@@ -68,7 +71,7 @@ function github({ uses, provedStep, tags = [], text = report(provedStep) }) {
     raw: {
       [`o/r/${B}/test/a.test.js`]: TEST_BEFORE,
       [`o/r/${H}/test/a.test.js`]: TEST_AFTER,
-      "o/r/main/.github/workflows/ci.yml": workflow(uses),
+      [`o/r/${MAIN}/.github/workflows/ci.yml`]: workflow(uses),
     },
   });
 }

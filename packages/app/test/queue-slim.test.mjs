@@ -26,6 +26,8 @@ const KEY = await pkcs1Pem();
 const B = "cccccccccccccccccccccccccccccccccccccccc";
 const H = "dddddddddddddddddddddddddddddddddddddddd";
 const H2 = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+// the default branch's head commit, where its workflows are read (APP-29)
+const MAIN = "6c2eac62418533b8309d9e933ad9897c055ae053";
 const REPO = { id: 7, name: "r", full_name: "o/r", owner: { login: "o" } };
 const PLANTED = ["PLANTED-TITLE", "PLANTED-BODY", "planted-author", "PLANTED-COMMIT", "planted@example.com", "PLANTED-DISPLAY", "planted-actor", "PLANTED-DESCRIPTION"];
 
@@ -231,6 +233,7 @@ function redGreenGitHub() {
       "GET /repos/o/r/actions/runs/77/artifacts": { artifacts: [{ name: "truedone-report-test", expired: false, size_in_bytes: 200, archive_download_url: "https://api.github.com/z/1" }] },
       "GET /z/1": () => new Response(storedZip(REPORT)),
       "GET /repos/o/r": { default_branch: "main" },
+      "GET /repos/o/r/git/ref/heads/main": { ref: "refs/heads/main", object: { sha: MAIN, type: "commit" } },
       "GET /repos/o/r/contents/.github/workflows": [{ name: "ci.yml" }],
       ...writeRoutes("o", "r", 41, RG_HEAD),
       "GET /repos/o/r/labels": LABELS.map((l) => ({ name: l.name })),
@@ -238,7 +241,7 @@ function redGreenGitHub() {
     raw: {
       [`o/r/${B}/test/a.test.js`]: TEST_BEFORE,
       [`o/r/${RG_HEAD}/test/a.test.js`]: TEST_AFTER,
-      "o/r/main/.github/workflows/ci.yml": `steps:\n  - uses: truedone/truedone-action@${"1".repeat(40)} # v1\n`,
+      [`o/r/${MAIN}/.github/workflows/ci.yml`]: `steps:\n  - uses: truedone/truedone-action@${"1".repeat(40)} # v1\n`,
     },
   });
 }

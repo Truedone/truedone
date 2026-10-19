@@ -12,6 +12,8 @@ import { fakeGitHub, memoryKV, writeRoutes, delivery, pkcs1Pem, storedZip, flags
 const B = "8888888888888888888888888888888888888888";
 const H = "9999999999999999999999999999999999999999";
 const STEP = "1111111111111111111111111111111111111111";
+// the default branch's head commit, where its workflows are read (APP-29)
+const MAIN = "6c2eac62418533b8309d9e933ad9897c055ae053";
 const PAGE = "https://truedone.pages.dev/o/r/pull/6";
 const KEPT = "import { test } from 'node:test';\nimport assert from 'node:assert/strict';\ntest('a', () => {\n  assert.equal(f(), 1);\n});\n";
 const ADDED_CASE = `${KEPT}test('b', () => {\n  assert.equal(f(), 1);\n});\n`;
@@ -35,6 +37,7 @@ function github({ existing = false } = {}) {
       "GET /repos/o/r/actions/runs/77/artifacts": { artifacts: [{ name: "truedone-report-test", expired: false, size_in_bytes: zip.length, archive_download_url: "https://api.github.com/artifact/1" }] },
       "GET /artifact/1": () => new Response(zip),
       "GET /repos/o/r": { default_branch: "main" },
+      "GET /repos/o/r/git/ref/heads/main": { ref: "refs/heads/main", object: { sha: MAIN, type: "commit" } },
       "GET /repos/o/r/contents/.github/workflows": [{ name: "ci.yml" }],
       ...writeRoutes("o", "r", 6, H),
       ...(existing ? {
@@ -45,7 +48,7 @@ function github({ existing = false } = {}) {
     raw: {
       [`o/r/${B}/test/a.test.js`]: KEPT,
       [`o/r/${H}/test/a.test.js`]: ADDED_CASE,
-      "o/r/main/.github/workflows/ci.yml": `steps:\n  - uses: Truedone/truedone-action@${STEP} # v1\n`,
+      [`o/r/${MAIN}/.github/workflows/ci.yml`]: `steps:\n  - uses: Truedone/truedone-action@${STEP} # v1\n`,
     },
   });
 }
