@@ -16,8 +16,10 @@ const API = "https://api.github.com";
 // (packages/web/lib/github.mjs), the site's reader: path from GitHub's filename, a
 // modified or renamed file's base at the merge base of pull_request.base.sha and the
 // head sha (one compare call, CORE-12) from the base repository (at the previous path
-// for a rename), its head at the head sha from the head repository,
-// no base for an added file and no head for a removed one, and core's classify choosing
+// for a rename), its head at the head sha from the base repository too, which holds a
+// forked repository's head commit after the head repository is deleted or private
+// (CORE-14), a head that cannot be read throwing to the queue path rather than reading as
+// removed tests, no base for an added file and no head for a removed one, and core's classify choosing
 // which contents are fetched, so a plain source file's contents never leave the
 // repository. The pull request is the caller's (the delivery's, or the red-green stage's
 // lookup), not a second call, so the contents and the check run name the same head sha.

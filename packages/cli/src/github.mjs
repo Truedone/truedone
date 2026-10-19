@@ -2,7 +2,10 @@
 // the PR, then its file pages of 100 and one compare call for its merge base (fetched together) from api.github.com, so
 // a PR of 300 files takes 5 calls, and base (at the merge base, CORE-12) and head contents of the files core classifies
 // as test, setup, runner config, workflow or truedone config from raw.githubusercontent.com, up to the static limit of
-// 100 fetched files. GITHUB_TOKEN, when set, goes to api.github.com only. Nothing is cloned and no process is started.
+// 100 fetched files. Both are read in the base repository, which holds the head commit of a pull request from a forked
+// repository (refs/pull/<n>/head) even once the head repository is deleted or private (CORE-14). A head file that cannot
+// be read throws HeadUnreadable, never reads as empty, so its tests never read as removed. GITHUB_TOKEN, when
+// set, goes to api.github.com only. Nothing is cloned and no process is started.
 import { CONTENT, LIMITS } from './constants.mjs';
 
 export const API = 'https://api.github.com';
@@ -16,6 +19,11 @@ export class RateLimited extends Error {
 }
 export class GitHubError extends Error {
   constructor(status) { super(`GitHub answered ${status}`); this.name = 'GitHubError'; this.status = status; }
+}
+// CORE-14: a changed file's head that GitHub does not serve, as the site's reader throws it: no path in the message (S8),
+// path names the file, and answer is GitHub's status.
+export class HeadUnreadable extends GitHubError {
+  constructor(answer, path) { super(`${answer} for a file at the head commit`); this.name = 'HeadUnreadable'; this.answer = answer; this.path = path; }
 }
 export const isRateLimit = (res) => res.status === 429 || (res.status === 403 && res.headers.get('x-ratelimit-remaining') === '0');
 
@@ -76,7 +84,6 @@ export async function loadPR({ owner, repo, number }, { fetch, classify, token =
   const total = Math.min(Number(pr.changed_files) || 0, 3000);
   const pages = Math.max(1, Math.ceil(Math.min(total, limits.files) / 100));
   const baseRepo = pr.base?.repo?.full_name ?? `${owner}/${repo}`;
-  const headRepo = pr.head?.repo?.full_name ?? baseRepo;
   const [listed, base] = await Promise.all([
     Promise.all(Array.from({ length: pages }, (_, k) => c.get(`${prUrl}/files?per_page=100&page=${k + 1}`))).then((p) => p.flat()),
     mergeBase(c.get, baseRepo, pr),
@@ -88,11 +95,18 @@ export async function loadPR({ owner, repo, number }, { fetch, classify, token =
     return out;
   });
   const text = async (url) => { const res = await fetch(url); return res.ok ? res.text() : undefined; };   // no token to raw
+  // CORE-14: a changed file's head, at the head sha in the base repository. A file GitHub lists as not removed exists at
+  // the head, so a failed answer is an error: read as missing, every test in the file would read as removed.
+  const headText = async (path) => {
+    const res = await fetch(`${RAW}/${baseRepo}/${pr.head.sha}/${rawPath(path)}`);
+    if (!res.ok) throw new HeadUnreadable(res.status, path);
+    return res.text();
+  };
   const wanted = files.filter((f) => CONTENT.has(classify(f.path)) || (f.previous_path && CONTENT.has(classify(f.previous_path)))).slice(0, limits.fetched);
   await pool(wanted, 8, async (f) => {
     const [b, h] = await Promise.all([
       f.status === 'added' ? undefined : text(`${RAW}/${baseRepo}/${base}/${rawPath(f.previous_path ?? f.path)}`),
-      f.status === 'removed' ? undefined : text(`${RAW}/${headRepo}/${pr.head.sha}/${rawPath(f.path)}`),
+      f.status === 'removed' ? undefined : headText(f.path),
     ]);
     if (b !== undefined) f.base = b;
     if (h !== undefined) f.head = h;

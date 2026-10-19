@@ -22,7 +22,7 @@
    "status": 200,
    "file": "raw/01.txt"
   },
-  "/fork-owner/demo/dddddddddddddddddddddddddddddddddddddddd/test/upload.test.js": {
+  "/octo/demo/dddddddddddddddddddddddddddddddddddddddd/test/upload.test.js": {
    "status": 200,
    "file": "raw/02.txt"
   },
@@ -30,7 +30,7 @@
    "status": 200,
    "file": "raw/03.txt"
   },
-  "/fork-owner/demo/dddddddddddddddddddddddddddddddddddddddd/.github/workflows/ci.yml": {
+  "/octo/demo/dddddddddddddddddddddddddddddddddddddddd/.github/workflows/ci.yml": {
    "status": 200,
    "file": "raw/04.txt"
   }

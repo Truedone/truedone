@@ -17,7 +17,7 @@
 // the names it needs from env and no credential (CLI-10, as PLG-12 gives the plugin's git).
 import { init, initGlobal } from './init.mjs';
 import { parseTarget } from './target.mjs';
-import { loadPR, fetchReleases, RateLimited, GitHubError } from './github.mjs';
+import { loadPR, fetchReleases, RateLimited, GitHubError, HeadUnreadable } from './github.mjs';
 import { localInput, makeGit, gitEnv, NoRepository } from './local.mjs';
 import { emit, VERDICTS } from './output.mjs';
 import { reportLink } from './report.mjs';
@@ -136,6 +136,8 @@ export async function staticVerdict({ target = null, dir }, deps) {
     } catch (e) {
       if (e instanceof GitHubError && e.status === 404) throw new Refused(2, `GitHub has no pull request ${what}, or it is not public`);
       if (e instanceof RateLimited) throw new Refused(3, 'GitHub\'s API rate limit is used up; set GITHUB_TOKEN to read with your own limit');
+      // CORE-14: a head file GitHub does not serve gives no verdict, and the error names it
+      if (e instanceof HeadUnreadable) throw new Refused(3, `the head of ${e.path} could not be read: GitHub answered ${e.answer}`);
       throw e;
     }
   } else {

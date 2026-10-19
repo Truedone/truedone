@@ -48,6 +48,7 @@ function routesFor({ analyseResult }) {
     [/\/commits\/h1\/check-runs\?check_name=truedone/, { check_runs: [] }],
     [/repos\/o\/r\/check-runs$/, { id: 100 }],
     [/\/labels$/, []],
+    [/^https:\/\/raw\.githubusercontent\.com\/o\/r\/h1\//, "export const v = 1;\n"],   // CORE-14: each fetched file's head, read at h1 in o/r
   ];
 }
 

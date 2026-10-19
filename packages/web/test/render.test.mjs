@@ -42,12 +42,14 @@ test('contents are fetched for test, workflow and runner-config files only, base
   assert.equal(typeof by['src/mod000.js'].patch, 'string');
 });
 
-test('the head contents of a fork PR come from the fork, and base from the base repository', async () => {
+// CORE-14: the head contents of a pull request from a forked repository come from the base repository, at the head sha
+test('the head contents of a pull request from a forked repository come from the base repository, as base does', async () => {
   const f = fakeFetch();
   await loadPR({ owner: 'octo', repo: 'demo', number: 7 }, { fetch: f.fetch, classify });
   const raw = f.log.map((x) => new URL(x.url)).filter((u) => u.host === 'raw.githubusercontent.com');
-  assert.ok(raw.some((u) => u.pathname.startsWith('/fork-owner/demo/' + 'c'.repeat(40))));
+  assert.ok(raw.some((u) => u.pathname.startsWith('/octo/demo/' + 'c'.repeat(40))));
   assert.ok(raw.some((u) => u.pathname.startsWith('/octo/demo/' + 'b'.repeat(40))));
+  assert.ok(!raw.some((u) => u.pathname.startsWith('/fork-owner/')), 'nothing is read in the head repository');
 });
 
 test('analyse gets the PR title, body and author as data', async () => {

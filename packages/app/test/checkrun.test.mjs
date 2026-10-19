@@ -46,6 +46,7 @@ function routesFor({ analyseResult }) {
     [/repos\/o\/r\/check-runs$/, { id: 100 }],
     [/\/labels$/, []],
     [/\/compare\/b1\.\.\.h1$/, compareAnswer("b1", "h1")],
+    [/^https:\/\/raw\.githubusercontent\.com\/o\/r\/h1\//, "export const v = 1;\n"],   // CORE-14: each fetched file's head, read at h1 in o/r
   ];
 }
 

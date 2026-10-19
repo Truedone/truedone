@@ -4,7 +4,7 @@
 // kept drops the token and reads the PR again anonymously; a failed sign-in callback is mounted with the kept page, so
 // its links return there. WEB-09: every mounted view sets document.title (view.mjs titleOf).
 import { route, parseTarget } from './route.mjs';
-import { API, RAW, loadPR, RateLimited, GitHubError } from './github.mjs';
+import { API, RAW, loadPR, RateLimited, GitHubError, HeadUnreadable } from './github.mjs';
 import { prView, precomputedView, homeView, rateLimitView, errorView, notFoundView, noListView, signinErrorView, shell, titleOf } from './view.mjs';
 import { mount } from './dom.mjs';
 import { start, finish, readToken, dropToken } from './signin.mjs';
@@ -57,6 +57,8 @@ export async function page(loc, { fetch, doc, root, analyse, classify, storage =
     }
   } catch (e) {
     if (e instanceof RateLimited) show(rateLimitView(loc.pathname, e.reset));
+    // CORE-14: a head file GitHub does not serve is named here, from the error's path, in place of a verdict
+    else if (e instanceof HeadUnreadable) show(errorView(`The head of ${e.path} could not be read: GitHub answered ${e.answer}.`));
     else if (e instanceof GitHubError && e.status === 404) show(errorView('GitHub has no such pull request, or it is not public.'));
     else show(errorView(e instanceof GitHubError ? e.message : 'Something failed while reading the pull request.'));
   }

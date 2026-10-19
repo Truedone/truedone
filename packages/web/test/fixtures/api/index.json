@@ -23,15 +23,15 @@
   }
  },
  "raw": {
-  "/fork-owner/demo/cccccccccccccccccccccccccccccccccccccccc/test/mod000.test.js": {
+  "/octo/demo/cccccccccccccccccccccccccccccccccccccccc/test/mod000.test.js": {
    "status": 200,
    "file": "raw/001.txt"
   },
-  "/fork-owner/demo/cccccccccccccccccccccccccccccccccccccccc/test/mod001.test.js": {
+  "/octo/demo/cccccccccccccccccccccccccccccccccccccccc/test/mod001.test.js": {
    "status": 200,
    "file": "raw/002.txt"
   },
-  "/fork-owner/demo/cccccccccccccccccccccccccccccccccccccccc/test/mod002.test.js": {
+  "/octo/demo/cccccccccccccccccccccccccccccccccccccccc/test/mod002.test.js": {
    "status": 200,
    "file": "raw/003.txt"
   },
@@ -39,7 +39,7 @@
    "status": 200,
    "file": "raw/004.txt"
   },
-  "/fork-owner/demo/cccccccccccccccccccccccccccccccccccccccc/test/mod003.test.js": {
+  "/octo/demo/cccccccccccccccccccccccccccccccccccccccc/test/mod003.test.js": {
    "status": 200,
    "file": "raw/005.txt"
   },
@@ -47,7 +47,7 @@
    "status": 200,
    "file": "raw/006.txt"
   },
-  "/fork-owner/demo/cccccccccccccccccccccccccccccccccccccccc/test/mod004.test.js": {
+  "/octo/demo/cccccccccccccccccccccccccccccccccccccccc/test/mod004.test.js": {
    "status": 200,
    "file": "raw/007.txt"
   },
@@ -55,7 +55,7 @@
    "status": 200,
    "file": "raw/008.txt"
   },
-  "/fork-owner/demo/cccccccccccccccccccccccccccccccccccccccc/test/mod005.test.js": {
+  "/octo/demo/cccccccccccccccccccccccccccccccccccccccc/test/mod005.test.js": {
    "status": 200,
    "file": "raw/009.txt"
   },
@@ -63,7 +63,7 @@
    "status": 200,
    "file": "raw/010.txt"
   },
-  "/fork-owner/demo/cccccccccccccccccccccccccccccccccccccccc/test/mod006.test.js": {
+  "/octo/demo/cccccccccccccccccccccccccccccccccccccccc/test/mod006.test.js": {
    "status": 200,
    "file": "raw/011.txt"
   },
@@ -71,7 +71,7 @@
    "status": 200,
    "file": "raw/012.txt"
   },
-  "/fork-owner/demo/cccccccccccccccccccccccccccccccccccccccc/.github/workflows/ci.yml": {
+  "/octo/demo/cccccccccccccccccccccccccccccccccccccccc/.github/workflows/ci.yml": {
    "status": 200,
    "file": "raw/013.txt"
   },
@@ -79,7 +79,7 @@
    "status": 200,
    "file": "raw/014.txt"
   },
-  "/fork-owner/demo/cccccccccccccccccccccccccccccccccccccccc/jest.config.json": {
+  "/octo/demo/cccccccccccccccccccccccccccccccccccccccc/jest.config.json": {
    "status": 200,
    "file": "raw/015.txt"
   },

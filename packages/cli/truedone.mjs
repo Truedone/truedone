@@ -2513,6 +2513,10 @@ constructor() { super('GitHub API rate limit reached'); this.name = 'RateLimited
 class GitHubError extends Error {
 constructor(status) { super(`GitHub answered ${status}`); this.name = 'GitHubError'; this.status = status; }
 }
+
+class HeadUnreadable extends GitHubError {
+constructor(answer, path) { super(`${answer} for a file at the head commit`); this.name = 'HeadUnreadable'; this.answer = answer; this.path = path; }
+}
 const isRateLimit = (res) => res.status === 429 || (res.status === 403 && res.headers.get('x-ratelimit-remaining') === '0');
 
 const rawPath = (p) => p.split('/').map(encodeURIComponent).join('/');
@@ -2565,7 +2569,6 @@ const pr = await c.get(prUrl);
 const total = Math.min(Number(pr.changed_files) || 0, 3000);
 const pages = Math.max(1, Math.ceil(Math.min(total, limits.files) / 100));
 const baseRepo = pr.base?.repo?.full_name ?? `${owner}/${repo}`;
-const headRepo = pr.head?.repo?.full_name ?? baseRepo;
 const [listed, base] = await Promise.all([
 Promise.all(Array.from({ length: pages }, (_, k) => c.get(`${prUrl}/files?per_page=100&page=${k + 1}`))).then((p) => p.flat()),
 mergeBase(c.get, baseRepo, pr),
@@ -2577,11 +2580,17 @@ if (typeof f.patch === 'string') out.patch = f.patch;
 return out;
 });
 const text = async (url) => { const res = await fetch(url); return res.ok ? res.text() : undefined; };   
+
+const headText = async (path) => {
+const res = await fetch(`${RAW}/${baseRepo}/${pr.head.sha}/${rawPath(path)}`);
+if (!res.ok) throw new HeadUnreadable(res.status, path);
+return res.text();
+};
 const wanted = files.filter((f) => CONTENT.has(classify(f.path)) || (f.previous_path && CONTENT.has(classify(f.previous_path)))).slice(0, limits.fetched);
 await pool(wanted, 8, async (f) => {
 const [b, h] = await Promise.all([
 f.status === 'added' ? undefined : text(`${RAW}/${baseRepo}/${base}/${rawPath(f.previous_path ?? f.path)}`),
-f.status === 'removed' ? undefined : text(`${RAW}/${headRepo}/${pr.head.sha}/${rawPath(f.path)}`),
+f.status === 'removed' ? undefined : headText(f.path),
 ]);
 if (b !== undefined) f.base = b;
 if (h !== undefined) f.head = h;
@@ -2600,6 +2609,7 @@ RAW,
 RELEASES_REPO,
 RateLimited,
 GitHubError,
+HeadUnreadable,
 isRateLimit,
 fetchReleases,
 fetchPullBase,
@@ -3128,7 +3138,7 @@ runMode
 const __m11=(()=>{
 const { init, initGlobal } = __m12;
 const { parseTarget } = __m13;
-const { loadPR, fetchReleases, RateLimited, GitHubError } = __m14;
+const { loadPR, fetchReleases, RateLimited, GitHubError, HeadUnreadable } = __m14;
 const { localInput, makeGit, gitEnv, NoRepository } = __m16;
 const { emit, VERDICTS } = __m17;
 const { reportLink } = __m18;
@@ -3243,6 +3253,8 @@ try {
 } catch (e) {
 if (e instanceof GitHubError && e.status === 404) throw new Refused(2, `GitHub has no pull request ${what}, or it is not public`);
 if (e instanceof RateLimited) throw new Refused(3, 'GitHub\'s API rate limit is used up; set GITHUB_TOKEN to read with your own limit');
+
+if (e instanceof HeadUnreadable) throw new Refused(3, `the head of ${e.path} could not be read: GitHub answered ${e.answer}`);
 throw e;
 }
 } else {
