@@ -511,6 +511,10 @@
       ],
       "TEST-01": [
         "TEST-01-AC07"
+      ],
+      "OPS-11": [
+        "OPS-11-AC04",
+        "OPS-11-AC07"
       ]
     }
   },
@@ -17081,6 +17085,126 @@
         },
         {
           "id": "OPS-10-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "OPS-11",
+      "title": "[W2] OPS-09's recorded App answer follows the live page, and the tools suite is green on main",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "OPS-10"
+      ],
+      "requirements": [
+        "PV-R01"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Measured on main ac94b2eb after OPS-10: tools/test/app-listing-check.test.mjs fails 4 of 11, because tools/test/fixtures/app-listing/truedone.json, the recorded answer of https://api.github.com/apps/truedone, still holds the description from before the source link moved to github.com/Truedone/truedone. The fixture is re-recorded from the live answer, without a token, so it equals the manifest again; nothing in the test changes and no assertion is loosened. The test file's header names the date of the new recording.",
+      "scope": {
+        "allow": [
+          "tools/test/fixtures/app-listing/truedone.json",
+          "tools/test/app-listing-check.test.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "OPS-11-AC01",
+          "mandatory": true,
+          "statement": "OPS-09's listing test passes on the re-recorded answer",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test tools/test/app-listing-check.test.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "OPS-11-AC02",
+          "mandatory": true,
+          "statement": "the recorded answer carries the organisation link",
+          "verifier": {
+            "type": "grep",
+            "file": "tools/test/fixtures/app-listing/truedone.json",
+            "pattern": "https://github\\.com/Truedone/truedone\\)",
+            "must": "present"
+          }
+        },
+        {
+          "id": "OPS-11-AC03",
+          "mandatory": true,
+          "statement": "the recorded answer names no mgillr/truedone link",
+          "verifier": {
+            "type": "grep",
+            "file": "tools/test/fixtures/app-listing/truedone.json",
+            "pattern": "github\\.com/mgillr/truedone",
+            "must": "absent"
+          }
+        },
+        {
+          "id": "OPS-11-AC04",
+          "mandatory": true,
+          "statement": "the manifest matches the production App's public page (OPS-09)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/app-listing-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "OPS-11-AC05",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "OPS-11-AC06",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "OPS-11-AC07",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "OPS-11-AC08",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "OPS-11-AC09",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
