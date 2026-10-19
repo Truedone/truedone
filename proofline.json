@@ -545,6 +545,9 @@
       ],
       "APP-29": [
         "APP-29-AC05"
+      ],
+      "WEB-15": [
+        "WEB-15-AC06"
       ]
     }
   },
@@ -13079,6 +13082,118 @@
       ]
     },
     {
+      "id": "WEB-15",
+      "title": "[W2] The home page and /why say what truedone is to a reader that runs no script",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "WEB-05",
+        "WEB-14"
+      ],
+      "requirements": [
+        "PV-W04",
+        "PV-W05"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Measured 2026-10-19: https://truedone.pages.dev/ answers a body of <p>Loading…</p> with no meta description and no og tags, so a directory that reads the address, a crawler, or an agent that fetches the page without running its script sees nothing. packages/web/index.html and packages/web/why.html carry in their served HTML: a meta description (llms.txt's opening sentence), og:title, og:description, og:url, og:type and og:image, and twitter:card. og:image names the logo at a stable address on the site (packages/web/logo.png, the App's packages/app/logo.png copied). The home page's #app holds static content that its script replaces when it runs: the summary, a plain link for each way in (a pull request on the site, npx truedone, the GitHub App, the Claude Code plugin, the MCP server), the link to /why, and /llms.txt named for coding agents. The static text states no release status, so it never disagrees with release.mjs, and it holds to D40. The CSP and every page that renders today render the same once the script runs; no inline script or style is added.",
+      "scope": {
+        "allow": [
+          "packages/web/index.html",
+          "packages/web/why.html",
+          "packages/web/logo.png",
+          "packages/web/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "WEB-15-AC01",
+          "mandatory": true,
+          "statement": "the served home page and /why hold the description, the og tags and, on the home page, the static summary and its links, before any script runs",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/static-head.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-15-AC02",
+          "mandatory": true,
+          "statement": "no inline style or script is added",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE 'style=|\\.style\\.|<style' packages/web/index.html packages/web/why.html packages/web/lib",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "WEB-15-AC03",
+          "mandatory": true,
+          "statement": "the home page still renders the verdict in a browser",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/check-browser.mjs --page packages/web/index.html --fixture packages/web/test/fixtures/api",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "WEB-15-AC04",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-15-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-15-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-15-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "WEB-15-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "CLI-02",
       "title": "[W1] npx truedone init",
       "phase": "implement",
@@ -13735,7 +13850,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "The official MCP registry (registry.modelcontextprotocol.io) lists an npm server only when the published package.json carries \"mcpName\" equal to the server.json name and that version is live on npm. The registry grants io.github.<org>/* to an Owner of the organisation, and mgillr is one, so the name is io.github.Truedone/truedone. packages/cli/package.json gains \"mcpName\": \"io.github.Truedone/truedone\"; \"keywords\": mcp, mcp-server, model-context-protocol, claude-code, claude-code-plugin, testing, code-review, pull-requests, ci, ai-agents; \"repository\" as {\"type\": \"git\", \"url\": \"git+https://github.com/Truedone/truedone.git\"}, the form npm's registry already stores for 0.1.0; and version 0.1.1. The plugin's manifest takes the same version, since release-preview's plugin check holds the two equal, and every bundle stamps it (--version prints \"truedone 0.1.1 (preview)\"). server.json at the repository root follows the registry's current schema, read from the registry's own documentation, with its $schema URL: name io.github.Truedone/truedone, a description within the schema's limits, the repository, version 0.1.1, and one npm package truedone 0.1.1 with stdio transport and the argument mcp. tools/release-preview.mjs writes the notes of the version it packs, docs/releases/preview-<version>.md, so 0.1.0's notes stay as recorded, and node tools/release-preview.mjs cli writes 0.1.1's command line section from the real tarball. Ryan publishes 0.1.1 from his terminal (D35, REL-P7).",
+      "description": "The official MCP registry (registry.modelcontextprotocol.io) lists an npm server only when the published package.json carries \"mcpName\" equal to the server.json name and that version is live on npm. The registry grants io.github.<org>/* to an Owner of the organisation, and mgillr is one, so the name is io.github.Truedone/truedone. packages/cli/package.json gains \"mcpName\": \"io.github.Truedone/truedone\"; \"keywords\": mcp, mcp-server, model-context-protocol, claude-code, claude-code-plugin, testing, code-review, pull-requests, ci, ai-agents; \"repository\" as {\"type\": \"git\", \"url\": \"git+https://github.com/Truedone/truedone.git\"}, the form npm's registry already stores for 0.1.0; \"homepage\": \"https://truedone.pages.dev\"; and version 0.1.1. The plugin's manifest takes the same version, since release-preview's plugin check holds the two equal, and every bundle stamps it (--version prints \"truedone 0.1.1 (preview)\"). server.json at the repository root follows the registry's current schema, read from the registry's own documentation, with its $schema URL: name io.github.Truedone/truedone, a description within the schema's limits, the repository, version 0.1.1, and one npm package truedone 0.1.1 with stdio transport and the argument mcp. tools/release-preview.mjs writes the notes of the version it packs, docs/releases/preview-<version>.md, so 0.1.0's notes stay as recorded, and node tools/release-preview.mjs cli writes 0.1.1's command line section from the real tarball. Ryan publishes 0.1.1 from his terminal (D35, REL-P7).",
       "scope": {
         "allow": [
           "packages/cli/**",
@@ -14011,10 +14126,11 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "D40. One test, tools/test/agent-text.test.mjs, reads every text truedone gives an agent from the tree: packages/web/llms.txt, init's SNIPPET (packages/cli/src/init.mjs), the MCP server's instructions (packages/cli/src/mcp.mjs), every SKILL.md under skills/ and packages/cli/plugin/skills/, and packages/cli/plugin/README.md when it exists. It fails when a sentence asks the reader to install, add, recommend, share, spread, post, star or promote truedone, or to write to a file or repository other than the one being worked on, or uses the words viral, wildfire or spread; an install command the reader runs for their own use is documentation and passes, while a sentence asking the reader to install truedone for someone else or in another repository fails; and when llms.txt gives an install command or a uses: line for a surface that packages/web/lib/release.mjs has false, unless that line says it is not released yet. On main it fails: llms.txt gives uses: Truedone/truedone-action@v0.1.0, and Truedone/truedone-action is empty (measured 2026-10-19) with RELEASED.action false. llms.txt is corrected from the code: the action line says it is not released yet; it gains the MCP client entry {\"command\": \"npx\", \"args\": [\"-y\", \"truedone\", \"mcp\"]}, the plugin's two install commands, and what truedone never does (it posts nothing to a repository that did not install the App; init writes only the files it prints; the command line talks only to the GitHub API, read from the code). The home page, /why and the pull request page link /llms.txt in their footer as \"For coding agents\", and name it in their head (<link rel=\"alternate\" type=\"text/plain\" href=\"/llms.txt\">). The README's sentence that begins \"When the npm package is released\" says what npx truedone does now that 0.1.0 is on npm, and the README names llms.txt for coding agents. release.mjs is not changed here (REL-P4 flips it). The root AGENTS.md gets no truedone lines: it is the proofline loop that other repositories copy (D40).",
+      "description": "D40. One test, tools/test/agent-text.test.mjs, reads every text truedone gives an agent from the tree: packages/web/llms.txt, init's SNIPPET (packages/cli/src/init.mjs), the MCP server's instructions (packages/cli/src/mcp.mjs), every SKILL.md under skills/ and packages/cli/plugin/skills/, and packages/cli/plugin/README.md when it exists. It fails when a sentence asks the reader to install, add, recommend, share, spread, post, star or promote truedone, or to write to a file or repository other than the one being worked on, or uses the words viral, wildfire or spread; an install command the reader runs for their own use is documentation and passes, while a sentence asking the reader to install truedone for someone else or in another repository fails; and when llms.txt gives an install command or a uses: line for a surface that packages/web/lib/release.mjs has false, unless that line says it is not released yet. On main it fails: llms.txt gives uses: Truedone/truedone-action@v0.1.0, and Truedone/truedone-action is empty (measured 2026-10-19) with RELEASED.action false. llms.txt is corrected from the code: the action line says it is not released yet; it gains the MCP client entry {\"command\": \"npx\", \"args\": [\"-y\", \"truedone\", \"mcp\"]}, the plugin's two install commands, and what truedone never does (it posts nothing to a repository that did not install the App; init writes only the files it prints; the command line talks only to the GitHub API, read from the code). The home page, /why and the pull request page link /llms.txt in their footer as \"For coding agents\", and name it in their head (<link rel=\"alternate\" type=\"text/plain\" href=\"/llms.txt\">). The README's sentence that begins \"When the npm package is released\" says what npx truedone does now that 0.1.0 is on npm, and the README names llms.txt for coding agents. release.mjs is not changed here (REL-P4 flips it). The root AGENTS.md gets no truedone lines: it is the proofline loop that other repositories copy (D40). The same file sits at the repository root as llms.txt, byte-identical to packages/web/llms.txt, where GitMCP and other readers of a repository look for it; the test holds the two equal.",
       "scope": {
         "allow": [
           "packages/web/llms.txt",
+          "llms.txt",
           "packages/web/index.html",
           "packages/web/why.html",
           "packages/web/lib/view.mjs",
