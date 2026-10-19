@@ -584,6 +584,7 @@
         "PLG-10-AC05"
       ],
       "PLG-11": [
+        "PLG-11-AC02",
         "PLG-11-AC07"
       ],
       "REL-P8": [
@@ -618,6 +619,9 @@
       ],
       "WEB-17": [
         "WEB-17-AC05"
+      ],
+      "CLI-10": [
+        "CLI-10-AC05"
       ]
     }
   },
@@ -15202,6 +15206,109 @@
       ]
     },
     {
+      "id": "CLI-10",
+      "title": "[W2] The command line's git gets the same credential-free environment as the plugin's",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "PLG-12",
+        "CLI-09"
+      ],
+      "requirements": [
+        "PV-L03",
+        "PV-L05",
+        "PV-L06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "PLG-12 gives git a credential-free environment through localInput's default (packages/cli/src/local.mjs gitEnv). The command line passes deps.env, set to process.env by bin.mjs, to makeGit (cli.mjs) and gitAt (run.mjs), so npx truedone and --run on your own branch still hand git every token. Every git the command line starts gets gitEnv(); the tests --run starts keep the session's environment (the owner's choice), and the clone of someone else's pull request keeps S4's filtered one. The test runs the real command line in a scratch repository with a git wrapper first on PATH, as PLG-12's test does, with GITHUB_TOKEN, GH_TOKEN, AWS_SECRET_ACCESS_KEY and NPM_TOKEN set, for npx truedone and for --run, and holds that git sees none of them while the verdict is unchanged.",
+      "scope": {
+        "allow": [
+          "packages/cli/src/**",
+          "packages/cli/test/**",
+          "docs/DEPENDENCY-MAP.md",
+          "tools/bundle.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "CLI-10-AC01",
+          "mandatory": true,
+          "statement": "the command line's git sees no credential from the environment, local and with --run",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/cli/test/cli-git-env.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CLI-10-AC02",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-10-AC03",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-10-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-10-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-10-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "CLI-10-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "CLI-08",
       "title": "[W2] --run reports the coverage condition the action reports",
       "phase": "implement",
@@ -16831,11 +16938,10 @@
     },
     {
       "id": "PLG-11",
-      "title": "[W3] No bundle line is too long for a reader to follow",
+      "title": "[W3] The bundler writes no long line: export lists one name per line",
       "phase": "implement",
       "owner": "lane-a",
       "depends_on": [
-        "PLG-10",
         "CLI-05"
       ],
       "requirements": [
@@ -16848,13 +16954,10 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "The directory's scanner could not read one word of packages/cli/plugin/hooks/stop.mjs, a 349-character line (stop.mjs:1183) that returns a brace list of every name a bundled module exports, and at the repository root it held the plugin for that (UNREAD_ASSET_REFERENCED). tools/bundle.mjs writes each module's export list one name per line, and no line of any bundle is longer than 200 characters; the code does what it did, byte for byte apart from line breaks inside those lists. A test holds every bundle's longest line under 200 characters, and the bundle-version and suite tests stay green. tools/plugin-checklist.mjs gains the rule.",
+      "description": "The directory's scanner could not read a 349-character line of packages/cli/plugin/hooks/stop.mjs, the brace list a bundled module returns, and held the plugin for it (UNREAD_ASSET_REFERENCED: \"a brace list of more words than the validator spells out\"); a copy with only those lists split had neither the hold nor the note (2026-10-19). tools/bundle.mjs writes each module's export list one name per line, so no bundle holds an export list on one line and no line the generator writes is over 200 characters; with the added line breaks removed, every bundle is byte for byte what it was. Lines that come from the sources stay as their authors wrote them. The test reads each bundle named in docs/DEPENDENCY-MAP.md's bundles node and holds both rules.",
       "scope": {
         "allow": [
           "tools/test/bundle-lines.test.mjs",
-          "tools/plugin-checklist.mjs",
-          "tools/test/plugin-checklist.test.mjs",
-          "tools/test/fixtures/plugin-checklist/**",
           "docs/DEPENDENCY-MAP.md",
           "tools/bundle.mjs",
           "packages/core/core.mjs",
@@ -16869,7 +16972,7 @@
         {
           "id": "PLG-11-AC01",
           "mandatory": true,
-          "statement": "every bundle line is under 200 characters",
+          "statement": "no bundle holds an export list on one line, and no line the bundler writes is over 200 characters",
           "verifier": {
             "type": "test_red_green",
             "test_file": "tools/test/bundle-lines.test.mjs",
@@ -16879,10 +16982,10 @@
         {
           "id": "PLG-11-AC02",
           "mandatory": true,
-          "statement": "the plugin folder on main meets the checklist",
+          "statement": "Claude Code validates the plugin folder",
           "verifier": {
             "type": "command",
-            "cmd": "node tools/plugin-checklist.mjs packages/cli/plugin",
+            "cmd": "env -u CLAUDECODE claude plugin validate ./packages/cli/plugin",
             "expect_exit": 0,
             "timeout_s": 120
           }
