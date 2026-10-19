@@ -3,6 +3,7 @@
 // .claude-plugin/marketplace.json with name, owner.name and a plugin whose relative source holds
 // .claude-plugin/plugin.json of the same name, and a hooks/hooks.json that wraps its events in "hooks" and runs the
 // one Stop hook as node "${CLAUDE_PLUGIN_ROOT}/hooks/stop.mjs".
+// PLG-04-AC01: the plugin's homepage is the site (D26) and the marketplace's owner is the Truedone organisation (D36).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -47,4 +48,17 @@ test('the plugin directory holds only its manifest, its hooks file and the one h
   const walk = (d) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const f = path.join(d, e.name); if (e.isDirectory()) walk(f); else files.push(path.relative(dir, f)); } };
   walk(dir);
   assert.deepEqual(files.sort().filter((f) => f !== 'hooks/stop.mjs'), ['.claude-plugin/plugin.json', 'hooks/hooks.json']);
+});
+
+// PLG-04: the plugin's manifest named https://truedone.dev, a domain that does not exist, and the marketplace's owner was
+// mgillr. The homepage is the site, https://truedone.pages.dev (D26), and the owner is the Truedone organisation (D36);
+// the manifest's author stays the person, mgillr.
+test("the plugin's homepage is the site, https://truedone.pages.dev, and the manifest names no truedone.dev", () => {
+  const manifest = JSON.parse(fs.readFileSync(path.join(dir, '.claude-plugin/plugin.json'), 'utf8'));
+  assert.equal(manifest.homepage, 'https://truedone.pages.dev');
+  assert.doesNotMatch(JSON.stringify(manifest), /truedone\.dev/);
+});
+
+test('the marketplace is owned by the Truedone organisation', () => {
+  assert.deepEqual(market.owner, { name: 'Truedone', url: 'https://github.com/Truedone' });
 });
