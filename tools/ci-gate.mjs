@@ -23,8 +23,11 @@ function sh(gitArgs) {
   return execFileSync('git', gitArgs, { encoding: 'utf8' }).trim();
 }
 
+// The contract's id form (SEC-04): an upper-case letter, then upper-case
+// letters or digits, a hyphen, then upper-case letters or digits, so REL-P1
+// parses as well as SEC-02A.
 export function parseTaskId(title) {
-  const m = /^([A-Z]+-\d+[A-Z]*):\s/.exec(title ?? '');
+  const m = /^([A-Z][A-Z0-9]*-[A-Z0-9]+):\s/.exec(title ?? '');
   return m ? m[1] : '';
 }
 
