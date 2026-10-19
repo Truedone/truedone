@@ -216,7 +216,9 @@ if (/^\.github\/workflows\/[^/]+\.ya?ml$/.test(path)) return 'workflow';
   return 'source';
 }
 
-return {classify};
+return {
+classify
+};
 })();
 const __m5=(()=>{
 const KEYS = ['test', 'comments', 'conclusion', 'ignore', 'enabled'];
@@ -278,7 +280,9 @@ config.ignore = value.split(',').map((s) => s.trim()).filter(Boolean);
 return { config, reasons };
 }
 
-return {readConfig};
+return {
+readConfig
+};
 })();
 const __m4=(()=>{
 const { readConfig } = __m5;
@@ -404,7 +408,10 @@ return detectFromManifests(manifests, t, command);
 });
 }
 
-return {detectFromManifests,detect};
+return {
+detectFromManifests,
+detect
+};
 })();
 const __m7=(()=>{
 const BASE_RUNS = 2;
@@ -413,7 +420,13 @@ const RUN_TIMEOUT_MS = 300000;
 const STEP_TIMEOUT_MS = 1200000;
 const MAX_TESTS = 50;
 
-return {BASE_RUNS,HEAD_RUNS,RUN_TIMEOUT_MS,STEP_TIMEOUT_MS,MAX_TESTS};
+return {
+BASE_RUNS,
+HEAD_RUNS,
+RUN_TIMEOUT_MS,
+STEP_TIMEOUT_MS,
+MAX_TESTS
+};
 })();
 const __m9=(()=>{
 function baseToken(run) {
@@ -485,12 +498,21 @@ if (text.startsWith('Could not run')) return 'could_not_run';
 return 'no_evidence';
 }
 
-return {baseToken,headToken,outcome,verdictId};
+return {
+baseToken,
+headToken,
+outcome,
+verdictId
+};
 })();
 const __m8=(()=>{
 const { baseToken, headToken, outcome } = __m9;
 
-return {baseToken,headToken,outcome};
+return {
+baseToken,
+headToken,
+outcome
+};
 })();
 const __m10=(()=>{
 function escapeReg(value) {
@@ -678,7 +700,12 @@ if (reporter === 'junit') return parseJunit(text, symbols, at);
 throw new Error(`unknown reporter ${reporter}`);
 }
 
-return {symbolsAdded,classifyFailure,fromRoot,parseReport};
+return {
+symbolsAdded,
+classifyFailure,
+fromRoot,
+parseReport
+};
 })();
 const __m11=(()=>{
 const { classify } = __m3;
@@ -794,7 +821,12 @@ else writeBytes(root, entry.path, Buffer.from(entry.swapped, 'base64'));
 return { swapped: chosen.map((entry) => entry.path) };
 }
 
-return {readRecord,restore,restorePending,swapToBase};
+return {
+readRecord,
+restore,
+restorePending,
+swapToBase
+};
 })();
 const __m6=(()=>{
 const { BASE_RUNS, HEAD_RUNS, MAX_TESTS, RUN_TIMEOUT_MS, STEP_TIMEOUT_MS } = __m7;
@@ -1116,7 +1148,15 @@ truncated,
 };
 }
 
-return {runSide,redGreen,BASE_RUNS,HEAD_RUNS,MAX_TESTS,RUN_TIMEOUT_MS,STEP_TIMEOUT_MS};
+return {
+runSide,
+redGreen,
+BASE_RUNS,
+HEAD_RUNS,
+MAX_TESTS,
+RUN_TIMEOUT_MS,
+STEP_TIMEOUT_MS
+};
 })();
 const __m12=(()=>{
 const MAX_BYTES = 256 * 1024;
@@ -1243,7 +1283,12 @@ if (!finished.ok) throw new Error("artifact finalize was not ok");
 return { name, size: zip.length, artifact_id: finished.artifact_id };
 }
 
-return {buildZip,artifactName,backendIdsFromToken,uploadReport};
+return {
+buildZip,
+artifactName,
+backendIdsFromToken,
+uploadReport
+};
 })();
 const __m2=(()=>{
 const { classify } = __m3;
@@ -1525,7 +1570,13 @@ console.log(`truedone: no Actions artifact environment; the report follows.\n${t
 }
 }
 
-return {resolveBase,changedFiles,computeCondition,provedStep,runGate};
+return {
+resolveBase,
+changedFiles,
+computeCondition,
+provedStep,
+runGate
+};
 })();
 const __m1=(()=>{
 const { runGate: runGateEngine } = __m2;
@@ -1544,7 +1595,9 @@ try { configText = fs.readFileSync(context.config, "utf8"); } catch { configText
 return runGateEngine({ root, eventPath, githubSha: context.headSha, configText, env: process.env, exec: context.exec });
 }
 
-return {runGate};
+return {
+runGate
+};
 })();
 const { runGate } = __m1;
 

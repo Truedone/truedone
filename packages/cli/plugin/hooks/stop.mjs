@@ -11,7 +11,9 @@ const name = String(login || '').toLowerCase();
 return name.includes('copilot') || name.includes('devin');
 }
 
-return {isAgent};
+return {
+isAgent
+};
 })();
 function isAgent(...a){return __bundle_agents.isAgent(...a)}
 const __bundle_bots=(()=>{
@@ -29,7 +31,9 @@ function isListedBot(login) {
 return LISTED.includes(String(login || '').toLowerCase());
 }
 
-return {isListedBot};
+return {
+isListedBot
+};
 })();
 function isListedBot(...a){return __bundle_bots.isListedBot(...a)}
 const __bundle_classify=(()=>{
@@ -243,7 +247,9 @@ if (/^\.github\/workflows\/[^/]+\.ya?ml$/.test(path)) return 'workflow';
   return 'source';
 }
 
-return {classify};
+return {
+classify
+};
 })();
 function classify(...a){return __bundle_classify.classify(...a)}
 const __bundle_config=(()=>{
@@ -306,7 +312,9 @@ config.ignore = value.split(',').map((s) => s.trim()).filter(Boolean);
 return { config, reasons };
 }
 
-return {readConfig};
+return {
+readConfig
+};
 })();
 function readConfig(...a){return __bundle_config.readConfig(...a)}
 const __bundle_limits=(()=>{
@@ -314,7 +322,11 @@ const FILES = 300;
 const LINES = 20000;
 const FETCHED = 100;
 
-return {FILES,LINES,FETCHED};
+return {
+FILES,
+LINES,
+FETCHED
+};
 })();
 const FILES=__bundle_limits.FILES;
 const LINES=__bundle_limits.LINES;
@@ -373,7 +385,31 @@ out.push(verdict === 'tampered' && ifTampered ? ifTampered : otherwise);
 return out.length ? out.join(' ') : NEXT[verdict] || '';
 }
 
-return {tampered,review,unrun,no_evidence,not_applicable,language,skip_focus,partial,bot,skip,focus,weakened,deleted,snapshot,parametrised,timeout,runner_config,step_release,step,claim,no_test,NEXT,nextStep};
+return {
+tampered,
+review,
+unrun,
+no_evidence,
+not_applicable,
+language,
+skip_focus,
+partial,
+bot,
+skip,
+focus,
+weakened,
+deleted,
+snapshot,
+parametrised,
+timeout,
+runner_config,
+step_release,
+step,
+claim,
+no_test,
+NEXT,
+nextStep
+};
 })();
 const tampered=__bundle_messages.tampered;
 const review=__bundle_messages.review;
@@ -874,7 +910,10 @@ function staticVerdict(input = {}) {
 return staticFindings(input).verdict;
 }
 
-return {staticFindings,staticVerdict};
+return {
+staticFindings,
+staticVerdict
+};
 })();
 function staticFindings(...a){return __bundle_checks.staticFindings(...a)}
 function staticVerdict(...a){return __bundle_checks.staticVerdict(...a)}
@@ -993,7 +1032,9 @@ if (partial && verdict === 'not_applicable') verdict = 'review';
 return pack(verdict, reasons.concat(found.reasons), partial);
 }
 
-return {analyse};
+return {
+analyse
+};
 })();
 function analyse(...a){return __bundle_analyse.analyse(...a)}
 const __bundle_outcome=(()=>{
@@ -1066,7 +1107,12 @@ if (text.startsWith('Could not run')) return 'could_not_run';
 return 'no_evidence';
 }
 
-return {baseToken,headToken,outcome,verdictId};
+return {
+baseToken,
+headToken,
+outcome,
+verdictId
+};
 })();
 function baseToken(...a){return __bundle_outcome.baseToken(...a)}
 function headToken(...a){return __bundle_outcome.headToken(...a)}
@@ -1176,11 +1222,52 @@ lines.push({ check: 'report', file: '', message: `Report ${other.job || 'a job'}
 return result(verdict, lines, partial);
 }
 
-return {judge};
+return {
+judge
+};
 })();
 function judge(...a){return __bundle_judge.judge(...a)}
 
-return {isAgent,isListedBot,classify,readConfig,FILES,LINES,FETCHED,tampered,review,unrun,no_evidence,not_applicable,language,skip_focus,partial,bot,skip,focus,weakened,deleted,snapshot,parametrised,timeout,runner_config,step_release,step,claim,no_test,NEXT,nextStep,staticFindings,staticVerdict,analyse,baseToken,headToken,outcome,verdictId,judge};
+return {
+isAgent,
+isListedBot,
+classify,
+readConfig,
+FILES,
+LINES,
+FETCHED,
+tampered,
+review,
+unrun,
+no_evidence,
+not_applicable,
+language,
+skip_focus,
+partial,
+bot,
+skip,
+focus,
+weakened,
+deleted,
+snapshot,
+parametrised,
+timeout,
+runner_config,
+step_release,
+step,
+claim,
+no_test,
+NEXT,
+nextStep,
+staticFindings,
+staticVerdict,
+analyse,
+baseToken,
+headToken,
+outcome,
+verdictId,
+judge
+};
 })();
 const __m3=(()=>{
 const KEYS = ['test', 'comments', 'conclusion', 'ignore', 'enabled'];
@@ -1242,7 +1329,9 @@ config.ignore = value.split(',').map((s) => s.trim()).filter(Boolean);
 return { config, reasons };
 }
 
-return {readConfig};
+return {
+readConfig
+};
 })();
 const __m2=(()=>{
 const { readConfig } = __m3;
@@ -1368,7 +1457,10 @@ return detectFromManifests(manifests, t, command);
 });
 }
 
-return {detectFromManifests,detect};
+return {
+detectFromManifests,
+detect
+};
 })();
 const __m5=(()=>{
 const BASE_RUNS = 2;
@@ -1377,7 +1469,13 @@ const RUN_TIMEOUT_MS = 300000;
 const STEP_TIMEOUT_MS = 1200000;
 const MAX_TESTS = 50;
 
-return {BASE_RUNS,HEAD_RUNS,RUN_TIMEOUT_MS,STEP_TIMEOUT_MS,MAX_TESTS};
+return {
+BASE_RUNS,
+HEAD_RUNS,
+RUN_TIMEOUT_MS,
+STEP_TIMEOUT_MS,
+MAX_TESTS
+};
 })();
 const __m7=(()=>{
 function baseToken(run) {
@@ -1449,12 +1547,21 @@ if (text.startsWith('Could not run')) return 'could_not_run';
 return 'no_evidence';
 }
 
-return {baseToken,headToken,outcome,verdictId};
+return {
+baseToken,
+headToken,
+outcome,
+verdictId
+};
 })();
 const __m6=(()=>{
 const { baseToken, headToken, outcome } = __m7;
 
-return {baseToken,headToken,outcome};
+return {
+baseToken,
+headToken,
+outcome
+};
 })();
 const __m8=(()=>{
 function escapeReg(value) {
@@ -1642,7 +1749,12 @@ if (reporter === 'junit') return parseJunit(text, symbols, at);
 throw new Error(`unknown reporter ${reporter}`);
 }
 
-return {symbolsAdded,classifyFailure,fromRoot,parseReport};
+return {
+symbolsAdded,
+classifyFailure,
+fromRoot,
+parseReport
+};
 })();
 const __m10=(()=>{
 const LOCKS = new Set(['package-lock.json', 'pnpm-lock.yaml', 'yarn.lock', 'poetry.lock', 'uv.lock', 'Pipfile.lock']);
@@ -1855,7 +1967,9 @@ if (/^\.github\/workflows\/[^/]+\.ya?ml$/.test(path)) return 'workflow';
   return 'source';
 }
 
-return {classify};
+return {
+classify
+};
 })();
 const __m9=(()=>{
 const { classify } = __m10;
@@ -1971,7 +2085,12 @@ else writeBytes(root, entry.path, Buffer.from(entry.swapped, 'base64'));
 return { swapped: chosen.map((entry) => entry.path) };
 }
 
-return {readRecord,restore,restorePending,swapToBase};
+return {
+readRecord,
+restore,
+restorePending,
+swapToBase
+};
 })();
 const __m4=(()=>{
 const { BASE_RUNS, HEAD_RUNS, MAX_TESTS, RUN_TIMEOUT_MS, STEP_TIMEOUT_MS } = __m5;
@@ -2293,13 +2412,24 @@ truncated,
 };
 }
 
-return {runSide,redGreen,BASE_RUNS,HEAD_RUNS,MAX_TESTS,RUN_TIMEOUT_MS,STEP_TIMEOUT_MS};
+return {
+runSide,
+redGreen,
+BASE_RUNS,
+HEAD_RUNS,
+MAX_TESTS,
+RUN_TIMEOUT_MS,
+STEP_TIMEOUT_MS
+};
 })();
 const __m12=(()=>{
 const LIMITS = { files: 300, lines: 20000, fetched: 100 };   
 const CONTENT = new Set(['test', 'setup', 'runner_config', 'workflow', 'truedone_config']);   
 
-return {LIMITS,CONTENT};
+return {
+LIMITS,
+CONTENT
+};
 })();
 const __m11=(()=>{
 const { CONTENT, LIMITS } = __m12;
@@ -2413,12 +2543,18 @@ const login = git(['config', 'user.name'], { quiet: true }) ?? '';
 return { input: { files, pr: { title, body: '', author: { login, type: 'User' } }, limits: LIMITS }, base, branch };
 }
 
-return {NoRepository,makeGit,localInput};
+return {
+NoRepository,
+makeGit,
+localInput
+};
 })();
 const __m15=(()=>{
 const MAX_BLOCKS = 3;
 
-return {MAX_BLOCKS};
+return {
+MAX_BLOCKS
+};
 })();
 const __m14=(()=>{
 const { MAX_BLOCKS } = __m15;
@@ -2449,7 +2585,9 @@ next.shown.push(...fresh.map((n) => `${facts.fingerprint}:${n}`));
 return fresh.length ? { block: false, message: `truedone: ${fresh.join('. ')}.`, state: next } : { block: false, state: next };
 }
 
-return {decide};
+return {
+decide
+};
 })();
 const __m16=(()=>{
 const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit']);
@@ -2511,7 +2649,13 @@ if (text) last = text;
 return last !== null && last.trim() === message.trim();
 }
 
-return {isTestCommand,claimsTestsPass,toolCalls,ranTestsAfterLastEdit,holdsFinalMessage};
+return {
+isTestCommand,
+claimsTestsPass,
+toolCalls,
+ranTestsAfterLastEdit,
+holdsFinalMessage
+};
 })();
 const __m13=(()=>{
 const { decide } = __m14;
@@ -2564,7 +2708,11 @@ try { out = await hook(text, deps); } catch (e) { out = { systemMessage: `truedo
 if (out) stdout.write(JSON.stringify(out) + '\n');
 }
 
-return {TRANSCRIPT_CURRENT,hook,main};
+return {
+TRANSCRIPT_CURRENT,
+hook,
+main
+};
 })();
 const { analyse, classify } = __m1;
 const { detect } = __m2;
