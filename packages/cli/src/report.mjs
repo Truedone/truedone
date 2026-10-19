@@ -2,7 +2,7 @@
 // its head and base commits, the verdict, its reason codes and the truedone version. The reporter says what is wrong (the form's
 // kind field) and adds a note; nothing is sent from here. The form's field ids are pr, head, base, verdict, reasons, kind and
 // version (.github/ISSUE_TEMPLATE/wrong-verdict.yml, COLLECT-01).
-import { VERSION } from './constants.mjs';
+import { VERSION } from './version.mjs';
 
 export const FORM = 'https://github.com/Truedone/truedone/issues/new';
 

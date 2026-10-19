@@ -1977,6 +1977,8 @@ const { restore, swapToBase } = __m9;
 
 const SCHEMA = 'truedone.report/1';
 
+const TRUEDONE_VERSION = '0.1.0';
+
 function cleanEnv(env) {
 const out = {};
 for (const [key, value] of Object.entries(env || {})) {
@@ -2277,7 +2279,7 @@ schema: SCHEMA,
 head_sha: head ?? null,
 checked_out_sha: head ?? null,
 base_sha: base ?? null,
-truedone_version: '0.0.0',
+truedone_version: TRUEDONE_VERSION,
 runner: headSide.runner || baseSide.runner,
 job: null,
 tests: items.map((item) => item.entry),
@@ -2293,9 +2295,7 @@ const __m12=(()=>{
 const LIMITS = { files: 300, lines: 20000, fetched: 100 };   
 const CONTENT = new Set(['test', 'setup', 'runner_config', 'workflow', 'truedone_config']);   
 
-const VERSION = '0.1.0';
-
-return {LIMITS,CONTENT,VERSION};
+return {LIMITS,CONTENT};
 })();
 const __m11=(()=>{
 const { CONTENT, LIMITS } = __m12;

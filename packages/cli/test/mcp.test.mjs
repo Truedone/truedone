@@ -11,7 +11,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { main } from '../src/cli.mjs';
-import { VERSION } from '../src/constants.mjs';
+import { VERSION } from '../src/version.mjs';
 
 const API_DIR = fileURLToPath(new URL('./fixtures/api/', import.meta.url));
 const recorded = JSON.parse(fs.readFileSync(API_DIR + 'index.json', 'utf8'));

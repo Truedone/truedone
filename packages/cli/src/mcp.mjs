@@ -4,7 +4,7 @@
 // structured content. Nothing but protocol messages goes to stdout; a notification gets no answer; an unknown method answers
 // -32601. The server ends when stdin ends, or when the client closes stdout.
 import readline from 'node:readline';
-import { VERSION } from './constants.mjs';
+import { VERSION } from './version.mjs';
 import { parseTarget } from './target.mjs';
 import { prLine } from './output.mjs';
 

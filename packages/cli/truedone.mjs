@@ -1980,6 +1980,8 @@ const { restore, swapToBase } = __m9;
 
 const SCHEMA = 'truedone.report/1';
 
+const TRUEDONE_VERSION = '0.1.0';
+
 function cleanEnv(env) {
 const out = {};
 for (const [key, value] of Object.entries(env || {})) {
@@ -2280,7 +2282,7 @@ schema: SCHEMA,
 head_sha: head ?? null,
 checked_out_sha: head ?? null,
 base_sha: base ?? null,
-truedone_version: '0.0.0',
+truedone_version: TRUEDONE_VERSION,
 runner: headSide.runner || baseSide.runner,
 job: null,
 tests: items.map((item) => item.entry),
@@ -2354,9 +2356,7 @@ const __m15=(()=>{
 const LIMITS = { files: 300, lines: 20000, fetched: 100 };   
 const CONTENT = new Set(['test', 'setup', 'runner_config', 'workflow', 'truedone_config']);   
 
-const VERSION = '0.1.0';
-
-return {LIMITS,CONTENT,VERSION};
+return {LIMITS,CONTENT};
 })();
 const __m14=(()=>{
 const { CONTENT, LIMITS } = __m15;
@@ -2607,8 +2607,14 @@ return failOn?.has(result.verdict) ? 1 : 0;
 
 return {SCHEMA,VERDICTS,MAX_REASONS,readable,SITE,REASON,pageLink,prLine,emit};
 })();
+const __m19=(()=>{
+const VERSION = '0.1.0';
+const VERSION_LINE = `truedone ${VERSION} (preview)`;
+
+return {VERSION,VERSION_LINE};
+})();
 const __m18=(()=>{
-const { VERSION } = __m15;
+const { VERSION } = __m19;
 
 const FORM = 'https://github.com/Truedone/truedone/issues/new';
 
@@ -2629,8 +2635,8 @@ return `${FORM}?${q}`;
 
 return {FORM,reportLink};
 })();
-const __m19=(()=>{
-const { VERSION } = __m15;
+const __m20=(()=>{
+const { VERSION } = __m19;
 const { parseTarget } = __m13;
 const { prLine } = __m17;
 
@@ -2710,7 +2716,7 @@ return 0;
 
 return {PROTOCOL_VERSIONS,TOOLS,serveMcp};
 })();
-const __m21=(()=>{
+const __m22=(()=>{
 const NODE_IMAGE = 'node:24-slim';
 const PYTHON_IMAGE = 'python:3.12-slim';
 const HOST_ONLY = new Set(['PATH', 'HOME', 'PWD', 'OLDPWD', 'TMPDIR', 'SHELL', 'USER', 'LOGNAME', 'TERM_PROGRAM', 'TERM_PROGRAM_VERSION', 'TERM_SESSION_ID', '__CF_USER_TEXT_ENCODING', 'XPC_FLAGS', 'XPC_SERVICE_NAME', 'SSH_AUTH_SOCK']);
@@ -2780,11 +2786,11 @@ truncated: reports.some((r) => r.truncated),
 
 return {NODE_IMAGE,PYTHON_IMAGE,imageFor,groupsByImage,containerEnv,dockerRunArgs,dockerExecArgs,spawnCollect,startContainer,dockerOnPath,mergeReports};
 })();
-const __m20=(()=>{
+const __m21=(()=>{
 const { localInput, makeGit, NoRepository } = __m16;
 const { fetchPullBase, RateLimited, GitHubError } = __m14;
 const { emit } = __m17;
-const { groupsByImage, startContainer, dockerOnPath, mergeReports } = __m21;
+const { groupsByImage, startContainer, dockerOnPath, mergeReports } = __m22;
 
 const SECRET_SUFFIX = /(_TOKEN|_SECRET|_KEY|_PASSWORD)$/;
 const SECRET_PREFIX = /^(AWS_|AZURE_|NPM_CONFIG_|npm_config_)/;
@@ -2899,14 +2905,18 @@ const { loadPR, fetchReleases, RateLimited, GitHubError } = __m14;
 const { localInput, makeGit, NoRepository } = __m16;
 const { emit, VERDICTS } = __m17;
 const { reportLink } = __m18;
-const { serveMcp } = __m19;
-const { runMode } = __m20;
+const { serveMcp } = __m20;
+const { runMode } = __m21;
+const { VERSION_LINE } = __m19;
 
-const USAGE = 'usage: npx truedone [<PR link> | <owner/repo#n>] [--run [--docker] [--yes]] [--json | --pr-line] [--fail-on <verdict>[,<verdict>...]]\n       npx truedone init [--global]\n       npx truedone report <PR link | owner/repo#n>\n       npx truedone mcp';
+const USAGE = 'usage: npx truedone [<PR link> | <owner/repo#n>] [--run [--docker] [--yes]] [--json | --pr-line] [--fail-on <verdict>[,<verdict>...]]\n       npx truedone init [--global]\n       npx truedone report <PR link | owner/repo#n>\n       npx truedone mcp\n       npx truedone --version';
+
+const HELP = `${USAGE}\n\n${VERSION_LINE}: a preview, released ahead of the launch.`;
 class UsageError extends Error {}
 
 function parse(argv) {
 if (argv.includes('--help') || argv.includes('-h')) return { help: true };
+if (argv.includes('--version')) return { version: true };
 const o = { json: false, failOn: null, init: false, target: null, run: false, docker: false, yes: false, prLine: false, global: false, report: false, mcp: false };
 const rest = [];
 for (let i = 0; i < argv.length; i++) {
@@ -2961,7 +2971,11 @@ if (e instanceof UsageError) return fail(2, `${e.message}\n${USAGE}`);
 throw e;
 }
 if (o.help) {
-stdout.write(`${USAGE}\n`);
+stdout.write(`${HELP}\n`);
+return 0;
+}
+if (o.version) {
+stdout.write(`${VERSION_LINE}\n`);
 return 0;
 }
 try {
