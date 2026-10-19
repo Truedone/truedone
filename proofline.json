@@ -15665,7 +15665,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "COLLECT-01 added tools/misses/tally.mjs, which writes the wrong-verdict counts (D39) into a metrics snapshot, and nothing runs it. .github/workflows/metrics.yml runs tools/misses/tally.mjs --snapshot on the collected file, writing it back, after tools/metrics/collect.mjs and before tools/metrics/check.mjs, with the same workflow token, so the snapshot written to metrics-data carries the counts. tools/org-profile.mjs adds three rows to the Measured today table: Wrong-verdict reports (wrong_verdict_reports), Confirmed wrong verdicts (wrong_verdict_reports_confirmed) and Fixed wrong verdicts (wrong_verdict_reports_fixed), each a count with its window, source and sample, and shown only when the snapshot carries the figure. docs/metrics/latest.json is regenerated with the tally and docs/org/README.md from it, so ORG-02's check holds; the page stays within ORG-02's 60 lines. After the merge the lead publishes the page to Truedone/.github, as for ORG-02.",
+      "description": "COLLECT-01 added tools/misses/tally.mjs, which writes the wrong-verdict counts (D39) into a metrics snapshot, and nothing runs it. .github/workflows/metrics.yml runs tools/misses/tally.mjs --snapshot on the collected file, writing it back, after tools/metrics/collect.mjs and before tools/metrics/check.mjs, with the same workflow token, so the snapshot written to metrics-data carries the counts. tools/org-profile.mjs adds three rows to the Measured today table: Wrong-verdict reports (wrong_verdict_reports), Confirmed wrong verdicts (wrong_verdict_reports_confirmed) and Fixed wrong verdicts (wrong_verdict_reports_fixed), each a count with its window, source and sample, and shown only when the snapshot carries the figure. docs/metrics/latest.json is regenerated with the tally and docs/org/README.md from it, so ORG-02's check holds; the page stays within ORG-02's 60 lines. After the merge the lead publishes the page to Truedone/.github, as for ORG-02. With a tallied seed, tools/test/misses.test.mjs's check that the seed's own figures are untouched skips exactly the five figures the tally owns (wrong_verdict_reports, wrong_verdict_reports_confirmed, wrong_verdict_reports_fixed, false_alarms_confirmed, misses_confirmed), which the same test asserts explicitly; every other figure is still held.",
       "scope": {
         "allow": [
           ".github/workflows/metrics.yml",
@@ -15673,6 +15673,7 @@
           "tools/test/metrics-workflow.test.mjs",
           "tools/test/org-profile-misses.test.mjs",
           "tools/test/org-profile.test.mjs",
+          "tools/test/misses.test.mjs",
           "docs/metrics/latest.json",
           "docs/org/README.md",
           "docs/ops/metrics.md",
