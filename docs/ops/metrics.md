@@ -6,6 +6,13 @@ branch as `metrics/latest.json` with one file a day under `metrics/history/`. Ma
 committed at `docs/metrics/latest.json` is the one the organisation profile is generated from until the workflow feeds it.
 The collector reads without a token (60 requests an hour, about 40 used) and takes the workflow's token when it has one.
 
+Between the collector and the check, the same step runs `tools/misses/tally.mjs --snapshot /tmp/latest.json --out
+/tmp/latest.json` with the same token (MET-02). It writes the wrong-verdict counts (D39, `docs/ops/misses.md`) into the
+collected file: `wrong_verdict_reports`, `wrong_verdict_reports_confirmed`, `wrong_verdict_reports_fixed`,
+`false_alarms_confirmed` and `misses_confirmed`, each with its window from the day the form was added, its source and the
+number of reports as its sample. The check then holds the tallied file, so the snapshot on `metrics-data` carries the
+counts, and the profile shows the first three under Measured today when the snapshot has them.
+
 Every figure carries three things, and the checker refuses one that lacks any: the window it covers (a from and to, or a
 point in time), the URL it was read from, and the sample size it rests on. A metric with no honest public source is
 listed under `not_yet_measured` with the reason, and is never shown as a zero.

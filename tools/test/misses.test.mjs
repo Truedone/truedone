@@ -131,7 +131,7 @@ test('the tally counts reported, confirmed and fixed reports into the metrics sn
   assert.ok(!Object.hasOwn(f, 'false_alarm_rate'));
   assert.deepEqual(snapshotProblems(out), []);
   // the seed's own figures are untouched
-  for (const [k, v] of Object.entries(seed.figures)) assert.deepEqual(f[k], v);
+  for (const [k, v] of Object.entries(seed.figures)) if (!['wrong_verdict_reports', 'wrong_verdict_reports_confirmed', 'wrong_verdict_reports_fixed', 'false_alarms_confirmed', 'misses_confirmed'].includes(k)) assert.deepEqual(f[k], v);
 });
 
 test('a fixed report is one a benchmark case names, and an empty tally is zero counts, not missing figures', () => {

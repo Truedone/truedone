@@ -1,6 +1,7 @@
 # Public metrics (MET-01): once a day and on demand, the collector reads the organisation's public GitHub signals and
 # writes the snapshot to the metrics-data branch, as the index does: metrics/latest.json and one file a day under
 # metrics/history. Never to main, which takes only reviewed pull requests. The workflow token is the only credential.
+# Before the check, tools/misses/tally.mjs writes the wrong-verdict counts (MET-02, D39) into the collected file.
 name: metrics
 on:
   schedule:
@@ -24,6 +25,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           node tools/metrics/collect.mjs --org "${GITHUB_REPOSITORY_OWNER}" --out /tmp/latest.json
+          node tools/misses/tally.mjs --snapshot /tmp/latest.json --out /tmp/latest.json
           node tools/metrics/check.mjs /tmp/latest.json
       - name: Write the snapshot to metrics-data
         run: |

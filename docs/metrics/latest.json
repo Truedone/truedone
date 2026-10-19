@@ -147,6 +147,51 @@
       },
       "source": "https://api.github.com/repos/Truedone/truedone/issues/125/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/122/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/115/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/111/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/110/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/104/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/103/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/101/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/100/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/92/comments?per_page=1",
       "n": 10
+    },
+    "wrong_verdict_reports": {
+      "value": 0,
+      "window": {
+        "from": "2026-10-18T00:00:00.000Z",
+        "to": "2026-10-19T04:01:49.496Z"
+      },
+      "source": "https://api.github.com/repos/Truedone/truedone/issues?labels=wrong-verdict&state=all&per_page=100",
+      "n": 0
+    },
+    "wrong_verdict_reports_confirmed": {
+      "value": 0,
+      "window": {
+        "from": "2026-10-18T00:00:00.000Z",
+        "to": "2026-10-19T04:01:49.496Z"
+      },
+      "source": "https://api.github.com/repos/Truedone/truedone/issues?labels=wrong-verdict&state=all&per_page=100",
+      "n": 0
+    },
+    "wrong_verdict_reports_fixed": {
+      "value": 0,
+      "window": {
+        "from": "2026-10-18T00:00:00.000Z",
+        "to": "2026-10-19T04:01:49.496Z"
+      },
+      "source": "https://api.github.com/repos/Truedone/truedone/issues?labels=wrong-verdict&state=all&per_page=100 https://github.com/Truedone/truedone/tree/main/tools/test/fixtures/detect",
+      "n": 0
+    },
+    "false_alarms_confirmed": {
+      "value": 0,
+      "window": {
+        "from": "2026-10-18T00:00:00.000Z",
+        "to": "2026-10-19T04:01:49.496Z"
+      },
+      "source": "https://api.github.com/repos/Truedone/truedone/issues?labels=wrong-verdict&state=all&per_page=100",
+      "n": 0
+    },
+    "misses_confirmed": {
+      "value": 0,
+      "window": {
+        "from": "2026-10-18T00:00:00.000Z",
+        "to": "2026-10-19T04:01:49.496Z"
+      },
+      "source": "https://api.github.com/repos/Truedone/truedone/issues?labels=wrong-verdict&state=all&per_page=100",
+      "n": 0
     }
   },
   "not_yet_measured": [
