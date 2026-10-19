@@ -484,6 +484,9 @@
       ],
       "COLLECT-02": [
         "COLLECT-02-AC05"
+      ],
+      "BENCH-02": [
+        "BENCH-02-AC05"
       ]
     }
   },
@@ -5678,6 +5681,103 @@
         },
         {
           "id": "BENCH-01-AC09",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "BENCH-02",
+      "title": "[W2] The root test script runs the suites, not the benchmark fixtures",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "BENCH-01"
+      ],
+      "requirements": [
+        "PV-G02"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Measured on main 42c55f3a (lane-b, bus 5048): package.json's \"test\": \"node --test\" gives 855 tests with 3 failing, all BENCH-01 fixtures meant to fail (08-flaky-test base and head, 09-legitimate-test-refactor base), because node --test's default patterns take every .mjs under a test/ directory, and the flaky fixture leaves .run-count at the repository root. The root script names the suites instead: node --test 'packages/*/test/*.test.mjs' 'tools/test/*.test.mjs'. Every real test file is at the top level of one of those directories, so the suites stay whole and no fixture runs. A test holds the script to that: its patterns match every *.test.mjs at the top level of packages/*/test and tools/test, and no file under a fixtures directory.",
+      "scope": {
+        "allow": [
+          "package.json",
+          "tools/test/root-suite.test.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "BENCH-02-AC01",
+          "mandatory": true,
+          "statement": "the root test script's patterns match every *.test.mjs at the top level of packages/*/test and tools/test and no file under a fixtures directory",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/root-suite.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "BENCH-02-AC02",
+          "mandatory": true,
+          "statement": "the root test script still runs node --test",
+          "verifier": {
+            "type": "grep",
+            "file": "package.json",
+            "pattern": "\"test\":\\s*\"node --test 'packages/\\*/test/\\*\\.test\\.mjs' 'tools/test/\\*\\.test\\.mjs'\"",
+            "must": "present"
+          }
+        },
+        {
+          "id": "BENCH-02-AC03",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "BENCH-02-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "BENCH-02-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "BENCH-02-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "BENCH-02-AC07",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
@@ -12547,10 +12647,10 @@
         {
           "id": "CLI-02-AC02",
           "mandatory": true,
-          "statement": "cli suite green",
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
           "verifier": {
             "type": "command",
-            "cmd": "node --test 'packages/cli/test/*.test.mjs'",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
             "expect_exit": 0,
             "timeout_s": 900,
             "min_tests": 5,
@@ -12711,10 +12811,10 @@
         {
           "id": "CLI-01-AC07",
           "mandatory": true,
-          "statement": "cli suite green",
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
           "verifier": {
             "type": "command",
-            "cmd": "node --test 'packages/cli/test/*.test.mjs'",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
             "expect_exit": 0,
             "timeout_s": 900,
             "min_tests": 15,
@@ -12865,10 +12965,10 @@
         {
           "id": "CLI-03-AC06",
           "mandatory": true,
-          "statement": "cli suite green",
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
           "verifier": {
             "type": "command",
-            "cmd": "node --test 'packages/cli/test/*.test.mjs'",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
             "expect_exit": 0,
             "timeout_s": 900,
             "min_tests": 25,
@@ -12977,10 +13077,10 @@
         {
           "id": "AGENT-01-AC03",
           "mandatory": true,
-          "statement": "cli suite green",
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
           "verifier": {
             "type": "command",
-            "cmd": "node --test 'packages/cli/test/*.test.mjs'",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
             "expect_exit": 0,
             "timeout_s": 900,
             "min_tests": 15,
@@ -13095,10 +13195,10 @@
         {
           "id": "MCP-01-AC04",
           "mandatory": true,
-          "statement": "cli suite green",
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
           "verifier": {
             "type": "command",
-            "cmd": "node --test 'packages/cli/test/*.test.mjs'",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
             "expect_exit": 0,
             "timeout_s": 900,
             "min_tests": 15,
@@ -13382,10 +13482,10 @@
         {
           "id": "PLG-01-AC07",
           "mandatory": true,
-          "statement": "cli suite green",
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
           "verifier": {
             "type": "command",
-            "cmd": "node --test 'packages/cli/test/*.test.mjs'",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
             "expect_exit": 0,
             "timeout_s": 900,
             "min_tests": 35,
@@ -13615,10 +13715,10 @@
         {
           "id": "PLG-03-AC04",
           "mandatory": true,
-          "statement": "cli suite green",
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
           "verifier": {
             "type": "command",
-            "cmd": "node --test 'packages/cli/test/*.test.mjs'",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
             "expect_exit": 0,
             "timeout_s": 900,
             "min_tests": 40,
