@@ -1,0 +1,9 @@
+{
+  "id": "false-tie-on-value",
+  "kind": "fixture",
+  "pr": {
+    "title": "Round the order total",
+    "body": "Requirement: totals are rounded to whole units."
+  },
+  "note": "the test names the criterion and asserts a wrong value (100.4 rounds to 100, not 101); the criterion names no outcome word, so the tie rests on shared words alone and the expected value is never compared"
+}

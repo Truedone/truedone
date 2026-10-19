@@ -1,0 +1,9 @@
+{
+  "id": "no-criteria",
+  "kind": "fixture",
+  "pr": {
+    "title": "Round the order total",
+    "body": "Totals are rounded to whole units. Adds a test for the rounding."
+  },
+  "note": "the body describes the change and carries no requirement or acceptance marker, so the case states no criterion and its test is untied for that reason; read as a criterion, the description would share total and rounded with the test"
+}

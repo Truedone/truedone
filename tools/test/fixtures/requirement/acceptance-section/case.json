@@ -1,0 +1,9 @@
+{
+  "id": "acceptance-section",
+  "kind": "fixture",
+  "pr": {
+    "title": "Trim names before the lookup",
+    "body": "## Summary\n\nTrims names before the lookup.\n\n## Acceptance criteria\n\n- [ ] a blank name is refused\n- [ ] a known name is found after trimming\n\n## Checklist\n\n- [x] I ran the tests\n"
+  },
+  "note": "each item under the acceptance heading is a criterion; the summary and the checklist are not"
+}
