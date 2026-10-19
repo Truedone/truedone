@@ -592,6 +592,18 @@
       "REL-P9": [
         "REL-P9-AC03",
         "REL-P9-AC06"
+      ],
+      "CLI-07": [
+        "CLI-07-AC06"
+      ],
+      "CLI-08": [
+        "CLI-08-AC07"
+      ],
+      "CORE-12": [
+        "CORE-12-AC09"
+      ],
+      "CORE-13": [
+        "CORE-13-AC07"
       ]
     }
   },
@@ -3236,6 +3248,297 @@
         "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "CORE-12",
+      "title": "[W2] A pull request's base files are read at its merge base, on the site, the command line and the App",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "CORE-11",
+        "APP-32",
+        "CLI-07"
+      ],
+      "requirements": [
+        "PV-C02",
+        "PV-C04",
+        "PV-C07",
+        "PV-C10",
+        "PV-C11",
+        "PV-C12",
+        "PV-C15",
+        "PV-W01",
+        "PV-A03"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Measured: sindresorhus/ky#883 (test/hooks.ts +33 -0, test/main.ts +52 -0) is called tampered, four tests \"removed\". The site (packages/web/lib/github.mjs), the command line (packages/cli/src/github.mjs) and the App (packages/app/src/static.mjs) read each changed file's base content at pr.base.sha, the base branch's tip, so a test the base branch gained after the pull request branched reads as one the pull request removed. GitHub's pull request file list is taken from the merge base. Each surface reads the merge base with the compare API (GET /repos/<base repo>/compare/<base sha>...<head sha>, merge_base_commit.sha; a fork's head commit is reachable in the base repository) and reads base content there; the base sha a verdict names becomes the merge base. .github/truedone.yml is still read from the base branch's tip, the repository's current setting. The tests use recorded answers of ky#883 in GitHub's real shape (read with gh api, stored as fixtures): before the change the verdict is tampered, after it no test is removed. The App's test drives its static stage.",
+      "scope": {
+        "allow": [
+          "packages/web/lib/**",
+          "packages/web/test/**",
+          "packages/cli/src/**",
+          "packages/cli/test/**",
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/DEPENDENCY-MAP.md",
+          "tools/bundle.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/action/dist/index.mjs",
+          "tools/test/bundle-version.test.mjs"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "CORE-12-AC01",
+          "mandatory": true,
+          "statement": "the site reads base files at the merge base, so a test added on the base branch later is not called removed",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/merge-base.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CORE-12-AC02",
+          "mandatory": true,
+          "statement": "the command line does the same",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/cli/test/merge-base.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CORE-12-AC03",
+          "mandatory": true,
+          "statement": "the App's static stage does the same",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/merge-base.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CORE-12-AC04",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-12-AC05",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-12-AC06",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "CORE-12-AC07",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-12-AC08",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-12-AC09",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-12-AC10",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "CORE-12-AC11",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CORE-13",
+      "title": "[W2] A test runner's modifier that keeps a test running keeps it the same test",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "CORE-11",
+        "CORE-12"
+      ],
+      "requirements": [
+        "PV-C04",
+        "PV-C05",
+        "PV-C06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Measured by the walk: sindresorhus/ky#877 changed test(...) to test.serial(...), and core reads it as the test's removal (and a new test). A modifier that changes how a test runs but not whether it runs (ava's .serial, vitest's and jest's .concurrent, .sequential and .each with its table, mocha's and node:test's options object) keeps the test's identity, by its name and file; .skip, .only, .todo, xit, xtest, fit and the like stay what they are (skipped or focused, PV-C05). The test pairs each modifier, before and after, from fixtures in the shapes the real runners use, and holds ky#877's change to not tampered.",
+      "scope": {
+        "allow": [
+          "packages/core/src/**",
+          "packages/core/test/**",
+          "docs/DEPENDENCY-MAP.md",
+          "tools/bundle.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/action/dist/index.mjs",
+          "tools/test/bundle-version.test.mjs"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "CORE-13-AC01",
+          "mandatory": true,
+          "statement": "a runner modifier that keeps a test running keeps its identity; skipping and focusing modifiers still count",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/core/test/test-modifiers.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CORE-13-AC02",
+          "mandatory": true,
+          "statement": "core suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/core/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-13-AC03",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-13-AC04",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-13-AC05",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-13-AC06",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-13-AC07",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CORE-13-AC08",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "CORE-13-AC09",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
       ]
     },
     {
@@ -14542,6 +14845,256 @@
         },
         {
           "id": "CLI-06-AC09",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CLI-07",
+      "title": "[W2] npx truedone --run works on your own branch",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "CLI-03",
+        "CLI-05"
+      ],
+      "requirements": [
+        "PV-L03",
+        "PV-L05",
+        "PV-L06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Measured on main: `truedone --run` on a branch of a fresh repository prints \"truedone --run: internal error: deps.restorePending is not a function\". packages/cli/src/bin.mjs imports restorePending from packages/core/run/swap.mjs, which exports readRecord, restore and swapToBase only; the cli tests pass a fake for it, so no test ran the real entry. restorePending(root) puts back the files of a run that was killed mid-way, from the restore record .git/truedone-restore (S1, PV-L05), and does nothing when there is no record; it is exported where bin.mjs reads it. The test runs the bundled packages/cli/truedone.mjs as a child process, with no fake, in a scratch repository with a source and test change on a branch, and holds its exit 0 and its verdict line; a second case leaves a restore record from a killed run and holds that the files come back before the run.",
+      "scope": {
+        "allow": [
+          "packages/cli/**",
+          "packages/core/run/**",
+          "docs/DEPENDENCY-MAP.md",
+          "tools/bundle.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/action/dist/index.mjs",
+          "tools/test/bundle-version.test.mjs"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "CLI-07-AC01",
+          "mandatory": true,
+          "statement": "the real command line runs --run on its own branch, and first puts back a killed run",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/cli/test/run-own-branch.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CLI-07-AC02",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-07-AC03",
+          "mandatory": true,
+          "statement": "core suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/core/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-07-AC04",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-07-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-07-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-07-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "CLI-07-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CLI-08",
+      "title": "[W2] --run reports the coverage condition the action reports",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "CLI-07"
+      ],
+      "requirements": [
+        "PV-L03",
+        "PV-L05",
+        "PV-L06",
+        "PV-C08"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D8. packages/core/run/run.mjs writes condition: 'none' in every report the command line's --run makes, so a test that runs the changed lines is \"Proven (weak) ... with coverage none\", while the action's report for the same change carries its coverage condition (measured on sandbox #751: \"lines\"). The command line collects the changed lines' coverage the way the action does, from the same code in core/run (moved there if it lives in the action), and its report carries that condition; with no coverage it still says none. The test runs --run on a scratch repository whose test covers the changed line and holds the verdict Proven, and one whose test does not, which stays weak.",
+      "scope": {
+        "allow": [
+          "packages/core/run/**",
+          "packages/core/test/**",
+          "packages/cli/**",
+          "packages/action/src/**",
+          "packages/action/test/**",
+          "docs/DEPENDENCY-MAP.md",
+          "tools/bundle.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/action/dist/index.mjs",
+          "tools/test/bundle-version.test.mjs"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "CLI-08-AC01",
+          "mandatory": true,
+          "statement": "the command line reports the coverage condition, so a test that runs the changed lines is Proven",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/cli/test/run-coverage.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CLI-08-AC02",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-08-AC03",
+          "mandatory": true,
+          "statement": "core suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/core/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-08-AC04",
+          "mandatory": true,
+          "statement": "action suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/action/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-08-AC05",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-08-AC06",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-08-AC07",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-08-AC08",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "CLI-08-AC09",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
