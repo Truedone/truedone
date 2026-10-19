@@ -565,6 +565,15 @@
       ],
       "PLG-08": [
         "PLG-08-AC04"
+      ],
+      "APP-30": [
+        "APP-30-AC05"
+      ],
+      "APP-31": [
+        "APP-31-AC05"
+      ],
+      "APP-32": [
+        "APP-32-AC05"
       ]
     }
   },
@@ -9348,6 +9357,318 @@
         },
         {
           "id": "APP-29-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "APP-30",
+      "title": "[W4] The App updates only its own check run",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "APP-29"
+      ],
+      "requirements": [
+        "PV-A06",
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "PV-A04. checkRunFor (packages/app/src/github.mjs) reads check-runs?check_name=truedone on the head commit and takes the first, from any App, so with two truedone Apps on one repository each one PATCHes the other's run, GitHub answers 403, and the delivery is retried into the dead-letter queue (measured on sandbox 2026-10-19 10:47Z: \"403 /repos/Truedone/truedone-sandbox/check-runs/118017810427\" four times, then dead-letter). The read asks only for this App's runs, with the list endpoint's app_id parameter and the App's own id (env.APP_ID, which the Worker already holds), and keeps the result only when its app.id is that id. With no run of its own, the App creates one, as today. The test drives the stage with a fake GitHub in the real answers' shape (read one real answer first), in which another App's truedone run comes first: before the change the stage PATCHes it, after it the stage PATCHes only its own or POSTs a new one.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/ops/apps.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-30-AC01",
+          "mandatory": true,
+          "statement": "the App reads and updates only check runs its own App id made, never another App's run of the same name",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/own-check-run.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-30-AC02",
+          "mandatory": true,
+          "statement": "the app imports nothing from Node and evaluates no code",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-30-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-30-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-30-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-30-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-30-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "APP-31",
+      "title": "[W4] The App finds the action's report by the artifact the action names",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "APP-30"
+      ],
+      "requirements": [
+        "PV-A06",
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "PV-A06. The action uploads its report as truedone-report-${GITHUB_JOB}, the job's key (packages/action/src/upload.mjs artifactName), and the stage (packages/app/src/redgreen.mjs) looks for truedone-report-<job name> from the jobs API, the display name, so a job with name: or a matrix is never found and the stage skips silently. The stage takes the run's artifacts whose names start with truedone-report- and are not expired, and keeps the one from the run's latest attempt; each is held to PV-A06's four checks before it is believed. With several (a workflow with several truedone jobs), every one must pass the checks and they are judged together, since core's judge takes a list of reports; one that fails the checks is refused with its red-green line, as today. The size and one-file limits (S6) apply to each. The test uses artifact answers in GitHub's real shape for a job with a display name, a matrix of two and a re-run.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/ops/apps.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-31-AC01",
+          "mandatory": true,
+          "statement": "a report uploaded by a job with a display name, by each leg of a matrix, or by a re-run is found and checked",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/report-artifact.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-31-AC02",
+          "mandatory": true,
+          "statement": "the app imports nothing from Node and evaluates no code",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-31-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-31-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-31-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-31-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-31-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "APP-32",
+      "title": "[W4] Every red-green delivery the App does not act on says why in one line",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "APP-31"
+      ],
+      "requirements": [
+        "PV-A06",
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "S8. The red-green stage's early returns (no pull request for the head commit, no report artifact, a run held for approval, a standing tampered or review verdict) and the queue consumer's acknowledgement of them write nothing to the Worker log (packages/app/src/index.mjs, the red-green branch of the consumer), so a missed verdict looks like a success. Each writes one line, {\"stage\": \"red-green\", \"delivery\", \"repository\", \"pr\" when known, \"skipped\": <reason>}, with identifiers only, never a login, a token or file content. The test drives each path and reads the lines.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/ops/apps.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-32-AC01",
+          "mandatory": true,
+          "statement": "each red-green delivery the App does not act on writes one line naming its reason, with identifiers only",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/redgreen-skips.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-32-AC02",
+          "mandatory": true,
+          "statement": "the app imports nothing from Node and evaluates no code",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-32-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-32-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-32-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-32-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-32-AC07",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
