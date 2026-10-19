@@ -558,6 +558,10 @@
       ],
       "WEB-16": [
         "WEB-16-AC04"
+      ],
+      "PLG-07": [
+        "PLG-07-AC02",
+        "PLG-07-AC05"
       ]
     }
   },
@@ -15296,6 +15300,105 @@
         },
         {
           "id": "PLG-06-AC09",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PLG-07",
+      "title": "[W3] The plugin carries its icon for Anthropic's plugin directory",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "PLG-05"
+      ],
+      "requirements": [
+        "PV-P04"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Anthropic's plugin directory portal warns \"No icon\" for packages/cli/plugin and takes the listing icon only the first time the plugin is saved or submitted: a square PNG at .claude-plugin/icon.png in the plugin folder, 512 to 2048 px on each side, under 2 MB. packages/cli/plugin/.claude-plugin/icon.png is a byte copy of packages/app/logo.png, the App's 512 x 512 logo, so the plugin, the App and the site show one mark. packages/cli/test/plugin-manifest.test.mjs (PLG-02) lists the files the plugin folder may hold; its expected list gains .claude-plugin/icon.png and nothing else changes in that test. The new test reads the PNG header and holds the icon to the portal's rule and to the App's logo byte for byte.",
+      "scope": {
+        "allow": [
+          "packages/cli/plugin/.claude-plugin/icon.png",
+          "packages/cli/test/plugin-manifest.test.mjs",
+          "packages/cli/test/plugin-icon.test.mjs",
+          "docs/plugin-hooks.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "PLG-07-AC01",
+          "mandatory": true,
+          "statement": "the plugin's icon is a square PNG of 512 to 2048 px under 2 MB at .claude-plugin/icon.png, equal to the App's logo",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/cli/test/plugin-icon.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "PLG-07-AC02",
+          "mandatory": true,
+          "statement": "Claude Code validates the plugin folder",
+          "verifier": {
+            "type": "command",
+            "cmd": "env -u CLAUDECODE claude plugin validate ./packages/cli/plugin",
+            "expect_exit": 0,
+            "timeout_s": 120
+          }
+        },
+        {
+          "id": "PLG-07-AC03",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-07-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-07-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-07-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "PLG-07-AC07",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
