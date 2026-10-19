@@ -50,3 +50,24 @@ the hook blocks with "have not run since the last file edit", as the plugin's ow
 the hook lets the turn end and says nothing, as the plugin's own test expects
 result: pass
 ```
+
+## The publish
+
+Ryan published the package from his terminal (D35). Read back on 2026-10-19T10:12:36Z, with an empty npm config:
+
+```text
+$ npm view truedone@0.1.0 version dist.integrity dist.shasum time maintainers dist-tags.latest repository.url
+version 0.1.0
+dist.integrity sha512-w22AYpQN97QQvUzXlbdE5ZfMPwIUA598pV65DNJvlvGxw/Rw94e4UhRdfRp0tqG2wbGEIvHWgSzGlSWrkH+SkA==
+dist.shasum 25853bf7674fbf75d2c6f4dca898a728dd0f84e2
+published 2026-10-19T09:05:07.151Z
+maintainers optitransfer
+dist-tags.latest 0.1.0
+repository.url git+https://github.com/Truedone/truedone.git
+$ npx -y truedone@0.1.0 --version   (HOME in a scratch directory)
+truedone 0.1.0 (preview)
+$ curl -s -o /dev/null -w '%{http_code}' https://api.github.com/apps/truedone   (no token)
+200
+```
+
+npm's integrity is the one the command line section above checked, so the published package is that tarball.
