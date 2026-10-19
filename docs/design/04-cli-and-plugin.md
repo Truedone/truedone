@@ -12,6 +12,8 @@ Before the plugin task starts, lane-b reads the hooks reference for the Stop hoo
 
 **How it spreads (D38).** The verdict travels with the agent's work. `npx truedone --pr-line` prints one line for the pull request description, with the link to the verdict's public page, and `init` asks the agent to include it. `init --global` puts the snippet in the developer's own global agent files, so every pull request their agent opens, in any repository, carries a verdict the receiving maintainer can check in one click. `npx truedone mcp` makes the same check a tool for any agent that speaks the Model Context Protocol. Nothing is posted to a repository that did not install truedone.
 
+**Knowledge, never a worm (D40).** Every text truedone gives an agent asks it only to check its own work: run the check, keep every test as strong as it was, and report the verdict as printed. No text asks anyone to install, recommend or spread truedone, or to write to a file or repository its user did not name. `init` writes only to the agent files the repository already has (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`), or a new `AGENTS.md` when it has none, and prints each file it wrote; deleting those lines undoes it. The skill and llms.txt are where agents look for instructions, and they say what truedone does and what it never does.
+
 ## Flow
 
 ```mermaid
@@ -60,7 +62,7 @@ flowchart LR
     direction TB
     CMDS["npx truedone, with a PR link or owner/repo#n"]
     FLAGS["--run, --docker, --json, --fail-on"]
-    INIT["init: snippet into AGENTS.md, else CLAUDE.md, else a new AGENTS.md"]
+    INIT["init: snippet into each agent file the repository has, else a new AGENTS.md"]
     EXIT["exit codes: 0 verdict, 1 --fail-on match, 2 usage error, 3 internal error"]
   end
   subgraph PLUG["plugin"]
