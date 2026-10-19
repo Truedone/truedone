@@ -31,9 +31,31 @@ export function readable(result, what) {
   return lines.join('\n') + '\n';
 }
 
-// Prints a result, as --json or readable, and returns the exit code: 1 when --fail-on names the verdict, else 0
-export function emit(result, what, { json, failOn }, stdout) {
+// D38: --pr-line prints one line for a pull request description, the verdict, its reason in one sentence and the link to
+// the verdict's public page, so the verdict travels with the agent's work to the maintainer who reads the pull request.
+// The sentences are the labels' own (packages/app/src/labels.mjs), for the verdicts that have no label the spec's rule.
+export const SITE = 'https://truedone.pages.dev';
+export const REASON = {
+  tampered: 'a test that existed at base was disabled or weakened',
+  review: 'tests or runner setup changed in a way to review',
+  could_not_run: 'no test reached a result',
+  proven: 'a test in this pull request fails without the change and passes with it',
+  proven_new: 'a test fails at base only for want of what the change adds, and passes with it',
+  proven_weak: 'red-green holds, but no changed line is run or asserted',
+  no_evidence: 'source changed, and no test in the pull request fails without it',
+  pending: 'GitHub is holding the run for a first-time contributor',
+  unrun: 'tests changed cleanly and no red-green has run yet',
+  not_applicable: 'the change is docs, a lockfile, a listed bot or a rename, which truedone does not judge',
+};
+// The verdict's public page: the pull request's page, or the why page when no pull request exists yet
+export const pageLink = (target) => (target ? `${SITE}/${target.owner}/${target.repo}/pull/${target.number}?via=pr-line` : `${SITE}/why?via=pr-line`);
+export function prLine(result, target) {
+  return `truedone: ${VERDICTS[result.verdict] ?? result.verdict}${result.partial ? ' (partial)' : ''}, ${REASON[result.verdict] ?? 'see the page'}. ${pageLink(target)}`;
+}
+
+// Prints a result, as --json, --pr-line or readable, and returns the exit code: 1 when --fail-on names the verdict, else 0
+export function emit(result, what, { json, failOn, prLine: line = false, target = null }, stdout) {
   if (result?.schema !== SCHEMA) throw new Error(`core returned no ${SCHEMA} result`);
-  stdout.write(json ? `${JSON.stringify(result)}\n` : readable(result, what));
+  stdout.write(line ? `${prLine(result, target)}\n` : json ? `${JSON.stringify(result)}\n` : readable(result, what));
   return failOn?.has(result.verdict) ? 1 : 0;
 }

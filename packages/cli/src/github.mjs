@@ -86,5 +86,7 @@ export async function loadPR({ owner, repo, number }, { fetch, classify, token =
   return {
     input: { files, pr: { title: pr.title ?? '', body: pr.body ?? '', author: { login: pr.user?.login ?? '', type: pr.user?.type ?? 'User' } }, limits },
     calls: c.calls(),
+    head: pr.head?.sha ?? null,   // the commits a wrong-verdict report names (D39)
+    base: pr.base?.sha ?? null,
   };
 }

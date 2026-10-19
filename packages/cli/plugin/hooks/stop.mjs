@@ -2267,7 +2267,9 @@ const __m12=(()=>{
 const LIMITS = { files: 300, lines: 20000, fetched: 100 };   
 const CONTENT = new Set(['test', 'setup', 'runner_config', 'workflow', 'truedone_config']);   
 
-return {LIMITS,CONTENT};
+const VERSION = '0.1.0';
+
+return {LIMITS,CONTENT,VERSION};
 })();
 const __m11=(()=>{
 const { CONTENT, LIMITS } = __m12;

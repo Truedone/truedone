@@ -1,4 +1,4 @@
-// CLI-02-AC01 (PV-L07): npx truedone init appends the three-line snippet to AGENTS.md if it exists, else to CLAUDE.md
+// CLI-02-AC01 (PV-L07): npx truedone init appends the four-line snippet (D38 added the fourth) to AGENTS.md if it exists, else to CLAUDE.md
 // if it exists, else creates AGENTS.md. Existing bytes stay a prefix of the file, a second run writes nothing, and it
 // prints what it wrote. The expected lines are read from test/fixtures/init/snippet.md, never from init.mjs.
 import { test } from 'node:test';
@@ -20,7 +20,7 @@ function repo(t, files = {}) {
 const read = (d, f) => fs.readFileSync(path.join(d, f), 'utf8');
 const quiet = () => { const out = []; return { out, log: (s) => out.push(s) }; };
 
-test('with neither file, init creates AGENTS.md holding exactly the three lines', (t) => {
+test('with neither file, init creates AGENTS.md holding exactly the snippet lines', (t) => {
   const d = repo(t);
   init(d, quiet());
   assert.equal(read(d, 'AGENTS.md'), LINES.join('\n') + '\n');
@@ -95,6 +95,6 @@ test('existing snippet lines are not added again; only the missing ones are appe
   const r = init(d, quiet());
   const after = read(d, 'AGENTS.md');
   assert.ok(after.startsWith(body));
-  assert.deepEqual(r.written, [LINES[0], LINES[2]]);
+  assert.deepEqual(r.written, LINES.filter((_, i) => i !== 1));
   assert.equal(after.split('\n').filter((l) => l === LINES[1]).length, 1);
 });
