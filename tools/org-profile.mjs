@@ -1,10 +1,11 @@
 // node tools/org-profile.mjs <snapshot.json> <page.md> (ORG-02): writes the organisation profile page from a metrics
 // snapshot (MET-01): the name, one sentence of value in at most 25 words, one line on trying it, a table of exactly eight
 // headline metrics with figure, window, source and sample size (the words Not yet measured, with the reason, where the
-// snapshot has no source), and a second table of the public figures the snapshot does carry. The page is held to the
-// owner's bar: at most 60 lines, plain ASCII, no figure without a source, no em or en dash, none of the marketing words in
-// BANNED. --check <snapshot.json> <page.md> writes nothing and exits 1 when the page breaks a rule or is not byte for byte
-// what this script writes from the snapshot. No dependencies, no network.
+// snapshot has no source), and a second table of the public figures the snapshot does carry, the wrong-verdict counts
+// among them when it has them (MET-02). The page is held to the owner's bar: at most 60 lines, plain ASCII, no figure
+// without a source, no em or en dash, none of the marketing words in BANNED. --check <snapshot.json> <page.md> writes
+// nothing and exits 1 when the page breaks a rule or is not byte for byte what this script writes from the snapshot. No
+// dependencies, no network.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,12 +24,16 @@ export const HEADLINE = [
   ['Weekly growth', 'weekly_growth'],
 ];
 // the public figures shown under Measured today, with the unit each is shown in; the workflow figures stay off the page,
-// since they add the sandbox's runs, which fail by design (its cases are red)
+// since they add the sandbox's runs, which fail by design (its cases are red). The wrong-verdict counts (D39) come from
+// tools/misses/tally.mjs (MET-02); like every row here, each is shown only when the snapshot carries it.
 const TODAY = [
   ['Public repositories', 'public_repositories', 'count'],
   ['Open issues', 'open_issues', 'count'],
   ['Pull requests opened', 'pull_requests_opened_in_window', 'count'],
   ['Hours to a first issue response, median', 'median_hours_to_first_issue_response', 'hours'],
+  ['Wrong-verdict reports', 'wrong_verdict_reports', 'count'],
+  ['Confirmed wrong verdicts', 'wrong_verdict_reports_confirmed', 'count'],
+  ['Fixed wrong verdicts', 'wrong_verdict_reports_fixed', 'count'],
 ];
 export const HEADER = '| Metric | Figure | Window | Source | Sample |';
 const RULE = '|---|---|---|---|---|';

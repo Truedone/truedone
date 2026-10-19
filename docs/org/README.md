@@ -29,5 +29,8 @@ Public GitHub data for this organisation, read 2026-10-18. Visibility and activi
 | Open issues | 7 | on 2026-10-18 | [api.github.com/repos/Truedone/truedone/issues](https://api.github.com/repos/Truedone/truedone/issues?state=all&per_page=100&sort=created&direction=desc) and 4 more | 5 |
 | Pull requests opened | 157 | 2026-09-18 to 2026-10-18 | [api.github.com/repos/Truedone/truedone/issues](https://api.github.com/repos/Truedone/truedone/issues?state=all&per_page=100&sort=created&direction=desc) and 4 more | 5 |
 | Hours to a first issue response, median | 0.61 h | 2026-09-18 to 2026-10-18 | [api.github.com/repos/Truedone/truedone/issues/125/comments](https://api.github.com/repos/Truedone/truedone/issues/125/comments?per_page=1) and 9 more | 10 |
+| Wrong-verdict reports | 0 | 2026-10-18 to 2026-10-19 | [api.github.com/repos/Truedone/truedone/issues](https://api.github.com/repos/Truedone/truedone/issues?labels=wrong-verdict&state=all&per_page=100) | 0 |
+| Confirmed wrong verdicts | 0 | 2026-10-18 to 2026-10-19 | [api.github.com/repos/Truedone/truedone/issues](https://api.github.com/repos/Truedone/truedone/issues?labels=wrong-verdict&state=all&per_page=100) | 0 |
+| Fixed wrong verdicts | 0 | 2026-10-18 to 2026-10-19 | [api.github.com/repos/Truedone/truedone/issues](https://api.github.com/repos/Truedone/truedone/issues?labels=wrong-verdict&state=all&per_page=100) and 1 more | 0 |
 
 Definitions and limits: [docs/ops/metrics.md](https://github.com/Truedone/truedone/blob/main/docs/ops/metrics.md). Source: [Truedone/truedone](https://github.com/Truedone/truedone).
