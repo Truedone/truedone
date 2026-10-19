@@ -515,6 +515,33 @@
       "OPS-11": [
         "OPS-11-AC04",
         "OPS-11-AC07"
+      ],
+      "PLG-05": [
+        "PLG-05-AC02",
+        "PLG-05-AC05"
+      ],
+      "PLG-06": [
+        "PLG-06-AC02",
+        "PLG-06-AC03",
+        "PLG-06-AC07"
+      ],
+      "CLI-05": [
+        "CLI-05-AC03",
+        "CLI-05-AC08"
+      ],
+      "CLI-06": [
+        "CLI-06-AC07"
+      ],
+      "AGENT-02": [
+        "AGENT-02-AC08"
+      ],
+      "APP-28": [
+        "APP-28-AC05"
+      ],
+      "REL-P7": [
+        "REL-P7-AC01",
+        "REL-P7-AC02",
+        "REL-P7-AC05"
       ]
     }
   },
@@ -9100,6 +9127,109 @@
       ]
     },
     {
+      "id": "APP-28",
+      "title": "[W4] The App answers GitHub Marketplace plan-change events",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "APP-27"
+      ],
+      "requirements": [
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "GitHub Marketplace lists an app only when \"webhook events [are] set up to notify the publisher of any plan changes or cancellations\", for a free app too. The listing's webhook URL is the App's intake, /api/github/webhook, and GitHub signs those deliveries with the listing's own secret. The intake recognises the event marketplace_purchase (actions purchased, changed, cancelled, pending_change, pending_change_cancelled), verifies it with the Worker secret MARKETPLACE_WEBHOOK_SECRET (401 on a bad or missing signature, as for App events), answers 200, and logs one line with the action, the plan id and the account id and type, and no login or email. It queues nothing and writes nothing to GitHub. The test drives each action with a payload in the shape GitHub's documentation gives.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/ops/apps.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-28-AC01",
+          "mandatory": true,
+          "statement": "a signed marketplace_purchase delivery is answered 200 and logged without a login or email; a bad signature is 401; nothing is queued or written",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/marketplace.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-28-AC02",
+          "mandatory": true,
+          "statement": "the app imports nothing from Node and evaluates no code",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-28-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-28-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-28-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-28-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-28-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "COLLECT-02",
       "title": "[W2] Every check run carries a link to report a wrong verdict",
       "phase": "implement",
@@ -13478,6 +13608,421 @@
       ]
     },
     {
+      "id": "CLI-05",
+      "title": "[W2] The npm package names its MCP registry entry, in 0.1.1",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "CLI-01",
+        "MCP-01",
+        "REL-P1",
+        "REL-P5"
+      ],
+      "requirements": [
+        "PV-L01",
+        "PV-L02",
+        "PV-L04"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "The official MCP registry (registry.modelcontextprotocol.io) lists an npm server only when the published package.json carries \"mcpName\" equal to the server.json name and that version is live on npm. The registry grants io.github.<org>/* to an Owner of the organisation, and mgillr is one, so the name is io.github.Truedone/truedone. packages/cli/package.json gains \"mcpName\": \"io.github.Truedone/truedone\"; \"keywords\": mcp, mcp-server, model-context-protocol, claude-code, claude-code-plugin, testing, code-review, pull-requests, ci, ai-agents; \"repository\" as {\"type\": \"git\", \"url\": \"git+https://github.com/Truedone/truedone.git\"}, the form npm's registry already stores for 0.1.0; and version 0.1.1. The plugin's manifest takes the same version, since release-preview's plugin check holds the two equal, and every bundle stamps it (--version prints \"truedone 0.1.1 (preview)\"). server.json at the repository root follows the registry's current schema, read from the registry's own documentation, with its $schema URL: name io.github.Truedone/truedone, a description within the schema's limits, the repository, version 0.1.1, and one npm package truedone 0.1.1 with stdio transport and the argument mcp. tools/release-preview.mjs writes the notes of the version it packs, docs/releases/preview-<version>.md, so 0.1.0's notes stay as recorded, and node tools/release-preview.mjs cli writes 0.1.1's command line section from the real tarball. Ryan publishes 0.1.1 from his terminal (D35, REL-P7).",
+      "scope": {
+        "allow": [
+          "packages/cli/**",
+          "server.json",
+          "tools/release-preview.mjs",
+          "tools/test/release-preview.test.mjs",
+          "tools/test/fixtures/release-preview/**",
+          "docs/releases/preview-0.1.1.md",
+          ".claude-plugin/marketplace.json",
+          "docs/DEPENDENCY-MAP.md",
+          "tools/bundle.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/action/dist/index.mjs",
+          "tools/test/bundle-version.test.mjs"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "CLI-05-AC01",
+          "mandatory": true,
+          "statement": "server.json's name equals package.json's mcpName, its versions equal package.json's, and its one package is npm truedone over stdio with the argument mcp",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/cli/test/registry.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CLI-05-AC02",
+          "mandatory": true,
+          "statement": "the published file prints the new version",
+          "verifier": {
+            "type": "command",
+            "cmd": "node packages/cli/truedone.mjs --version | grep -qx \"truedone 0.1.1 (preview)\"",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-05-AC03",
+          "mandatory": true,
+          "statement": "the real 0.1.1 tarball passes the release check, and the installed CLI gives the site's verdict on each of its five examples",
+          "verifier": {
+            "type": "command",
+            "cmd": "GITHUB_TOKEN=\"$(gh auth token 2>/dev/null)\" node tools/release-preview.mjs cli",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-05-AC04",
+          "mandatory": true,
+          "statement": "0.1.1's release notes carry the measured command line section",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/releases/preview-0.1.1.md",
+            "pattern": "^## The command line",
+            "must": "present"
+          }
+        },
+        {
+          "id": "CLI-05-AC05",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-05-AC06",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-05-AC07",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-05-AC08",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-05-AC09",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "CLI-05-AC10",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CLI-06",
+      "title": "[W2] init writes to each agent file the repository already has",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "AGENT-01",
+        "CLI-05",
+        "AGENT-02"
+      ],
+      "requirements": [
+        "PV-L07",
+        "PV-L02"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D40, and the init rows of the cli command table in docs/spec.md (1c009a1). init appends the snippet's missing lines to each agent instruction file the repository already has, in this order: AGENTS.md, CLAUDE.md, GEMINI.md, .github/copilot-instructions.md; when it has none, it creates AGENTS.md. init --global adds ~/.gemini/GEMINI.md when ~/.gemini exists, beside the files D38 named. Existing lines are never edited or reordered (PV-L07). The output names each file written, or that its lines were already there, and ends with one line saying that deleting those lines undoes it. --help, the CLI's README and llms.txt's init lines state the same rule. The test drives a scratch repository with each subset of the four files, and a scratch HOME with and without ~/.gemini.",
+      "scope": {
+        "allow": [
+          "packages/cli/**",
+          "packages/web/llms.txt",
+          "packages/web/test/**",
+          "docs/DEPENDENCY-MAP.md",
+          "tools/bundle.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/action/dist/index.mjs",
+          "tools/test/bundle-version.test.mjs"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "CLI-06-AC01",
+          "mandatory": true,
+          "statement": "init writes to every agent file the repository has, creates AGENTS.md only when it has none, adds ~/.gemini/GEMINI.md only when ~/.gemini exists, never edits a line, and prints each file and how to undo it",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/cli/test/init-files.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CLI-06-AC02",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-06-AC03",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-06-AC04",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-06-AC05",
+          "mandatory": true,
+          "statement": "every text truedone gives an agent asks only that it check its own work (D40)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test tools/test/agent-text.test.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-06-AC06",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-06-AC07",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-06-AC08",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "CLI-06-AC09",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AGENT-02",
+      "title": "[W2] Every text truedone gives an agent tells the truth and asks only that it check its own work",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "WEB-14",
+        "MCP-01",
+        "REL-P4"
+      ],
+      "requirements": [
+        "PV-W02",
+        "PV-D03"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D40. One test, tools/test/agent-text.test.mjs, reads every text truedone gives an agent from the tree: packages/web/llms.txt, init's SNIPPET (packages/cli/src/init.mjs), the MCP server's instructions (packages/cli/src/mcp.mjs), every SKILL.md under skills/ and packages/cli/plugin/skills/, and packages/cli/plugin/README.md when it exists. It fails when a sentence asks the reader to install, add, recommend, share, spread, post, star or promote truedone, or to write to a file or repository other than the one being worked on, or uses the words viral, wildfire or spread; and when llms.txt gives an install command or a uses: line for a surface that packages/web/lib/release.mjs has false, unless that line says it is not released yet. On main it fails: llms.txt gives uses: Truedone/truedone-action@v0.1.0, and Truedone/truedone-action is empty (measured 2026-10-19) with RELEASED.action false. llms.txt is corrected from the code: the action line says it is not released yet; it gains the MCP client entry {\"command\": \"npx\", \"args\": [\"-y\", \"truedone\", \"mcp\"]}, the plugin's two install commands, and what truedone never does (it posts nothing to a repository that did not install the App; init writes only the files it prints; the command line talks only to the GitHub API, read from the code). The home page, /why and the pull request page link /llms.txt in their footer as \"For coding agents\", and name it in their head (<link rel=\"alternate\" type=\"text/plain\" href=\"/llms.txt\">). The README's sentence that begins \"When the npm package is released\" says what npx truedone does now that 0.1.0 is on npm, and the README names llms.txt for coding agents. release.mjs is not changed here (REL-P4 flips it). The root AGENTS.md gets no truedone lines: it is the proofline loop that other repositories copy (D40).",
+      "scope": {
+        "allow": [
+          "packages/web/llms.txt",
+          "packages/web/index.html",
+          "packages/web/why.html",
+          "packages/web/lib/view.mjs",
+          "packages/web/test/**",
+          "README.md",
+          "tools/test/agent-text.test.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "AGENT-02-AC01",
+          "mandatory": true,
+          "statement": "every text truedone gives an agent asks only that it check its own work, and llms.txt names no install for a surface that is not released",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/agent-text.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "AGENT-02-AC02",
+          "mandatory": true,
+          "statement": "llms.txt gives the MCP client entry",
+          "verifier": {
+            "type": "grep",
+            "file": "packages/web/llms.txt",
+            "pattern": "\"args\": \\[\"-y\", \"truedone\", \"mcp\"\\]",
+            "must": "present"
+          }
+        },
+        {
+          "id": "AGENT-02-AC03",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "AGENT-02-AC04",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "AGENT-02-AC05",
+          "mandatory": true,
+          "statement": "the README holds its shape and matches the release state",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/readme-check.mjs && node tools/readme-status.mjs --check",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "AGENT-02-AC06",
+          "mandatory": true,
+          "statement": "the home page still renders the verdict in a browser",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/check-browser.mjs --page packages/web/index.html --fixture packages/web/test/fixtures/api",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "AGENT-02-AC07",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "AGENT-02-AC08",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "AGENT-02-AC09",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "AGENT-02-AC10",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "PLG-00",
       "title": "[W1] Record the Stop hook interface before building the plugin",
       "phase": "implement",
@@ -14008,6 +14553,227 @@
       ]
     },
     {
+      "id": "PLG-05",
+      "title": "[W3] The plugin folder carries its own README for Anthropic's plugin directory",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "PLG-04"
+      ],
+      "requirements": [
+        "PV-P04"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Anthropic's plugin directory blocks a plugin folder without a README of at least 40 words outside code blocks, and its review expects the README to describe everything the plugin runs, sends or fetches. packages/cli/plugin/README.md says, read from packages/cli/plugin/hooks/stop.mjs and its sources: when the Stop hook runs and what it reads (the transcript, the working tree), every command it starts, its network use (the spec says none, PV-P01; the README states what the code does), what it stores and where (${CLAUDE_PLUGIN_DATA}), when it blocks and when it only tells the user, how to turn it off and uninstall it, the licence, and where to report a wrong verdict. It asks nothing of the reader beyond using the plugin (D40). No statement is aspirational. claude plugin validate passes on the folder.",
+      "scope": {
+        "allow": [
+          "packages/cli/plugin/README.md",
+          "packages/cli/test/plugin-readme.test.mjs",
+          "docs/plugin-hooks.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "PLG-05-AC01",
+          "mandatory": true,
+          "statement": "the plugin folder has a README of at least 40 words outside code blocks that names the Stop hook, the commands it starts, its network use and what it stores",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/cli/test/plugin-readme.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "PLG-05-AC02",
+          "mandatory": true,
+          "statement": "Claude Code validates the plugin folder",
+          "verifier": {
+            "type": "command",
+            "cmd": "env -u CLAUDECODE claude plugin validate ./packages/cli/plugin",
+            "expect_exit": 0,
+            "timeout_s": 120
+          }
+        },
+        {
+          "id": "PLG-05-AC03",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-05-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-05-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-05-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "PLG-05-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PLG-06",
+      "title": "[W3] One truedone skill, in the plugin and at the repository root",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "PLG-05",
+        "AGENT-02"
+      ],
+      "requirements": [
+        "PV-P04"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D40, and the plugin paragraph of docs/spec.md (1c009a1). One skill in the Agent Skills format, packages/cli/plugin/skills/truedone/SKILL.md, and a byte-identical copy at skills/truedone/SKILL.md in the repository root, where agents that read skills from a repository find it. Its frontmatter has name: truedone and a description of at most 1024 characters saying when to use it: before reporting coding work done, and when checking whether a pull request's tests prove its change. The body says, read from the code and docs/spec.md: the commands (npx truedone, npx truedone <PR link>, --run and what it asks first on someone else's pull request, --json, --pr-line), what each verdict means, with https://truedone.pages.dev/why, the rules (never weaken, skip or delete a test to make it pass; report the verdict as printed; put the --pr-line line in the pull request description), and what truedone never does. It asks nothing beyond checking the reader's own work (D40). The plugin README names the skill. The plugin still has one hook.",
+      "scope": {
+        "allow": [
+          "packages/cli/plugin/skills/**",
+          "skills/**",
+          "packages/cli/plugin/README.md",
+          "packages/cli/test/plugin-skill.test.mjs",
+          "docs/plugin-hooks.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "PLG-06-AC01",
+          "mandatory": true,
+          "statement": "the skill's frontmatter is valid (its name is its folder's, its description at most 1024 characters), the two copies are equal, and every command it names is in the CLI's help",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/cli/test/plugin-skill.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "PLG-06-AC02",
+          "mandatory": true,
+          "statement": "Claude Code validates the plugin folder",
+          "verifier": {
+            "type": "command",
+            "cmd": "env -u CLAUDECODE claude plugin validate ./packages/cli/plugin",
+            "expect_exit": 0,
+            "timeout_s": 120
+          }
+        },
+        {
+          "id": "PLG-06-AC03",
+          "mandatory": true,
+          "statement": "the plugin installs from the checkout into a throwaway home, with the skill",
+          "verifier": {
+            "type": "command",
+            "cmd": "H=$(mktemp -d) && R=$(pwd) && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin marketplace add \"$R\" && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin install truedone@truedone && find \"$H/.claude/plugins\" -path '*/skills/truedone/SKILL.md' | grep -q .",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "PLG-06-AC04",
+          "mandatory": true,
+          "statement": "every text truedone gives an agent asks only that it check its own work (D40)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test tools/test/agent-text.test.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-06-AC05",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-06-AC06",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-06-AC07",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-06-AC08",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "PLG-06-AC09",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "PLG-03",
       "title": "[W6] Plugin red-green, after the red-green gates",
       "phase": "implement",
@@ -14293,10 +15059,10 @@
         {
           "id": "REL-P1-AC03",
           "mandatory": true,
-          "statement": "the CLI names itself a preview",
+          "statement": "the CLI names itself a preview, with packages/cli/package.json's version",
           "verifier": {
             "type": "command",
-            "cmd": "node packages/cli/truedone.mjs --version | grep -qx \"truedone 0.1.0 (preview)\"",
+            "cmd": "node packages/cli/truedone.mjs --version | grep -qx \"truedone $(node -p 'require(\"./packages/cli/package.json\").version') (preview)\"",
             "expect_exit": 0,
             "timeout_s": 300
           }
@@ -14601,10 +15367,10 @@
         {
           "id": "REL-P5-AC08",
           "mandatory": true,
-          "statement": "npm's truedone@0.1.0 is the tarball REL-P1 checked (dist.integrity equals the notes' integrity), latest is 0.1.0, and the maintainer is optitransfer",
+          "statement": "npm's truedone@0.1.0 is the tarball REL-P1 checked (dist.integrity equals the notes' integrity), latest is 0.1.0 or a later version with its own release notes, and the maintainer is optitransfer",
           "verifier": {
             "type": "command",
-            "cmd": "NPM_CONFIG_USERCONFIG=/dev/null node -e 'const {execSync}=require(\"child_process\");const fs=require(\"fs\");const j=(c)=>JSON.parse(execSync(c).toString());const tags=j(\"npm view truedone dist-tags --json\");const integ=j(\"npm view truedone@0.1.0 dist.integrity --json\");const maint=[].concat(j(\"npm view truedone maintainers --json\"));const notes=fs.readFileSync(\"docs/releases/preview-0.1.0.md\",\"utf8\");process.exit(tags.latest===\"0.1.0\"&&typeof integ===\"string\"&&notes.includes(integ)&&maint.some(m=>String(m).startsWith(\"optitransfer\"))?0:1)'",
+            "cmd": "NPM_CONFIG_USERCONFIG=/dev/null node -e 'const {execSync}=require(\"child_process\");const fs=require(\"fs\");const j=(c)=>JSON.parse(execSync(c).toString());const tags=j(\"npm view truedone dist-tags --json\");const integ=j(\"npm view truedone@0.1.0 dist.integrity --json\");const maint=[].concat(j(\"npm view truedone maintainers --json\"));const notes=fs.readFileSync(\"docs/releases/preview-0.1.0.md\",\"utf8\");process.exit((tags.latest===\"0.1.0\"||fs.existsSync(\"docs/releases/preview-\"+tags.latest+\".md\"))&&typeof integ===\"string\"&&notes.includes(integ)&&maint.some(m=>String(m).startsWith(\"optitransfer\"))?0:1)'",
             "expect_exit": 0,
             "timeout_s": 300
           }
@@ -14727,6 +15493,104 @@
         },
         {
           "id": "REL-P6-AC05",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "REL-P7",
+      "title": "[W2] Ryan publishes 0.1.1, and the MCP registry lists truedone",
+      "phase": "implement",
+      "owner": "ryan",
+      "depends_on": [
+        "CLI-05",
+        "REL-P5"
+      ],
+      "requirements": [
+        "PV-R01"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D35. After CLI-05, Ryan publishes 0.1.1 from packages/cli in his terminal with node 22.11.0 on PATH (a tarball's integrity depends on the zlib node uses; 0.1.0's matched on 22.11.0), then runs mcp-publisher login github and mcp-publisher publish from the repository root, in his terminal and his browser. The lead reads each back into the \"## The publish\" section of docs/releases/preview-0.1.1.md, as for REL-P5.",
+      "scope": {
+        "allow": [
+          "docs/releases/preview-0.1.1.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "REL-P7-AC01",
+          "mandatory": true,
+          "statement": "npm's truedone@0.1.1 is the tarball CLI-05 checked, names server.json's entry as its mcpName, and its maintainer is optitransfer",
+          "verifier": {
+            "type": "command",
+            "cmd": "NPM_CONFIG_USERCONFIG=/dev/null node -e 'const {execSync}=require(\"child_process\");const fs=require(\"fs\");const j=JSON.parse(execSync(\"npm view truedone@0.1.1 --json\").toString());const s=JSON.parse(fs.readFileSync(\"server.json\",\"utf8\"));const notes=fs.readFileSync(\"docs/releases/preview-0.1.1.md\",\"utf8\");const m=[].concat(j.maintainers||[]).map(x=>typeof x===\"string\"?x:x.name);process.exit(j.version===\"0.1.1\"&&j.mcpName===s.name&&notes.includes(j.dist.integrity)&&m.some(x=>String(x).startsWith(\"optitransfer\"))?0:1)'",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "REL-P7-AC02",
+          "mandatory": true,
+          "statement": "the MCP registry lists io.github.Truedone/truedone at 0.1.1",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e '(async()=>{const s=JSON.parse(require(\"fs\").readFileSync(\"server.json\",\"utf8\"));const r=await fetch(\"https://registry.modelcontextprotocol.io/v0/servers?search=\"+encodeURIComponent(s.name));const j=await r.json();const ok=(j.servers||[]).some(x=>{const v=x.server||x;return v.name===s.name&&v.version===\"0.1.1\"});process.exit(ok?0:1)})().catch(()=>process.exit(1))'",
+            "expect_exit": 0,
+            "timeout_s": 120
+          }
+        },
+        {
+          "id": "REL-P7-AC03",
+          "mandatory": true,
+          "statement": "0.1.1's release notes record the publish",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/releases/preview-0.1.1.md",
+            "pattern": "^## The publish",
+            "must": "present"
+          }
+        },
+        {
+          "id": "REL-P7-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P7-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REL-P7-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "REL-P7-AC07",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
