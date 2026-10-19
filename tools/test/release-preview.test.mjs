@@ -9,7 +9,7 @@ import { gzipSync } from 'node:zlib';
 import { execFileSync, spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
-import { readTarball, checkTarball, writeSection, installedPlugin, installedLine, stopCommand, FILES, MAX_BYTES } from '../release-preview.mjs';
+import { readTarball, checkTarball, writeSection, installedPlugin, installedLine, stopCommand, pluginScratch, FILES, MAX_BYTES } from '../release-preview.mjs';
 import { VERSION } from '../../packages/cli/src/version.mjs';
 
 const ROOT = new URL('../../', import.meta.url);
@@ -151,4 +151,45 @@ test("the installed line names the source and not the commit, so two passing run
   assert.equal(two, one);
   assert.doesNotMatch(one, /[0-9a-f]{40}/);
   assert.equal(installedLine(at(undefined), { local: '/clone', source: '/clone', home }), 'installed: version 0.1.0, from this clone, at <scratch HOME>/.claude/plugins/cache/truedone/truedone/0.1.0');
+});
+
+// PLG-08: the claude CLI keeps its login in the macOS Keychain, and with HOME in a scratch directory macOS found no default
+// keychain and showed the owner a "Keychain Not Found" dialog. The plugin walk's scratch home links Library/Keychains to
+// the real user's folder before claude runs, and removing the scratch directory never reaches that folder.
+test("the plugin walk's scratch home links Library/Keychains to the real user's, and removing it leaves that folder", () => {
+  const real = fs.mkdtempSync(path.join(os.tmpdir(), 'plg08-real-'));
+  const login = path.join(real, 'Library', 'Keychains', 'login.keychain-db');
+  fs.mkdirSync(path.dirname(login), { recursive: true });
+  fs.writeFileSync(login, 'sentinel');
+  try {
+    const box = pluginScratch({ realHome: real });
+    assert.equal(box.keychains, path.join(box.home, 'Library', 'Keychains'));
+    assert.ok(fs.lstatSync(box.keychains).isSymbolicLink(), 'Library/Keychains is a link');
+    assert.equal(fs.readlinkSync(box.keychains), path.join(real, 'Library', 'Keychains'));
+    assert.equal(fs.readFileSync(path.join(box.keychains, 'login.keychain-db'), 'utf8'), 'sentinel', 'the lookup reaches the real folder');
+    for (const d of [box.home, box.data, box.repo]) assert.ok(fs.statSync(d).isDirectory() && d.startsWith(box.scratch + path.sep));
+    box.remove();
+    assert.equal(fs.existsSync(box.scratch), false, 'the scratch directory is gone');
+    assert.equal(fs.readFileSync(login, 'utf8'), 'sentinel', 'the real folder is untouched');
+  } finally {
+    fs.rmSync(real, { recursive: true, force: true });
+  }
+});
+
+test('by default the link points at the home of the process that starts the walk, never into the scratch directory', () => {
+  const box = pluginScratch();
+  try {
+    assert.equal(fs.readlinkSync(box.keychains), path.join(os.homedir(), 'Library', 'Keychains'));
+    assert.ok(!fs.readlinkSync(box.keychains).startsWith(box.scratch));
+  } finally {
+    fs.unlinkSync(box.keychains);
+    box.remove();
+  }
+});
+
+test('the plugin walk builds its scratch home only through pluginScratch, before it runs claude', () => {
+  const src = fs.readFileSync(new URL('../release-preview.mjs', import.meta.url), 'utf8');
+  const walk = src.slice(src.indexOf('async function plugin('));
+  assert.equal(src.split("'truedone-plugin-'").length - 1, 1, 'one place makes the plugin scratch directory');
+  assert.ok(walk.indexOf('pluginScratch()') >= 0 && walk.indexOf('pluginScratch()') < walk.indexOf("execFileSync('claude'"), 'the walk builds the scratch home before claude runs');
 });
