@@ -51,6 +51,15 @@ export function slim(event, payload = {}) {
 const queued = (body) => ({ event: body.event, delivery: body.delivery, payload: slim(body.event, body.payload) });
 const logLine = (delivery, error, fields = { stage: "intake" }) => console.error(JSON.stringify({ ...fields, delivery, error: `${error?.name ?? "Error"}: ${error?.message ?? error}` }));
 
+// APP-28: a Marketplace plan change (purchased, changed, cancelled, pending_change, pending_change_cancelled) is
+// answered and logged in one line with the action, the plan id and the account's id and type, never a login or an
+// email, which the payload carries in sender and marketplace_purchase.account (S8). Nothing is queued, kept or written.
+function marketplaceAnswer(delivery, payload) {
+  const purchase = payload.marketplace_purchase;
+  console.log(JSON.stringify({ stage: "marketplace", delivery, action: payload.action, plan: purchase?.plan?.id ?? null, account: purchase?.account?.id ?? null, account_type: purchase?.account?.type ?? null }));
+  return Response.json({ marketplace: payload.action }, { status: 200 });
+}
+
 export async function verifySignature(secret, body, header) {
   if (typeof header !== "string" || !header.startsWith("sha256=")) return false;
   const given = header.slice("sha256=".length);
@@ -110,11 +119,16 @@ export function makeIntake(env, { run, budgetMs = DIRECT_BUDGET_MS } = {}) {
     }
     const body = await request.arrayBuffer();
     const signature = request.headers.get(WEBHOOK_SECRET_HEADER);
-    if (!(await verifySignature(env.WEBHOOK_SECRET, body, signature))) {
+    const event = request.headers.get(EVENT_HEADER) || "";
+    // APP-28: GitHub Marketplace sends the listing's plan changes to this URL, signed with the listing's own secret. Only
+    // MARKETPLACE_WEBHOOK_SECRET verifies a marketplace_purchase, and with that secret unset every one is refused; the
+    // App's secret never verifies one, and the listing's never verifies an App event.
+    const marketplace = event === "marketplace_purchase";
+    if (marketplace && !env.MARKETPLACE_WEBHOOK_SECRET) return new Response("signature", { status: 401 });
+    if (!(await verifySignature(marketplace ? env.MARKETPLACE_WEBHOOK_SECRET : env.WEBHOOK_SECRET, body, signature))) {
       return new Response("signature", { status: 401 });
     }
     const delivery = request.headers.get(DELIVERY_HEADER);
-    const event = request.headers.get(EVENT_HEADER) || "";
     if (!delivery) return new Response("delivery", { status: 400 });
 
     // The drops come before the dedupe (APP-23): a dropped delivery makes no KV call, and another copy of it is
@@ -122,6 +136,7 @@ export function makeIntake(env, { run, budgetMs = DIRECT_BUDGET_MS } = {}) {
     // every pull request, and each CI run sends requested and in_progress. The payload is parsed first, so a body that
     // does not parse leaves no record and a redeliver of it is handled.
     const payload = JSON.parse(new TextDecoder().decode(body));
+    if (marketplace) return marketplaceAnswer(delivery, payload);
 
     // Events for removed installations are dropped (S6), not queued. An uninstall marks the installation removed before
     // it answers, then deletes its data at once (APP-24, R6): after the answer in ctx.waitUntil, or inline with no ctx. A
