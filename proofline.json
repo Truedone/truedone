@@ -611,6 +611,13 @@
       ],
       "CLI-09": [
         "CLI-09-AC06"
+      ],
+      "E2E-01": [
+        "E2E-01-AC02",
+        "E2E-01-AC07"
+      ],
+      "WEB-17": [
+        "WEB-17-AC05"
       ]
     }
   },
@@ -13947,6 +13954,104 @@
       ]
     },
     {
+      "id": "WEB-17",
+      "title": "[W2] Every page's footer names /llms.txt for coding agents",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "AGENT-02"
+      ],
+      "requirements": [
+        "PV-W02"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "AGENT-02 put \"For coding agents\" (/llms.txt) in the footer of the home page and the pull request page, not /why's: packages/web/lib/view.mjs FOOTER_LINKS is shared by /why, the legal pages (tools/build-legal.mjs) and 404.html, and their tests hold them equal. The link joins FOOTER_LINKS, so every page has it once, and AGENT-02's separate AGENTS_LINK goes; the legal pages are built again with node tools/build-legal.mjs, and 404.html and the tests that list the footer follow, each gaining the one link and nothing else.",
+      "scope": {
+        "allow": [
+          "packages/web/**",
+          "tools/build-legal.mjs",
+          "tools/test/build-legal.test.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "WEB-17-AC01",
+          "mandatory": true,
+          "statement": "every page, the legal pages and 404 included, has the agents link in its footer once",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/footer-agents.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-17-AC02",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-17-AC03",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-17-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-17-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-17-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "WEB-17-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "CLI-02",
       "title": "[W1] npx truedone init",
       "phase": "implement",
@@ -18004,6 +18109,131 @@
         },
         {
           "id": "REL-P9-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "E2E-01",
+      "title": "[W4] Every surface, end to end, on real pull requests in the owner's projects, with the action in GitHub Actions",
+      "phase": "implement",
+      "owner": "lane-d",
+      "depends_on": [
+        "ACT-03",
+        "APP-32",
+        "CLI-07",
+        "AGENT-02",
+        "REL-P4"
+      ],
+      "requirements": [
+        "PV-R01"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "The owner asked for every check, end to end, on pull requests in his own projects, with the test workflow running in GitHub Actions. His account's Actions are locked for billing, so the projects are organisation forks with Actions on: Truedone/e2e-agentkey (node --test), Truedone/e2e-crdt-merge-ts (jest) and Truedone/e2e-crdt-merge (pytest); the production App is installed on the organisation. By the lead's order, lane-d pushes branches and opens pull requests in these three repositories only. (1) Each fork's default branch gets .github/workflows/truedone.yml: the project's own install and test command, then uses: Truedone/truedone/packages/action@<40-hex main sha> pinned, as the App requires (PV-A06), from main at the time; the commit and the sha are recorded. (2) In each fork, pull requests that each make one verdict, the cases the project's runner can show: a source fix with a test that fails without it (truedone:yes from the action's red-green); a weakened or deleted assertion (tampered); a skipped or focused test; a source change with no test (no evidence or unrun); a docs-only change (not applicable); a test-only change. Each case is a small, real change to that project's code. (3) For each pull request, recorded in docs/e2e/2026-10-19/run.json (repository, number, head sha, the case, the expected verdict and label): the App's check run (app slug truedone, title, details link), its label and the label event's actor (truedone[bot]), the workflow run and its conclusion, the action's report artifact, the seconds from opening to the final label; the site's verdict for the same pull request (headless Chrome with --use-mock-keychain, read from the page); npx truedone <link> --json and the MCP server's truedone_check_pr answer for it. Every surface must give the same verdict; a difference is a finding. (4) docs/e2e/2026-10-19/report.md: the table, then \"## Findings\", each with the step, what was expected, what happened, the command and its output, and file:line where found, then what worked. A fault found is reported to the lead and is not fixed here. (5) tools/e2e-verify.mjs <run.json> reads each recorded pull request back from GitHub now and exits 1 when a label, an actor, a check run's app or a workflow conclusion differs from the record; its test uses recorded answers in GitHub's shape. Pull requests stay open, so the owner can open each one and its Actions run. No probe runs claude or gh under a scratch HOME.",
+      "scope": {
+        "allow": [
+          "tools/e2e-verify.mjs",
+          "tools/test/e2e-verify.test.mjs",
+          "tools/test/fixtures/e2e-verify/**",
+          "docs/e2e/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "E2E-01-AC01",
+          "mandatory": true,
+          "statement": "the verifier fails a record whose label, actor, check run app or workflow conclusion differs from GitHub, and passes a matching one",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/e2e-verify.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "E2E-01-AC02",
+          "mandatory": true,
+          "statement": "every recorded pull request in the three forks reads back from GitHub as recorded: verdict label, truedone[bot], the App's check run and the workflow run",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/e2e-verify.mjs docs/e2e/2026-10-19/run.json",
+            "expect_exit": 0,
+            "timeout_s": 600
+          }
+        },
+        {
+          "id": "E2E-01-AC03",
+          "mandatory": true,
+          "statement": "the run covers the three forks and at least five cases in each",
+          "verifier": {
+            "type": "command",
+            "cmd": "node -e 'const r=JSON.parse(require(\"fs\").readFileSync(\"docs/e2e/2026-10-19/run.json\",\"utf8\"));const by={};for(const p of r.pulls)(by[p.repository]??=new Set()).add(p.case);const need=[\"Truedone/e2e-agentkey\",\"Truedone/e2e-crdt-merge-ts\",\"Truedone/e2e-crdt-merge\"];process.exit(need.every(n=>by[n]&&by[n].size>=5)?0:1)'",
+            "expect_exit": 0,
+            "timeout_s": 60
+          }
+        },
+        {
+          "id": "E2E-01-AC04",
+          "mandatory": true,
+          "statement": "the report holds its findings",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/e2e/2026-10-19/report.md",
+            "pattern": "^## Findings",
+            "must": "present"
+          }
+        },
+        {
+          "id": "E2E-01-AC05",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "E2E-01-AC06",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "E2E-01-AC07",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "E2E-01-AC08",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "E2E-01-AC09",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
