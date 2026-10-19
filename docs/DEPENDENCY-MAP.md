@@ -125,7 +125,7 @@ flowchart TD
 | `core-run` | the red-green runner | `packages/core/run/**` | `bundles` | `core-test`, `spec` | live |
 | `core-test` | core tests and fixtures | `packages/core/test/**` |   | `core` | live |
 | `bundles` | the built single files | `packages/core/core.mjs`, `packages/web/core.mjs`, `packages/cli/truedone.mjs`, `packages/cli/plugin/hooks/stop.mjs`, `packages/action/dist/index.mjs` |   | `web`, `cli`, `app`, `action` | live |
-| `web` | truedone.pages.dev | `packages/web/**` |   | `readme`, `design`, `app` | live |
+| `web` | truedone.pages.dev, and its llms.txt at the repository root | `packages/web/**`, `llms.txt` |   | `readme`, `design`, `app` | live |
 | `cli` | npx truedone, the plugin and the MCP registry entry: `server.json`, held to `packages/cli/package.json` by `packages/cli/test/registry.test.mjs` | `packages/cli/**`, `.claude-plugin/**`, `server.json` |   | `readme`, `design` | live |
 | `app` | the GitHub App | `packages/app/**` |   | `readme`, `design` | live |
 | `action` | the CI step | `packages/action/**` |   | `readme`, `design` | live |
@@ -167,7 +167,7 @@ flowchart TD
     "core-run": {"paths": ["packages/core/run/**"], "update": ["bundles"], "review": ["core-test", "spec"]},
     "core-test": {"paths": ["packages/core/test/**"], "update": [], "review": ["core"]},
     "bundles": {"paths": ["packages/core/core.mjs", "packages/web/core.mjs", "packages/cli/truedone.mjs", "packages/cli/plugin/hooks/stop.mjs", "packages/action/dist/index.mjs"], "update": [], "review": ["web", "cli", "app", "action"]},
-    "web": {"paths": ["packages/web/**"], "update": [], "review": ["readme", "design", "app"]},
+    "web": {"paths": ["packages/web/**", "llms.txt"], "update": [], "review": ["readme", "design", "app"]},
     "cli": {"paths": ["packages/cli/**", ".claude-plugin/**", "server.json"], "update": [], "review": ["readme", "design"]},
     "app": {"paths": ["packages/app/**"], "update": [], "review": ["readme", "design"]},
     "action": {"paths": ["packages/action/**"], "update": [], "review": ["readme", "design"]},

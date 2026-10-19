@@ -10,7 +10,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { page } from '../lib/page.mjs';
-import { FOOTER_LINKS, signinHref } from '../lib/view.mjs';
+import { FOOTER_LINKS, AGENTS_LINK, signinHref } from '../lib/view.mjs';
 import { fakeFetch, fakeDoc, textOf, classify, verdict } from './lib/fakes.mjs';
 
 const web = new URL('../', import.meta.url);
@@ -74,7 +74,7 @@ test('the home page\'s #app holds a static page in the site\'s shell, before any
   assert.equal(home.split('id="app"').length - 1, 1, 'one #app');
   assert.match(app, /^<div class="page">\n<header class="site-header">[\s\S]*<\/footer>\n<\/div>$/);
   assert.equal(block(app, 'header'), block(read('why.html'), 'header'));
-  const footer = [...FOOTER_LINKS.map(([t, href]) => `<li><a href="${href}">${t}</a></li>`), `<li class="signin-item"><a href="${signinHref('/')}">Sign in with GitHub</a></li>`].join('');
+  const footer = [...[...FOOTER_LINKS, AGENTS_LINK].map(([t, href]) => `<li><a href="${href}">${t}</a></li>`), `<li class="signin-item"><a href="${signinHref('/')}">Sign in with GitHub</a></li>`].join('');
   assert.equal(block(app, 'footer'), `\n<ul>${footer}</ul>\n`);
 });
 

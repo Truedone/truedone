@@ -41,7 +41,9 @@ You need git and Node 22 or later. The command line is one file with no dependen
    node packages/cli/truedone.mjs https://github.com/Truedone/truedone-sandbox/pull/31
    ```
 
-When the npm package is released, `npx truedone <PR link>` replaces steps 2 and 3, and `npx truedone` on its own checks the branch you are on.
+The npm package is released, so `npx truedone <PR link>` does steps 2 and 3 in one command, with nothing cloned, and `npx truedone` on its own checks the branch you are on.
+
+For coding agents, [llms.txt](llms.txt) says what truedone checks, how to run it and what it never does.
 
 ## Verdicts
 

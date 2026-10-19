@@ -18,6 +18,7 @@
 // codes and this site as the version, with no PR text.
 // A node is { tag, text?, attrs?, children? }.
 import { RELEASED, FOLLOW, SURFACES } from './release.mjs';
+import { route } from './route.mjs';
 
 export const VERDICTS = {
   tampered: 'Tampered',
@@ -54,6 +55,9 @@ export const signinHref = (path) => `/signin?return=${encodeURIComponent(path &&
 export const resetTime = (reset) => new Date(reset * 1000).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 export const TAGLINE = 'Checks whether a pull request\'s tests prove its change: red without it, green with it.';
 export const FOOTER_LINKS = [['Why', '/why'], ['Privacy', '/privacy'], ['Terms', '/terms'], ['GitHub', 'https://github.com/Truedone/truedone']];
+// AGENT-02 (D40): the home page, /why and the PR page link /llms.txt for coding agents, after the four links
+export const AGENTS_LINK = ['For coding agents', '/llms.txt'];
+const agentsPage = (path) => ['home', 'pr'].includes(route(path).kind);
 export const MAX_REASONS = 10;
 export const INSTALL_HREF = 'https://github.com/apps/truedone/installations/new';
 export const REPORT_FORM = 'https://github.com/Truedone/truedone/issues/new';
@@ -82,11 +86,12 @@ export function siteHeader() {
   ]);
 }
 
-// the four links, then sign-in, which returns to the page it was offered on (WEB-02)
+// the four links, on the home and PR pages the link for coding agents, then sign-in, which returns to the page it was
+// offered on (WEB-02)
 export function siteFooter(path = '/') {
   return el('footer', undefined, { class: 'site-footer' }, [
     el('ul', undefined, undefined, [
-      ...FOOTER_LINKS.map(([text, href]) => el('li', undefined, undefined, [el('a', text, { href })])),
+      ...[...FOOTER_LINKS, ...(agentsPage(path) ? [AGENTS_LINK] : [])].map(([text, href]) => el('li', undefined, undefined, [el('a', text, { href })])),
       el('li', undefined, { class: 'signin-item' }, [el('a', 'Sign in with GitHub', { href: signinHref(path) })]),
     ]),
   ]);
