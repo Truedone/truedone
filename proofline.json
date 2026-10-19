@@ -504,6 +504,13 @@
       ],
       "APP-27": [
         "APP-27-AC05"
+      ],
+      "OPS-10": [
+        "OPS-10-AC03",
+        "OPS-10-AC06"
+      ],
+      "TEST-01": [
+        "TEST-01-AC07"
       ]
     }
   },
@@ -14274,7 +14281,7 @@
           "statement": "the real tarball passes the check, and the installed CLI gives the site's verdict on each of its five examples",
           "verifier": {
             "type": "command",
-            "cmd": "node tools/release-preview.mjs cli",
+            "cmd": "GITHUB_TOKEN=\"$(gh auth token 2>/dev/null)\" node tools/release-preview.mjs cli",
             "expect_exit": 0,
             "timeout_s": 900
           }
@@ -16212,6 +16219,134 @@
       ]
     },
     {
+      "id": "TEST-01",
+      "title": "[W2] Every scratch-repository test turns git maintenance off",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "MAP-02"
+      ],
+      "requirements": [
+        "PV-D02"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "MAP-02 measured that git 2.54's commit starts \"git maintenance run --auto --quiet --detach\", which writes into a temporary repository's .git while a test removes it, so cleanup fails with ENOTEMPTY or EINVAL under load. claude-b's grep of main (bus 5146) found ten more files that commit in a temporary repository without turning it off: packages/cli/test/agent-spread.test.mjs, packages/cli/test/cli.test.mjs, packages/cli/test/lib/run-fakes.mjs, packages/cli/test/plugin-runside.test.mjs, packages/core/test/run-coverage-js.test.mjs, tools/test/ci-gate-key.test.mjs, tools/test/ci-gate-main.test.mjs, tools/test/ci-gate-restore.test.mjs, tools/test/readme-status.test.mjs, tools/test/readme-ways.test.mjs. Each passes -c maintenance.auto=false -c gc.auto=0 (or the equivalent GIT_CONFIG_* environment) on its git calls in a temporary repository. tools/test/git-maintenance.test.mjs scans every test file and helper under packages/*/test and tools/test and fails naming any file that runs git commit in a temporary directory without maintenance turned off, so a new one cannot slip in. No assertion is loosened.",
+      "scope": {
+        "allow": [
+          "packages/cli/test/agent-spread.test.mjs",
+          "packages/cli/test/cli.test.mjs",
+          "packages/cli/test/lib/run-fakes.mjs",
+          "packages/cli/test/plugin-runside.test.mjs",
+          "packages/core/test/run-coverage-js.test.mjs",
+          "tools/test/ci-gate-key.test.mjs",
+          "tools/test/ci-gate-main.test.mjs",
+          "tools/test/ci-gate-restore.test.mjs",
+          "tools/test/readme-status.test.mjs",
+          "tools/test/readme-ways.test.mjs",
+          "tools/test/git-maintenance.test.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "TEST-01-AC01",
+          "mandatory": true,
+          "statement": "every test that commits in a temporary repository turns git maintenance off",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/git-maintenance.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "TEST-01-AC02",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "TEST-01-AC03",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "TEST-01-AC04",
+          "mandatory": true,
+          "statement": "core suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/core/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "TEST-01-AC05",
+          "mandatory": true,
+          "statement": "three runs of the parallel full suite show no scratch-repository cleanup failure",
+          "verifier": {
+            "type": "command",
+            "cmd": "for i in 1 2 3; do node --test 'packages/*/test/*.test.mjs' 'tools/test/*.test.mjs' > \"/tmp/test01-$i.tap\" 2>&1; grep -qE 'ENOTEMPTY|EINVAL|EBUSY' \"/tmp/test01-$i.tap\" && exit 1; done; exit 0",
+            "expect_exit": 0,
+            "timeout_s": 1800
+          }
+        },
+        {
+          "id": "TEST-01-AC06",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "TEST-01-AC07",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "TEST-01-AC08",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "TEST-01-AC09",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "DOC-00",
       "title": "[W1] Design documents: a flow and a schematic for each spec section, and the master schematic (D29)",
       "phase": "design",
@@ -16844,6 +16979,117 @@
       ]
     },
     {
+      "id": "OPS-10",
+      "title": "[W2] The App manifest links the organisation repository",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "OPS-09"
+      ],
+      "requirements": [
+        "PV-R01"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "#165: the production App's description on GitHub was changed on 2026-10-19 so its source link is https://github.com/Truedone/truedone (the repository moved to the organisation, D36). packages/app/app-manifest.json still links github.com/mgillr/truedone, so ORG-01's check that no shipped file names mgillr/truedone fails and OPS-09's comparison of the manifest with the public App page differs. The manifest's description becomes the live text: the same words with both occurrences of github.com/mgillr/truedone as github.com/Truedone/truedone, and nothing else changed.",
+      "scope": {
+        "allow": [
+          "packages/app/app-manifest.json",
+          "docs/ops/apps.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "OPS-10-AC01",
+          "mandatory": true,
+          "statement": "no shipped file names mgillr/truedone (ORG-01-AC02)",
+          "verifier": {
+            "type": "command",
+            "cmd": "! git grep -nE 'mgillr/truedone' -- . ':(exclude)proofline.json' ':(exclude)REQUIREMENTS.md' ':(exclude)docs/spec.md' ':(exclude,glob)docs/design/**' ':(exclude,glob)docs/contracts/**' ':(exclude,glob)**/test/**'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "OPS-10-AC02",
+          "mandatory": true,
+          "statement": "the manifest links the organisation repository",
+          "verifier": {
+            "type": "grep",
+            "file": "packages/app/app-manifest.json",
+            "pattern": "https://github\\.com/Truedone/truedone\\)",
+            "must": "present"
+          }
+        },
+        {
+          "id": "OPS-10-AC03",
+          "mandatory": true,
+          "statement": "the manifest matches the production App's public page (OPS-09)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/app-listing-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "OPS-10-AC04",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "OPS-10-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "OPS-10-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "OPS-10-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "OPS-10-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "REL-W2",
       "title": "[W2] Static release: go or stop",
       "phase": "release",
@@ -17213,10 +17459,10 @@
         {
           "id": "REL-W4-AC05",
           "mandatory": true,
-          "statement": "privacy and terms are reachable from truedone.pages.dev (on GO)",
+          "statement": "privacy and terms are served on truedone.pages.dev, from the pages generated from docs/privacy.md and docs/terms.md (on GO)",
           "verifier": {
             "type": "command",
-            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w4.md || (curl -sfI https://truedone.pages.dev/privacy | grep -qiE \"^location: https://github.com/Truedone/truedone/blob/main/docs/privacy.md\" && curl -sfI https://truedone.pages.dev/terms | grep -qiE \"^location: https://github.com/Truedone/truedone/blob/main/docs/terms.md\")",
+            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w4.md || (curl -sf https://truedone.pages.dev/privacy | grep -q \"<title>Privacy - truedone</title>\" && curl -sf https://truedone.pages.dev/terms | grep -q \"<title>Terms - truedone</title>\")",
             "expect_exit": 0,
             "timeout_s": 1800
           }
