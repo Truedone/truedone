@@ -1,5 +1,7 @@
 // OPS-09: the listing check names every way the public App page can differ from packages/app/app-manifest.json, and the
 // manifest records the settings set on 2026-10-18 (public, one callback on the site, no setup URL).
+// OPS-11: the answer in fixtures/app-listing/truedone.json was recorded again without a token on 2026-10-19, after the
+// source link moved to github.com/Truedone/truedone and the App to the Truedone organisation.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
