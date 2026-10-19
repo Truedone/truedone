@@ -644,6 +644,15 @@
       ],
       "WEB-18": [
         "WEB-18-AC05"
+      ],
+      "DOC-02": [
+        "DOC-02-AC06"
+      ],
+      "APP-35": [
+        "APP-35-AC06"
+      ],
+      "COLLECT-03": [
+        "COLLECT-03-AC04"
       ]
     }
   },
@@ -6641,6 +6650,94 @@
       ]
     },
     {
+      "id": "COLLECT-03",
+      "title": "[W2] The misses snapshot reads head content at the base repository",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "CORE-14",
+        "COLLECT-01"
+      ],
+      "requirements": [
+        "PV-G02"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Issue #198. tools/misses/snapshot.mjs:107, :124 and :127 read head content at raw.githubusercontent.com/<head repo>/<head sha>, which answers 404 once the forked repository is deleted or private, as sindresorhus/ky#871 showed before CORE-14. The snapshot reads head content at the base repository and the head sha, as the site, the command line and the App now do (CORE-14), and a head file it cannot read is named in the snapshot, never counted as removed. The test uses ky#871's recorded answers in GitHub's shape.",
+      "scope": {
+        "allow": [
+          "tools/misses/**",
+          "tools/test/misses-fork-head.test.mjs",
+          "tools/test/fixtures/misses/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "COLLECT-03-AC01",
+          "mandatory": true,
+          "statement": "the snapshot reads a pull request's head at the base repository, and a deleted head repository changes nothing",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/misses-fork-head.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "COLLECT-03-AC02",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "COLLECT-03-AC03",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "COLLECT-03-AC04",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "COLLECT-03-AC05",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "COLLECT-03-AC06",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "phase": "implement",
       "owner": "lane-a",
       "requirements": [
@@ -10727,6 +10824,228 @@
         },
         {
           "id": "APP-34-AC11",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "APP-35",
+      "title": "[W2] The red-green stage matches a pull request whose forked repository was deleted",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "CORE-14"
+      ],
+      "requirements": [
+        "PV-A06",
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Issue #197. packages/app/src/redgreen.mjs:41 reads p.head.repo.owner.login while it looks for the pull request a workflow run belongs to. GitHub sends head.repo null once the forked repository behind a pull request is deleted, so one such pull request in the list makes the stage throw and the run it was matching gets no answer. The match uses what GitHub keeps when the head repository is gone (the head sha and the pull request's own fields), never head.repo, and a pull request with head.repo null is matched or passed over without a throw. The test uses a workflow run's recorded answer in GitHub's shape whose pull request list holds one pull request with head.repo null beside the one the run belongs to.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-35-AC01",
+          "mandatory": true,
+          "statement": "a pull request with head.repo null in the list neither throws nor hides the run its pull request belongs to",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/redgreen-head-repo.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-35-AC02",
+          "mandatory": true,
+          "statement": "the App stays a Worker: no Node built-ins, require, child processes or eval",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-35-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-35-AC04",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-35-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-35-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-35-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-35-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "DOC-02",
+      "title": "[W2] The privacy note says the tests run with the session's environment",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "APP-34",
+        "CLI-10"
+      ],
+      "requirements": [
+        "PV-W02"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Issue #196. npx truedone --run on your own branch, and the plugin's Stop hook, run the project's own changed tests with the session's environment, as the project's test command would (the owner's choice, 2026-10-19, option A), while every git truedone starts gets a credential-free environment (PLG-12, CLI-10). packages/cli/plugin/README.md says so; docs/privacy.md, the page the plugin's manifest names as its privacy policy, does not. The privacy note gains one sentence in its part on the command line and the plugin, read from the code, and packages/web/privacy.html is built again with node tools/build-legal.mjs. It depends on APP-34, which changes the same note.",
+      "scope": {
+        "allow": [
+          "docs/privacy.md",
+          "packages/web/privacy.html",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "DOC-02-AC01",
+          "mandatory": true,
+          "statement": "the privacy note says the tests run with the session's environment",
+          "verifier": {
+            "type": "grep",
+            "file": "docs/privacy.md",
+            "pattern": "session's environment",
+            "must": "present"
+          }
+        },
+        {
+          "id": "DOC-02-AC02",
+          "mandatory": true,
+          "statement": "the published page says the same",
+          "verifier": {
+            "type": "grep",
+            "file": "packages/web/privacy.html",
+            "pattern": "session(&#39;|&#x27;|')s environment",
+            "must": "present"
+          }
+        },
+        {
+          "id": "DOC-02-AC03",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "DOC-02-AC04",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "DOC-02-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "DOC-02-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "DOC-02-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "DOC-02-AC08",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
@@ -15673,7 +15992,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "D40, and the init rows of the cli command table in docs/spec.md (1c009a1). init appends the snippet's missing lines to each agent instruction file the repository already has, in this order: AGENTS.md, CLAUDE.md, GEMINI.md, .github/copilot-instructions.md; when it has none, it creates AGENTS.md. init --global adds ~/.gemini/GEMINI.md when ~/.gemini exists, beside the files D38 named. Existing lines are never edited or reordered (PV-L07). The output names each file written, or that its lines were already there, and ends with one line saying that deleting those lines undoes it. --help, the CLI's README and llms.txt's init lines state the same rule. The test drives a scratch repository with each subset of the four files, and a scratch HOME with and without ~/.gemini.",
+      "description": "D40, and the init rows of the cli command table in docs/spec.md (1c009a1). init appends the snippet's missing lines to each agent instruction file the repository already has, in this order: AGENTS.md, CLAUDE.md, GEMINI.md, .github/copilot-instructions.md; when it has none, it creates AGENTS.md. init --global adds ~/.gemini/GEMINI.md when ~/.gemini exists, beside the files D38 named. Existing lines are never edited or reordered (PV-L07). The output names each file written, or that its lines were already there, and ends with one line saying that deleting those lines undoes it. --help, the CLI's README and llms.txt's init lines state the same rule. The test drives a scratch repository with each subset of the four files, and a scratch HOME with and without ~/.gemini. The root llms.txt stays byte-identical to packages/web/llms.txt (tools/test/agent-text.test.mjs), and README.md's and docs/design/04-cli-and-plugin.md's init sentences state the same rule. packages/cli/test/init.test.mjs's CLI-02 test \"AGENTS.md wins when both exist\" holds the rule D40 replaced: its assertion that CLAUDE.md is untouched becomes that CLAUDE.md keeps its bytes as a prefix and gains the snippet's lines, and the test's name says so; no assertion is dropped.",
       "scope": {
         "allow": [
           "packages/cli/**",
@@ -15686,7 +16005,10 @@
           "packages/cli/truedone.mjs",
           "packages/cli/plugin/hooks/stop.mjs",
           "packages/action/dist/index.mjs",
-          "tools/test/bundle-version.test.mjs"
+          "tools/test/bundle-version.test.mjs",
+          "llms.txt",
+          "README.md",
+          "docs/design/04-cli-and-plugin.md"
         ]
       },
       "criteria": [
