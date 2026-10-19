@@ -1,6 +1,6 @@
 {
   "name": "truedone",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "One Stop hook: blocks when a changed test fails, a test was weakened, or the agent says tests pass without running them",
   "author": {
     "name": "mgillr",

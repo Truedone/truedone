@@ -1,0 +1,23 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.Truedone/truedone",
+  "description": "Checks whether a pull request's tests prove its change, read from its diff and its own tests.",
+  "repository": {
+    "url": "https://github.com/Truedone/truedone",
+    "source": "github"
+  },
+  "version": "0.1.1",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "truedone",
+      "version": "0.1.1",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        { "type": "positional", "value": "mcp" }
+      ]
+    }
+  ]
+}

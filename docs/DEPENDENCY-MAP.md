@@ -28,7 +28,7 @@ flowchart TD
   core_test["core-test<br/>core tests and fixtures"]
   bundles["bundles<br/>the built single files"]
   web["web<br/>truedone.pages.dev"]
-  cli["cli<br/>npx truedone and the plugin"]
+  cli["cli<br/>npx truedone, the plugin and the MCP registry entry"]
   app["app<br/>the GitHub App"]
   action["action<br/>the CI step"]
   corpus["corpus<br/>the sample and the gate scripts"]
@@ -126,7 +126,7 @@ flowchart TD
 | `core-test` | core tests and fixtures | `packages/core/test/**` |   | `core` | live |
 | `bundles` | the built single files | `packages/core/core.mjs`, `packages/web/core.mjs`, `packages/cli/truedone.mjs`, `packages/cli/plugin/hooks/stop.mjs`, `packages/action/dist/index.mjs` |   | `web`, `cli`, `app`, `action` | live |
 | `web` | truedone.pages.dev | `packages/web/**` |   | `readme`, `design`, `app` | live |
-| `cli` | npx truedone and the plugin | `packages/cli/**`, `.claude-plugin/**` |   | `readme`, `design` | live |
+| `cli` | npx truedone, the plugin and the MCP registry entry: `server.json`, held to `packages/cli/package.json` by `packages/cli/test/registry.test.mjs` | `packages/cli/**`, `.claude-plugin/**`, `server.json` |   | `readme`, `design` | live |
 | `app` | the GitHub App | `packages/app/**` |   | `readme`, `design` | live |
 | `action` | the CI step | `packages/action/**` |   | `readme`, `design` | live |
 | `corpus` | the sample and the gate scripts | `tools/corpus/**` |   | `gates`, `index` | planned |
@@ -168,7 +168,7 @@ flowchart TD
     "core-test": {"paths": ["packages/core/test/**"], "update": [], "review": ["core"]},
     "bundles": {"paths": ["packages/core/core.mjs", "packages/web/core.mjs", "packages/cli/truedone.mjs", "packages/cli/plugin/hooks/stop.mjs", "packages/action/dist/index.mjs"], "update": [], "review": ["web", "cli", "app", "action"]},
     "web": {"paths": ["packages/web/**"], "update": [], "review": ["readme", "design", "app"]},
-    "cli": {"paths": ["packages/cli/**", ".claude-plugin/**"], "update": [], "review": ["readme", "design"]},
+    "cli": {"paths": ["packages/cli/**", ".claude-plugin/**", "server.json"], "update": [], "review": ["readme", "design"]},
     "app": {"paths": ["packages/app/**"], "update": [], "review": ["readme", "design"]},
     "action": {"paths": ["packages/action/**"], "update": [], "review": ["readme", "design"]},
     "corpus": {"planned": true, "paths": ["tools/corpus/**"], "update": [], "review": ["gates", "index"]},

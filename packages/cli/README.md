@@ -17,7 +17,8 @@ request, its commits, the verdict and the version. Nothing is sent until you sub
 
 `npx truedone mcp` serves the same check over the Model Context Protocol on stdio, as two tools:
 `truedone_check_pr` (a pull request link) and `truedone_check_branch` (the current branch). Each answers with the
-verdict line for a pull request description and the `truedone.verdict/1` result.
+verdict line for a pull request description and the `truedone.verdict/1` result. `server.json` at the repository root
+names its entry in the MCP registry, `io.github.Truedone/truedone`.
 
 Claude Code:
 
@@ -41,6 +42,6 @@ args = ["-y", "truedone", "mcp"]
 
 Exit codes: 0 when a verdict is produced or `--help` (or `-h`) prints the usage, 1 when `--fail-on` matches, 2 for a usage error, 3 for an internal error.
 
-This is the 0.1.0 preview: `npx truedone --version` prints `truedone 0.1.0 (preview)`, and `--help` ends by naming it a preview.
+This is the 0.1.1 preview: `npx truedone --version` prints `truedone 0.1.1 (preview)`, and `--help` ends by naming it a preview.
 
 The package is one file with no dependencies. Licence: Apache-2.0.

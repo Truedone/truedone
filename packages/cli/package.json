@@ -1,8 +1,11 @@
 {
   "name": "truedone",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "What a pull request's diff and its own tests show: one file, no dependencies.",
-  "repository": "https://github.com/Truedone/truedone",
+  "mcpName": "io.github.Truedone/truedone",
+  "keywords": ["mcp", "mcp-server", "model-context-protocol", "claude-code", "claude-code-plugin", "testing", "code-review", "pull-requests", "ci", "ai-agents"],
+  "homepage": "https://truedone.pages.dev",
+  "repository": { "type": "git", "url": "git+https://github.com/Truedone/truedone.git" },
   "type": "module",
   "bin": { "truedone": "truedone.mjs" },
   "files": ["truedone.mjs"],

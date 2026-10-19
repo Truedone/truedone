@@ -800,7 +800,7 @@ const { restore, swapToBase } = __m11;
 
 const SCHEMA = 'truedone.report/1';
 
-const TRUEDONE_VERSION = '0.1.0';
+const TRUEDONE_VERSION = '0.1.1';
 
 function cleanEnv(env) {
 const out = {};

@@ -16,7 +16,7 @@ import { restore, swapToBase } from './swap.mjs';
 const SCHEMA = 'truedone.report/1';
 // The release a report comes from (REL-P1, #105). tools/bundle.mjs writes this line in every bundle from
 // packages/cli/package.json's version, and tools/test/bundle-version.test.mjs holds the source line to it too.
-const TRUEDONE_VERSION = '0.1.0';
+const TRUEDONE_VERSION = '0.1.1';
 
 function cleanEnv(env) {
   const out = {};

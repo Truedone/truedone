@@ -1,11 +1,13 @@
-// tools/release-preview.mjs (REL-P1, D35): the 0.1.0 preview, checked from what a user installs.
+// tools/release-preview.mjs (REL-P1, CLI-05, D35): the preview, checked from what a user installs.
 //   node tools/release-preview.mjs cli
 // packs packages/cli with npm in a scratch directory under an empty npm config, and checks the tarball: exactly
 // truedone.mjs, package.json, README.md and LICENSE; package.json's version; no file over 1 MB; no secret pattern. It
 // installs the tarball into a scratch prefix with HOME in the scratch directory (a local tarball with no dependencies,
 // --offline, so no registry is asked), runs the installed truedone --version, and runs it with --json on the five
 // examples the site lists (EXAMPLES in packages/web/lib/view.mjs), each expecting the verdict the site lists for it.
-// The commands and the measured lines go to the "## The command line" section of docs/releases/preview-0.1.0.md.
+// The commands and the measured lines go to the "## The command line" section of the notes of the version it packs,
+// docs/releases/preview-<version>.md, titled "# The <version> preview" when it is new; another version's notes stay as
+// they were recorded (CLI-05).
 // The examples are live GitHub reads (GITHUB_TOKEN is passed through when the caller sets one); before them the script
 // reads /rate_limit, which costs no quota, and stops with exit 4 and the reset time when too few requests are left,
 // so a rate limit never reads as a verdict miss. Exit 0 when every check holds, and only then is the section written;
@@ -38,7 +40,9 @@ export const SECRETS = [
   ['a Slack token', /\bxox[abprs]-[A-Za-z0-9-]{10,}/],
   ['a private key', /-----BEGIN [A-Z ]*PRIVATE KEY-----/],
 ];
-export const NOTES = 'docs/releases/preview-0.1.0.md';
+// The notes of a version: each release keeps its own, so packing 0.1.1 never rewrites what 0.1.0 recorded (CLI-05).
+export const notesFor = (version) => `docs/releases/preview-${version}.md`;
+export const NOTES = notesFor(JSON.parse(fs.readFileSync(path.join(ROOT, 'packages/cli/package.json'), 'utf8')).version);
 export const SECTION = '## The command line';
 export const PLUGIN_SECTION = '## The plugin';
 // the plugin's own recorded cases the installed hook runs: the claim with no test run after the last edit, which it
@@ -186,8 +190,8 @@ async function cli() {
   }
   say(failed ? 'result: FAIL' : 'result: pass');
   if (failed) return unchanged();
-  const notes = path.join(ROOT, NOTES);
-  const before = fs.existsSync(notes) ? fs.readFileSync(notes, 'utf8') : '# The 0.1.0 preview\n\nEach section is written by `node tools/release-preview.mjs <surface>` from what it measured (D35).\n';
+  const notes = path.join(ROOT, notesFor(version));
+  const before = fs.existsSync(notes) ? fs.readFileSync(notes, 'utf8') : `# The ${version} preview\n\nEach section is written by \`node tools/release-preview.mjs <surface>\` from what it measured (D35).\n`;
   fs.mkdirSync(path.dirname(notes), { recursive: true });
   fs.writeFileSync(notes, writeSection(before, SECTION, `Written by \`node tools/release-preview.mjs cli\`.\n\n\`\`\`text\n${lines.join('\n')}\n\`\`\``));
   return 0;
@@ -287,8 +291,8 @@ async function plugin(args) {
   }
   say(failed ? 'result: FAIL' : 'result: pass');
   if (failed) return unchanged();
-  const notes = path.join(ROOT, NOTES);
-  const before = fs.existsSync(notes) ? fs.readFileSync(notes, 'utf8') : '# The 0.1.0 preview\n\nEach section is written by `node tools/release-preview.mjs <surface>` from what it measured (D35).\n';
+  const notes = path.join(ROOT, notesFor(version));
+  const before = fs.existsSync(notes) ? fs.readFileSync(notes, 'utf8') : `# The ${version} preview\n\nEach section is written by \`node tools/release-preview.mjs <surface>\` from what it measured (D35).\n`;
   fs.mkdirSync(path.dirname(notes), { recursive: true });
   fs.writeFileSync(notes, writeSection(before, PLUGIN_SECTION, `Written by \`node tools/release-preview.mjs plugin${local ? ' --local <this clone>' : ''}\`.\n\n\`\`\`text\n${lines.join('\n')}\n\`\`\``));
   return 0;
