@@ -8,7 +8,7 @@ Source section: Report, configuration, labels and limits
 
 **Configuration.** `.github/truedone.yml` is optional. It holds flat `key: value` lines only, read by a small reader in core with no YAML library. The keys are `test`, `comments`, `conclusion`, `ignore` and `enabled`. Unknown keys are ignored and named in a reason line.
 
-**Labels, check run and comment.** There is one check run named `truedone` per head SHA: the static result is posted first, then updated in place with red-green. A PR carries exactly one `truedone:*` label at any time. It is replaced when the latest head's verdict changes, and removed for Not applicable. Labels are created on first use, with fixed colours and descriptions under GitHub's 100-character limit, ending in `truedone.pages.dev/why`. That page is static and lists the eight labels, each with its verdict, when it is given and what to do next, in the words of the verdicts table. The comment is posted only when `comments: on`, and there is one, edited in place. The summary gives the verdict, up to 10 one-line reasons, what would change the verdict, and the truedone.pages.dev link.
+**Labels, check run and comment.** There is one check run named `truedone` per head SHA: the static result is posted first, then updated in place with red-green. A PR carries exactly one `truedone:*` label at any time. It is replaced when the latest head's verdict changes, and removed for Not applicable. Labels are created on first use, with fixed colours and descriptions under GitHub's 100-character limit, ending in `truedone.pages.dev/why`. That page is static and lists the eight labels, each with its verdict, when it is given and what to do next, in the words of the verdicts table. The check's title gives the verdict and a count of what was found, so the merge box says it. The summary gives each finding with its file and line, the line on base and on head and the change that clears it, then what would change the verdict, the steps to Proven and the truedone.pages.dev link, and each finding with a line on head is an annotation there. There is at most one comment, edited in place: with `comments: auto`, the default, while the verdict asks the maintainer to act, shrinking to one line when a later head no longer asks; `on` for every verdict, `off` never (D41).
 
 **Limits.** Static: up to 300 changed files, 20,000 changed lines and 100 fetched files. Beyond that, files are analysed in path order up to the limit and the verdict carries "(partial)". A partial PR is never Not applicable. Red-green: up to 50 changed tests, 5 minutes a run and 20 minutes for the whole step.
 
@@ -28,11 +28,11 @@ flowchart TD
   OK -->|no| REF["the app refuses it"]
   OK -->|yes| APP["the app"]
   APP --> CR["check run truedone per head SHA: static result first, then updated in place with red-green"]
-  CR --> SUM["summary: verdict, up to 10 one-line reasons, what would change the verdict, truedone.pages.dev link"]
+  CR --> SUM["title: the verdict and what was found; summary: each finding at file:line, before and after, its fix, the steps to Proven, truedone.pages.dev link; annotations on the lines"]
   CR --> LB{"latest head's verdict"}
   LB -->|changed| REPL["the one truedone:* label is replaced"]
   LB -->|Not applicable| RM["the label is removed"]
-  CR --> CM{"comments: on?"}
+  CR --> CM{"comments: on, or auto and the verdict asks for action?"}
   CM -->|yes| ONE["one comment, edited in place"]
 ```
 
@@ -64,7 +64,7 @@ flowchart LR
   subgraph CONFIG["keys in .github/truedone.yml"]
     direction TB
     K1["test: a command with {files}; default detected"]
-    K2["comments: off or on; default off"]
+    K2["comments: off, auto or on; default auto"]
     K3["conclusion: neutral or fail-on-tampered; default neutral"]
     K4["ignore: comma-separated globs; default none"]
     K5["enabled: true or false; default true"]
@@ -73,7 +73,7 @@ flowchart LR
     direction TB
     CR["check run truedone, one per head SHA"]
     LB["one truedone:* label; descriptions under 100 characters, ending in truedone.pages.dev/why"]
-    CM["one comment, only when comments: on"]
+    CM["at most one comment, edited in place: auto while action is asked, or on"]
   end
   subgraph LIMITS["limits"]
     direction TB
