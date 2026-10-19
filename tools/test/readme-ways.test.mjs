@@ -3,6 +3,9 @@
 // released surface Released, every other Not released yet. Flipping one surface in a scratch copy of release.mjs
 // changes only its row and the line above; the committed README is what the generator writes; --check fails on a hand
 // edit, or on a release.mjs the README was not regenerated for.
+// REL-P4 (D35): the walk released the command line, the App and the plugin. Each case below that needs every surface
+// unreleased takes release.mjs with every surface false for itself; the committed release.mjs is only read, never
+// written, so it is as committed after each case. The committed state has its own case.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -20,8 +23,15 @@ const block = (readme) => readme.slice(readme.indexOf(WAYS_BEGIN) + WAYS_BEGIN.l
 const rows = (b) => b.split('\n').filter((l) => l.startsWith('| ')).slice(1).map((l) => { const c = l.slice(2, -2).split(' | '); return [c[0].split(' ')[0], c[2]]; });
 const lead = (b) => b.split('\n').find((l) => l.trim() && !l.startsWith('|'));
 const SURFACES = ['[truedone.pages.dev](https://truedone.pages.dev)', '`npx', 'Claude', 'GitHub', 'GitHub'];
+// release.mjs with every surface unreleased: the committed file with its RELEASED literal set all false
+function unreleased() {
+  const text = RELEASE.replace(/^export const RELEASED = \{[^}]*\};$/m, 'export const RELEASED = { cli: false, action: false, app: false, plugin: false };');
+  assert.match(text, /^export const RELEASED = \{ cli: false, action: false, app: false, plugin: false \};$/m);
+  return text;
+}
 
 test('the Status column comes from release.mjs: the site Live, the four surfaces Not released yet', () => {
+  const RELEASE = unreleased();
   assert.deepEqual(readReleased(RELEASE), { cli: false, action: false, app: false, plugin: false });
   const b = ways(block(README), readReleased(RELEASE));
   assert.deepEqual(rows(b).map(([, s]) => s), ['Live', 'Not released yet', 'Not released yet', 'Not released yet', 'Not released yet']);
@@ -33,8 +43,18 @@ test('the committed README is what the generator writes from release.mjs', () =>
   assert.equal(block(README), ways(block(README), readReleased(RELEASE)));
 });
 
+test('as released: the command line, the plugin and the App are Released, the action Not released yet', () => {
+  assert.deepEqual(readReleased(RELEASE), { cli: true, action: false, app: true, plugin: true });
+  const b = ways(block(README), readReleased(RELEASE));
+  assert.deepEqual(rows(b).map(([, s]) => s), ['Live', 'Released', 'Released', 'Released', 'Not released yet']);
+  assert.deepEqual(rows(b).map(([s]) => s), SURFACES);
+  assert.equal(lead(b), "The site is live: truedone.pages.dev checks any public pull request now, and the command line, the plugin and the App are released. The action comes with the first release, planned in [docs/spec.md](docs/spec.md), each after its release's gates pass.");
+  assert.equal(block(README), b);
+});
+
 for (const [key, row] of [['cli', 1], ['plugin', 2], ['app', 3], ['action', 4]]) {
   test(`flipping ${key} in a scratch copy of release.mjs changes only its row and the line above`, (t) => {
+    const RELEASE = unreleased();
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'readme-ways-'));
     t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
     const copy = path.join(dir, 'release.mjs');
@@ -49,6 +69,7 @@ for (const [key, row] of [['cli', 1], ['plugin', 2], ['app', 3], ['action', 4]])
 }
 
 test('a row that is not a surface, a surface with no row, or a release.mjs that is not a plain literal is an error', () => {
+  const RELEASE = unreleased();
   const b = block(README);
   assert.throws(() => ways(b.replace('| GitHub Action |', '| Some Action |'), readReleased(RELEASE)), /is not one of the surfaces/);
   assert.throws(() => ways(b.split('\n').filter((l) => !l.startsWith('| Claude Code plugin')).join('\n'), readReleased(RELEASE)), /no row for plugin/);
@@ -59,6 +80,7 @@ test('a row that is not a surface, a surface with no row, or a release.mjs that 
 // a scratch repository with a status block and the committed ways block, for run()
 const ENV = { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@example.com', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@example.com', GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1' };
 test('--check passes on what the script wrote, and fails on a hand-edited cell or a release.mjs flipped without a rewrite', (t) => {
+  const RELEASE = unreleased();
   for (const k of ['log', 'error']) t.mock.method(console, k, () => {});
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'readme-ways-repo-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));

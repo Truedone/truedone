@@ -65,14 +65,14 @@ A large pull request that was only partly analysed gets "(partial)" after its ve
 ## Ways to use it
 
 <!-- ways: written by node tools/readme-status.mjs from packages/web/lib/release.mjs; do not edit -->
-The site is live: truedone.pages.dev checks any public pull request now. The command line, the plugin, the App and the action come with the first release, planned in [docs/spec.md](docs/spec.md), each after its release's gates pass.
+The site is live: truedone.pages.dev checks any public pull request now, and the command line, the plugin and the App are released. The action comes with the first release, planned in [docs/spec.md](docs/spec.md), each after its release's gates pass.
 
 | Surface | Who it is for | Status |
 |---|---|---|
 | [truedone.pages.dev](https://truedone.pages.dev) | Anyone reading a public pull request: open `truedone.pages.dev/owner/repo/pull/n` for the static verdict in the browser, with nothing to install. Live, unannounced, since DEP-01 merged (D32). | Live |
-| `npx truedone` | Developers, from the terminal: the current branch, or a pull request link. `--run` adds red-green, `--json` prints `truedone.verdict/1`, `--pr-line` prints one line for a pull request description, `init` adds four lines to `AGENTS.md` or `CLAUDE.md` that ask a coding agent to run it, and `mcp` serves the check to any agent that speaks the Model Context Protocol. | Not released yet |
-| Claude Code plugin | People working with Claude Code: a Stop hook keeps the agent from finishing when a test it changed fails, a test was weakened or disabled, or it says tests pass but has not run them since its last edit. | Not released yet |
-| GitHub App | Maintainers: one check run named `truedone` and at most one `truedone:*` label per pull request. It never runs the pull request's code. | Not released yet |
+| `npx truedone` | Developers, from the terminal: the current branch, or a pull request link. `--run` adds red-green, `--json` prints `truedone.verdict/1`, `--pr-line` prints one line for a pull request description, `init` adds four lines to `AGENTS.md` or `CLAUDE.md` that ask a coding agent to run it, and `mcp` serves the check to any agent that speaks the Model Context Protocol. | Released |
+| Claude Code plugin | People working with Claude Code: a Stop hook keeps the agent from finishing when a test it changed fails, a test was weakened or disabled, or it says tests pass but has not run them since its last edit. | Released |
+| GitHub App | Maintainers: one check run named `truedone` and at most one `truedone:*` label per pull request. It never runs the pull request's code. | Released |
 | GitHub Action | Repositories that want red-green in CI: one `uses:` line in an existing job, nothing installed. It writes a report the GitHub App reads. | Not released yet |
 <!-- ways: end -->
 
@@ -93,7 +93,7 @@ The site, the CLI and the plugin read from GitHub and keep nothing on a server. 
 <!-- status: written by node tools/readme-status.mjs from the contract and main; do not edit -->
 Released: docs/releases/w4.md says "Decision: GO".
 
-At main 717735878e72 (2026-10-19), 126 of the 158 tasks in the signed contract, [proofline.json](proofline.json), are on main:
+At main daad2ff4a91a (2026-10-19), 126 of the 158 tasks in the signed contract, [proofline.json](proofline.json), are on main:
 
 - truedone.pages.dev: 14 of 16 (WEB-01, WEB-02, WEB-04, WEB-05, WEB-06, WEB-07, WEB-08, WEB-09, WEB-10, WEB-11, WEB-12, WEB-13, WEB-14, WEB-15).
 - `npx truedone`: 4 of 5 (CLI-02, CLI-01, CLI-03, CLI-05).
