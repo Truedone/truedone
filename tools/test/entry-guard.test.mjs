@@ -40,7 +40,7 @@ const TOOLS = {
   gate6: { copies: ['tools/gate6.mjs'], status: 2, stderr: /^usage: node tools\/gate6\.mjs <release>/ },
   'readme-status': { copies: ['tools/readme-status.mjs'], written: { 'README.md': '# no status block here\n' }, status: 1, stderr: /^README\.md has no status block/ },
   'build-legal': { copies: ['tools/build-legal.mjs', 'packages/web/lib', 'docs/terms.md'], written: { 'docs/privacy.md': '### x\n' }, status: 1, stderr: /^build-legal: docs\/privacy\.md:1: unknown markdown/ },
-  'mirror-action': { copies: ['tools/mirror-action.mjs', 'packages/action/action.yml', 'packages/action/dist/index.mjs', 'packages/action/README.md', 'LICENSE'], args: ['--tree'], cwdLink: true, status: 0, stdout: /\S/ },
+  'mirror-action': { copies: ['tools/mirror-action.mjs', 'packages/action/action.yml', 'packages/action/dist/index.mjs', 'packages/action/README.md', 'LICENSE', 'NOTICE'], args: ['--tree'], cwdLink: true, status: 0, stdout: /\S/ },
   'check-browser': { copies: ['tools/check-browser.mjs'], status: 1, stderr: /^packages\/web\/core\.mjs is missing/ },
 };
 
