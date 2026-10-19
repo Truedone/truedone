@@ -1980,7 +1980,7 @@ const { restore, swapToBase } = __m9;
 
 const SCHEMA = 'truedone.report/1';
 
-const TRUEDONE_VERSION = '0.1.0';
+const TRUEDONE_VERSION = '0.1.1';
 
 function cleanEnv(env) {
 const out = {};
@@ -2608,7 +2608,7 @@ return failOn?.has(result.verdict) ? 1 : 0;
 return {SCHEMA,VERDICTS,MAX_REASONS,readable,SITE,REASON,pageLink,prLine,emit};
 })();
 const __m19=(()=>{
-const VERSION = '0.1.0';
+const VERSION = '0.1.1';
 const VERSION_LINE = `truedone ${VERSION} (preview)`;
 
 return {VERSION,VERSION_LINE};

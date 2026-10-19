@@ -111,7 +111,8 @@ test("the plugin's manifest names the site as its homepage and the release as it
 });
 
 // REL-P3 (the lead's 4582): only a passing run writes its section. A failed run once rewrote
-// docs/releases/preview-0.1.0.md with its FAIL lines, which dirtied the tree being verified. Each command runs here from
+// docs/releases/preview-0.1.0.md with its FAIL lines, which dirtied the tree being verified. The notes are the packed
+// version's, docs/releases/preview-<version>.md (CLI-05). Each command runs here from
 // a scratch copy of the script and the files it reads, with only node on PATH, so npm (cli) or the claude CLI (plugin)
 // is missing and the run fails at its first step: exit 1, and the notes are byte for byte what they were. The script is
 // run through a symlink to the scratch copy: through one, it once did nothing and exited 0.
@@ -119,11 +120,11 @@ for (const command of [['cli'], ['plugin', '--local', '.']]) {
   test(`a failing ${command[0]} run exits 1 and leaves the release notes unchanged`, () => {
     const scratch = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'release-preview-fail-')));
     try {
-      for (const f of ['tools/release-preview.mjs', 'docs/releases/preview-0.1.0.md', 'packages/cli/package.json']) {
+      for (const f of ['tools/release-preview.mjs', `docs/releases/preview-${PKG.version}.md`, 'packages/cli/package.json']) {
         fs.mkdirSync(path.dirname(path.join(scratch, f)), { recursive: true });
         fs.copyFileSync(new URL(f, ROOT), path.join(scratch, f));
       }
-      const notes = path.join(scratch, 'docs/releases/preview-0.1.0.md');
+      const notes = path.join(scratch, `docs/releases/preview-${PKG.version}.md`);
       const before = fs.readFileSync(notes);
       const link = path.join(scratch, 'link');
       fs.symlinkSync(scratch, link);
