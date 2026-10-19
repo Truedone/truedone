@@ -29,6 +29,6 @@ test('every page is served with nosniff and a Permissions-Policy that denies the
 
 test('robots.txt allows every crawler and names /why', () => {
   const lines = read('robots.txt').split('\n').map((l) => l.trim()).filter(Boolean);
-  assert.deepEqual(lines.filter((l) => !l.startsWith('#')), ['User-agent: *', 'Allow: /']);
+  assert.deepEqual(lines.filter((l) => !l.startsWith('#')), ['User-agent: *', 'Allow: /', 'Sitemap: https://truedone.pages.dev/sitemap.xml']);
   assert.ok(lines.some((l) => l.startsWith('#') && l.includes('https://truedone.pages.dev/why')), 'a line names /why');
 });
