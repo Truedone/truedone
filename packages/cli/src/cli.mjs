@@ -13,11 +13,12 @@
 //   --version                      print "truedone <version> (preview)" and exit 0, whatever else but --help is given
 // deps: { analyse, classify, fetch, cwd, env, stdout, stderr, git? }, and for --run { judge, detect, redGreen,
 // restorePending, stdin, makeGit?, spawn?, dockerOnPath?, cloneUrl?, tmpdir? }. core's analyse and classify come in as deps, so
-// the tests run main in-process; src/bin.mjs passes the bundled core. PR mode starts no process.
+// the tests run main in-process; src/bin.mjs passes the bundled core. PR mode starts no process. git gets gitEnv(env),
+// the names it needs from env and no credential (CLI-10, as PLG-12 gives the plugin's git).
 import { init, initGlobal } from './init.mjs';
 import { parseTarget } from './target.mjs';
 import { loadPR, fetchReleases, RateLimited, GitHubError } from './github.mjs';
-import { localInput, makeGit, NoRepository } from './local.mjs';
+import { localInput, makeGit, gitEnv, NoRepository } from './local.mjs';
 import { emit, VERDICTS } from './output.mjs';
 import { reportLink } from './report.mjs';
 import { serveMcp } from './mcp.mjs';
@@ -138,7 +139,7 @@ export async function staticVerdict({ target = null, dir }, deps) {
       throw e;
     }
   } else {
-    const git = deps.git ?? makeGit(dir, env);
+    const git = deps.git ?? makeGit(dir, gitEnv(env));
     try {
       const l = localInput(dir, { classify, git });
       input = l.input;

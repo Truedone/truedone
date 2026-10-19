@@ -2618,10 +2618,10 @@ const GIT_ENV = ['PATH', 'HOME', 'USER', 'LOGNAME', 'LANG', 'LC_ALL', 'LC_CTYPE'
 'GIT_CONFIG_GLOBAL', 'GIT_CONFIG_NOSYSTEM', 'GIT_CEILING_DIRECTORIES'];
 const GIT_ENV_WINDOWS = ['SYSTEMROOT', 'COMSPEC', 'PATHEXT'];
 
-function gitEnv() {
+function gitEnv(source = process.env) {
 const env = {};
 for (const name of process.platform === 'win32' ? [...GIT_ENV, ...GIT_ENV_WINDOWS] : GIT_ENV) {
-if (process.env[name] !== undefined) env[name] = process.env[name];
+if (source[name] !== undefined) env[name] = source[name];
 }
 return env;
 }
@@ -2721,6 +2721,7 @@ return { input: { files, pr: { title, body: '', author: { login, type: 'User' } 
 
 return {
 NoRepository,
+gitEnv,
 makeGit,
 localInput
 };
@@ -2995,7 +2996,7 @@ mergeReports
 };
 })();
 const __m21=(()=>{
-const { localInput, makeGit, NoRepository } = __m16;
+const { localInput, makeGit, gitEnv, NoRepository } = __m16;
 const { fetchPullBase, RateLimited, GitHubError } = __m14;
 const { emit } = __m17;
 const { groupsByImage, startContainer, dockerOnPath, mergeReports } = __m22;
@@ -3068,7 +3069,7 @@ const gitAt = deps.makeGit ?? makeGit;
 const fail = (code, msg) => { stderr.write(`truedone --run: ${msg}\n`); return code; };
 try {
 if (!o.target) {
-const git = gitAt(cwd, env);
+const git = gitAt(cwd, gitEnv(env));
 const top = git(['rev-parse', '--show-toplevel'], { quiet: true });
 if (!top) return fail(2, `${cwd} is not inside a git repository`);
 await deps.restorePending(top);   
@@ -3122,7 +3123,7 @@ const __m11=(()=>{
 const { init, initGlobal } = __m12;
 const { parseTarget } = __m13;
 const { loadPR, fetchReleases, RateLimited, GitHubError } = __m14;
-const { localInput, makeGit, NoRepository } = __m16;
+const { localInput, makeGit, gitEnv, NoRepository } = __m16;
 const { emit, VERDICTS } = __m17;
 const { reportLink } = __m18;
 const { serveMcp } = __m20;
@@ -3239,7 +3240,7 @@ if (e instanceof RateLimited) throw new Refused(3, 'GitHub\'s API rate limit is 
 throw e;
 }
 } else {
-const git = deps.git ?? makeGit(dir, env);
+const git = deps.git ?? makeGit(dir, gitEnv(env));
 try {
 const l = localInput(dir, { classify, git });
 input = l.input;

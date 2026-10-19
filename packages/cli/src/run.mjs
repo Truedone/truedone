@@ -2,15 +2,17 @@
 // changed tests: core/run's redGreen({ root, tests, files, base, head, env }) (agreed with lane-c, bus 2452) swaps the changed source files to base, runs the tests on base twice and on head
 // three times, and restores; core's judge adds the report to the static result.
 // - On the user's own branch it runs at once, after restorePending puts back the files of a run that was killed
-//   mid-way (S1).
+//   mid-way (S1). git gets gitEnv(env), with no credential (CLI-10); the tests get the session's environment, as the
+//   owner chose.
 // - On anyone else's PR it says once that it will execute that PR's code, offers --docker when Docker is on PATH, and
 //   goes on only after a typed yes on a terminal or --yes. With no terminal and no --yes it executes nothing, clones
-//   nothing, and exits 2. The PR is cloned into a temporary directory, and its code gets the environment of S4.
+//   nothing, and exits 2. The PR is cloned into a temporary directory, and its code and the git that clones it get
+//   the environment of S4.
 // - --docker runs each command of the red-green step in node:24-slim or python:3.12-slim (src/docker.mjs).
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { localInput, makeGit, NoRepository } from './local.mjs';
+import { localInput, makeGit, gitEnv, NoRepository } from './local.mjs';
 import { fetchPullBase, RateLimited, GitHubError } from './github.mjs';
 import { emit } from './output.mjs';
 import { groupsByImage, startContainer, dockerOnPath, mergeReports } from './docker.mjs';
@@ -91,7 +93,7 @@ export async function runMode(o, deps) {
   const fail = (code, msg) => { stderr.write(`truedone --run: ${msg}\n`); return code; };
   try {
     if (!o.target) {
-      const git = gitAt(cwd, env);
+      const git = gitAt(cwd, gitEnv(env));
       const top = git(['rev-parse', '--show-toplevel'], { quiet: true });
       if (!top) return fail(2, `${cwd} is not inside a git repository`);
       await deps.restorePending(top);   // S1: a run killed mid-way is put back before anything reads the tree

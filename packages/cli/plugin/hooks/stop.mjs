@@ -2442,10 +2442,10 @@ const GIT_ENV = ['PATH', 'HOME', 'USER', 'LOGNAME', 'LANG', 'LC_ALL', 'LC_CTYPE'
 'GIT_CONFIG_GLOBAL', 'GIT_CONFIG_NOSYSTEM', 'GIT_CEILING_DIRECTORIES'];
 const GIT_ENV_WINDOWS = ['SYSTEMROOT', 'COMSPEC', 'PATHEXT'];
 
-function gitEnv() {
+function gitEnv(source = process.env) {
 const env = {};
 for (const name of process.platform === 'win32' ? [...GIT_ENV, ...GIT_ENV_WINDOWS] : GIT_ENV) {
-if (process.env[name] !== undefined) env[name] = process.env[name];
+if (source[name] !== undefined) env[name] = source[name];
 }
 return env;
 }
@@ -2545,6 +2545,7 @@ return { input: { files, pr: { title, body: '', author: { login, type: 'User' } 
 
 return {
 NoRepository,
+gitEnv,
 makeGit,
 localInput
 };
