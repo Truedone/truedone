@@ -65,11 +65,22 @@ async function redGreenIn(root, { tests, files, base, head, env, docker, deps })
   return mergeReports(reports);
 }
 
-async function redGreenAndJudge(root, input, base, head, { env, docker, deps }) {
+// D7 (CLI-09): red-green puts each changed source file back to its base content, so every changed file that is not
+// added gets its base from git show <merge base>:<path>, under its previous path when it was renamed, as the action
+// does. localInput reads base content only for the files core reads statically; analyse keeps that input as it is.
+function withBase(files, base, git) {
+  return files.map((f) => {
+    if (f.status === 'added' || f.base !== undefined) return f;
+    const b = git(['show', `${base}:${f.previous_path ?? f.path}`], { raw: true, quiet: true });
+    return b === null ? f : { ...f, base: b };
+  });
+}
+
+async function redGreenAndJudge(root, input, base, head, { env, docker, deps, git }) {
   const { analyse, classify, detect, judge } = deps;
   const staticResult = analyse(input);
   const changed = input.files.filter((f) => f.status !== 'removed' && classify(f.path) === 'test').map((f) => f.path);
-  const reports = changed.length ? [await redGreenIn(root, { tests: detect(root, changed), files: input.files, base, head, env, docker, deps })] : [];
+  const reports = changed.length ? [await redGreenIn(root, { tests: detect(root, changed), files: withBase(input.files, base, git), base, head, env, docker, deps })] : [];
   return judge(staticResult, reports);
 }
 
@@ -89,7 +100,7 @@ export async function runMode(o, deps) {
         if (e instanceof NoRepository) return fail(2, e.message);
         throw e;
       }
-      const result = await redGreenAndJudge(top, l.input, l.base, git(['rev-parse', 'HEAD']), { env, docker: o.docker, deps });
+      const result = await redGreenAndJudge(top, l.input, l.base, git(['rev-parse', 'HEAD']), { env, docker: o.docker, deps, git });
       return emit(result, `the working tree, against ${l.base.slice(0, 12)}, with red-green`, o, stdout);
     }
     const t = o.target;
@@ -115,7 +126,7 @@ export async function runMode(o, deps) {
       git(['checkout', '--quiet', '-b', 'truedone-pr', 'FETCH_HEAD']);
       git(['fetch', '--quiet', 'origin', `${ref.baseRef}:refs/remotes/origin/${ref.baseRef}`]);
       const l = localInput(dir, { classify: deps.classify, git, branch: `refs/remotes/origin/${ref.baseRef}` });
-      const result = await redGreenAndJudge(dir, l.input, l.base, git(['rev-parse', 'HEAD']), { env: clean, docker: o.docker, deps });
+      const result = await redGreenAndJudge(dir, l.input, l.base, git(['rev-parse', 'HEAD']), { env: clean, docker: o.docker, deps, git });
       return emit(result, `${what}, cloned into a temporary directory, with red-green`, o, stdout);
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
