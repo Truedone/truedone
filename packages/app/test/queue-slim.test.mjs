@@ -210,7 +210,7 @@ const REPORT = JSON.stringify({
 const RUN_PAYLOAD = {
   action: "completed",
   workflow_run: {
-    id: 77, head_sha: RG_HEAD, head_branch: "branch", conclusion: "success", display_title: "PLANTED-DISPLAY",
+    id: 77, head_sha: RG_HEAD, head_branch: "branch", conclusion: "success", display_title: "PLANTED-DISPLAY", run_attempt: 1, run_started_at: "2026-10-19T09:00:00Z",
     jobs_url: "https://api.github.com/repos/o/r/actions/runs/77/jobs", head_repository: { full_name: "o/r" },
     head_commit: { message: "PLANTED-COMMIT", author: { name: "Planted", email: "planted@example.com" } },
     actor: { login: "planted-actor" }, pull_requests: [{ number: 41 }],
@@ -219,7 +219,7 @@ const RUN_PAYLOAD = {
 };
 const SLIM_RUN = {
   action: "completed", installation: { id: 3 }, repository: { id: 7, name: "r", owner: { login: "o" } },
-  workflow_run: { id: 77, head_sha: RG_HEAD, head_repository: { full_name: "o/r" }, conclusion: "success", jobs_url: "https://api.github.com/repos/o/r/actions/runs/77/jobs" },
+  workflow_run: { id: 77, head_sha: RG_HEAD, head_repository: { full_name: "o/r" }, conclusion: "success", jobs_url: "https://api.github.com/repos/o/r/actions/runs/77/jobs", run_attempt: 1, run_started_at: "2026-10-19T09:00:00Z" },
 };
 function redGreenGitHub() {
   const pr41 = { number: 41, title: "t", body: "", user: { login: "someone", type: "User" }, changed_files: 1,

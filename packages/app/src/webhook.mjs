@@ -44,7 +44,8 @@ export function slim(event, payload = {}) {
   }
   if (event === "workflow_run" && payload.workflow_run) {
     const run = payload.workflow_run;
-    out.workflow_run = { id: run.id, head_sha: run.head_sha, head_repository: { full_name: run.head_repository?.full_name }, conclusion: run.conclusion, jobs_url: run.jobs_url };
+    // APP-31: run_attempt and run_started_at name the run's latest attempt, whose report artifacts the stage takes
+    out.workflow_run = { id: run.id, head_sha: run.head_sha, head_repository: { full_name: run.head_repository?.full_name }, conclusion: run.conclusion, jobs_url: run.jobs_url, run_attempt: run.run_attempt, run_started_at: run.run_started_at };
   }
   return out;
 }
