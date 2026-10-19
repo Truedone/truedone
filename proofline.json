@@ -494,6 +494,10 @@
       ],
       "SEC-04": [
         "SEC-04-AC05"
+      ],
+      "MET-02": [
+        "MET-02-AC03",
+        "MET-02-AC08"
       ]
     }
   },
@@ -15632,6 +15636,143 @@
         },
         {
           "id": "MET-01-AC10",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "MET-02",
+      "title": "[W2] The daily snapshot and the organisation page carry the wrong-verdict counts",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "MET-01",
+        "ORG-02",
+        "COLLECT-01"
+      ],
+      "requirements": [
+        "PV-D04"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "COLLECT-01 added tools/misses/tally.mjs, which writes the wrong-verdict counts (D39) into a metrics snapshot, and nothing runs it. .github/workflows/metrics.yml runs tools/misses/tally.mjs --snapshot on the collected file, writing it back, after tools/metrics/collect.mjs and before tools/metrics/check.mjs, with the same workflow token, so the snapshot written to metrics-data carries the counts. tools/org-profile.mjs adds three rows to the Measured today table: Wrong-verdict reports (wrong_verdict_reports), Confirmed wrong verdicts (wrong_verdict_reports_confirmed) and Fixed wrong verdicts (wrong_verdict_reports_fixed), each a count with its window, source and sample, and shown only when the snapshot carries the figure. docs/metrics/latest.json is regenerated with the tally and docs/org/README.md from it, so ORG-02's check holds; the page stays within ORG-02's 60 lines. After the merge the lead publishes the page to Truedone/.github, as for ORG-02.",
+      "scope": {
+        "allow": [
+          ".github/workflows/metrics.yml",
+          "tools/org-profile.mjs",
+          "tools/test/metrics-workflow.test.mjs",
+          "tools/test/org-profile-misses.test.mjs",
+          "tools/test/org-profile.test.mjs",
+          "docs/metrics/latest.json",
+          "docs/org/README.md",
+          "docs/ops/metrics.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "MET-02-AC01",
+          "mandatory": true,
+          "statement": "the metrics workflow runs the tally on the collected snapshot after the collector, before the check and before the snapshot is written",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/metrics-workflow.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "MET-02-AC02",
+          "mandatory": true,
+          "statement": "the organisation page shows the three wrong-verdict counts, each with its window, source and sample, when the snapshot carries them",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/org-profile-misses.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "MET-02-AC03",
+          "mandatory": true,
+          "statement": "collected live, tallied and checked, the snapshot carries the wrong-verdict counts",
+          "verifier": {
+            "type": "command",
+            "cmd": "D=\"$(mktemp -d)\" && GITHUB_TOKEN=\"$(gh auth token 2>/dev/null)\" node tools/metrics/collect.mjs --org Truedone --out \"$D/latest.json\" && GITHUB_TOKEN=\"$(gh auth token 2>/dev/null)\" node tools/misses/tally.mjs --snapshot \"$D/latest.json\" --out \"$D/latest.json\" && node tools/metrics/check.mjs \"$D/latest.json\" && grep -q '\"wrong_verdict_reports\"' \"$D/latest.json\"",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "MET-02-AC04",
+          "mandatory": true,
+          "statement": "the committed page is the one the committed snapshot gives",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/org-profile.mjs --check docs/metrics/latest.json docs/org/README.md",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MET-02-AC05",
+          "mandatory": true,
+          "statement": "the page stays within 60 lines",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(wc -l < docs/org/README.md)\" -le 60",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MET-02-AC06",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MET-02-AC07",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MET-02-AC08",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MET-02-AC09",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "MET-02-AC10",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
