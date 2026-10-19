@@ -75,6 +75,10 @@ expired, created at or after the attempt started (`run_started_at`), the newest 
 checks and the S6 limits, and all of them are judged together. The action names its artifact after the job's key
 (`truedone-report-${GITHUB_JOB}`), and both legs of a matrix share that key, so a matrix is found only once the action
 names each leg apart.
+A red-green delivery the stage does not act on logs one line (APP-32): `"stage": "red-green"`, with the delivery id, the
+repository id, the pull request number when there is one, and the reason in `skipped`. The reasons are an action other
+than `completed`, `no_pr` (no pull request lists the head commit, as for a closed, unmerged one), `action_required` (a run
+held for approval), `no_report`, and `tampered` or `review` (the static stage's check run stands).
 
 The development app belongs to the Truedone organisation since 2026-10-18 (D36), with the repositories; its installation on
 the old account ended with the transfer.
