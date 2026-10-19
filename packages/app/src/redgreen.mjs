@@ -77,27 +77,32 @@ export function makeRedGreen(env) {
     return new TextDecoder().decode(unzipped[0].data);
   }
 
+  // APP-32 (S8): a red-green delivery the stage does not act on says why in one line of identifiers, never a login, a token
+  // or file content. The queue consumer acknowledges whatever the stage returns, so a missed verdict looked like a success.
+  const skip = (delivery, payload, skipped, pr) => console.log(JSON.stringify({ stage: "red-green", delivery: delivery.delivery, repository: payload.repository?.id ?? null, ...(pr ? { pr } : {}), skipped }));
+
   return async function onWorkflowRun(delivery) {
     // the check run's started_at: when this delivery's red-green judgement began (APP-14)
     const startedAt = new Date().toISOString();
     // APP-25: only the fields slim keeps, whichever shape the message was queued in
     const payload = slim("workflow_run", delivery.payload);
     const { workflow_run: run, action } = payload;
-    if (action !== "completed") return { skipped: action };
+    if (action !== "completed") { skip(delivery, payload, String(action)); return { skipped: action }; }
     const owner = payload.repository.owner.login;
     const repo = payload.repository.name;
     const headSha = run.head_sha;
 
     const pr = await findPr(owner, repo, headSha, run.head_repository.full_name);
-    if (!pr) return { skipped: "no_pr" };
+    if (!pr) { skip(delivery, payload, "no_pr"); return { skipped: "no_pr" }; }
 
     // A held first-time-contributor run never reports; the verdict is Waiting for approval.
     if (run.conclusion === "action_required") {
+      skip(delivery, payload, "action_required", pr.number);
       return { verdict: "pending", pr: pr.number };
     }
 
     const texts = await takeReportArtifacts(owner, repo, run);
-    if (!texts.length) return { skipped: "no_report" };
+    if (!texts.length) { skip(delivery, payload, "no_report", pr.number); return { skipped: "no_report" }; }
 
     // APP-31: each report is held to the four checks, and every one must pass: a refused one is logged (APP-27) and
     // nothing is written. The reports are judged together, since core's judge takes a list (a workflow with several
@@ -118,6 +123,7 @@ export function makeRedGreen(env) {
     // is awaited (APP-13).
     const standing = await env.staticVerdict(headSha);
     if (["tampered", "review"].includes(standing)) {
+      skip(delivery, payload, standing, pr.number);
       return { verdict: standing, pr: pr.number };
     }
     // A verdict is about one commit (APP-13): the check run is written at the commit the
