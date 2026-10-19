@@ -41,7 +41,8 @@ async function run(argv, over = {}) {
   return { code, out: stdout.text, err: stderr.text, input: () => input };
 }
 
-const sh = (cwd, ...a) => execFileSync('git', a, { cwd, env: ENV, encoding: 'utf8' }).trim();
+// TEST-01: git maintenance off, so no detached auto-maintenance writes into .git while the directory is removed (MAP-02)
+const sh = (cwd, ...a) => execFileSync('git', ['-c', 'maintenance.auto=false', '-c', 'gc.auto=0', ...a], { cwd, env: ENV, encoding: 'utf8' }).trim();
 function write(dir, f, body) { fs.mkdirSync(path.join(dir, path.dirname(f)), { recursive: true }); fs.writeFileSync(path.join(dir, f), body); }
 // main has a, b, c.test.js and a workflow; the branch changes them; main moves on after the branch point
 function repo(t, { defaultBranch = 'main' } = {}) {

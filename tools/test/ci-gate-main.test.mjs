@@ -8,7 +8,8 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { listChangedFiles, PROOFLINE_PIN } from "../ci-gate.mjs";
 
-const git = (...a) => execFileSync("git", a.flat(), { encoding: "utf8" });
+// TEST-01: git maintenance off, so no detached auto-maintenance writes into .git while the directory is removed (MAP-02)
+const git = (...a) => execFileSync("git", ["-c", "maintenance.auto=false", "-c", "gc.auto=0", ...a.flat()], { encoding: "utf8" });
 
 test("the changed-files step lists added, changed and removed files against origin/main", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sec02-"));

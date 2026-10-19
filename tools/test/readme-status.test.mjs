@@ -17,7 +17,8 @@ const TASKS = ['WEB-01', 'WEB-02', 'CLI-01', 'OPS-01', 'REL-W2', 'DEMO-01'];
 function repo(t) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'readme-status-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
-  const git = (...a) => execFileSync('git', a, { cwd: dir, env: ENV, encoding: 'utf8' }).trim();
+  // TEST-01: git maintenance off, so no detached auto-maintenance writes into .git while the directory is removed (MAP-02)
+  const git = (...a) => execFileSync('git', ['-c', 'maintenance.auto=false', '-c', 'gc.auto=0', ...a], { cwd: dir, env: ENV, encoding: 'utf8' }).trim();
   const write = (p, s) => { fs.mkdirSync(path.dirname(path.join(dir, p)), { recursive: true }); fs.writeFileSync(path.join(dir, p), s); };
   const commit = (m) => { git('add', '-A'); git('commit', '-q', '--allow-empty', '-m', m); };
   const merge = (branch, m) => { git('checkout', '-q', '-b', branch); write(`${branch}.txt`, branch); commit(m); git('checkout', '-q', 'main'); git('merge', '-q', '--no-ff', branch, '-m', `Merge pull request #${branch.length} from mgillr/${branch}`); };

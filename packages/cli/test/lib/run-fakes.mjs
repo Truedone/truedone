@@ -13,7 +13,8 @@ export const GITENV = { PATH: process.env.PATH, HOME: os.tmpdir(), GIT_CONFIG_GL
   GIT_AUTHOR_NAME: 'Dev One', GIT_AUTHOR_EMAIL: 'dev@example.com', GIT_COMMITTER_NAME: 'Dev One', GIT_COMMITTER_EMAIL: 'dev@example.com' };
 export const RECORD = '.git/truedone-restore';
 
-export const sh = (cwd, ...a) => execFileSync('git', a, { cwd, env: GITENV, encoding: 'utf8' }).trim();
+// TEST-01: git maintenance off, so no detached auto-maintenance writes into .git while the directory is removed (MAP-02)
+export const sh = (cwd, ...a) => execFileSync('git', ['-c', 'maintenance.auto=false', '-c', 'gc.auto=0', ...a], { cwd, env: GITENV, encoding: 'utf8' }).trim();
 export function write(dir, f, body) { fs.mkdirSync(path.join(dir, path.dirname(f)), { recursive: true }); fs.writeFileSync(path.join(dir, f), body); }
 export function tmp(t, prefix = 'truedone-run-', under = os.tmpdir()) {
   const d = fs.mkdtempSync(path.join(under, prefix));

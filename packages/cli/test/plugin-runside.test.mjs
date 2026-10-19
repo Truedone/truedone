@@ -22,7 +22,8 @@ function setup(t, expected, side = (o) => runSide({ ...o, env })) {
   const r = path.join(d, 'repo');
   fs.mkdirSync(path.join(r, 'src'), { recursive: true });
   fs.mkdirSync(path.join(r, 'test'));
-  const git = (...a) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', ...a], { cwd: r, stdio: 'pipe' });
+  // TEST-01: git maintenance off, so no detached auto-maintenance writes into .git while the directory is removed (MAP-02)
+  const git = (...a) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', '-c', 'maintenance.auto=false', '-c', 'gc.auto=0', ...a], { cwd: r, stdio: 'pipe' });
   git('init', '-q', '-b', 'main');
   fs.writeFileSync(path.join(r, 'package.json'), JSON.stringify({ type: 'module', scripts: { test: 'node --test' } }));
   fs.writeFileSync(path.join(r, 'src/add.mjs'), 'export const add = (a, b) => a - b;\n');

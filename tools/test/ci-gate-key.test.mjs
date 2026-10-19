@@ -8,7 +8,8 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 
 const GATE = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "ci-gate.mjs");
-const git = (...a) => execFileSync("git", a.flat(), { encoding: "utf8" });
+// TEST-01: git maintenance off, so no detached auto-maintenance writes into .git while the directory is removed (MAP-02)
+const git = (...a) => execFileSync("git", ["-c", "maintenance.auto=false", "-c", "gc.auto=0", ...a.flat()], { encoding: "utf8" });
 
 function fixture() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sec03key-"));

@@ -13,7 +13,8 @@ const git = (...a) => { const r = spawnSync('git', a, { cwd: process.argv[2] ?? 
 
 function fixtureRepo() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cov-js-'));
-  const cfg = ['-C', dir, '-c', 'user.name=t', '-c', 'user.email=t@example.com'];
+  // TEST-01: git maintenance off, so no detached auto-maintenance writes into .git while the directory is removed (MAP-02)
+  const cfg = ['-C', dir, '-c', 'user.name=t', '-c', 'user.email=t@example.com', '-c', 'maintenance.auto=false', '-c', 'gc.auto=0'];
   execFileSync('git', [...cfg, 'init', '-q', '-b', 'main']);
   fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({ name: 'fx', private: true, scripts: { test: 'node --test' } }));
   fs.mkdirSync(path.join(dir, 'src'));
