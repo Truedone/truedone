@@ -95,7 +95,7 @@ The site, the CLI and the plugin read from GitHub and keep nothing on a server. 
 <!-- status: written by node tools/readme-status.mjs from the contract and main; do not edit -->
 Released: docs/releases/w4.md says "Decision: GO".
 
-At main 0332dda18575 (2026-10-19), 137 of the 178 tasks in the signed contract, [proofline.json](proofline.json), are on main:
+At main 2f5b879f7371 (2026-10-19), 138 of the 178 tasks in the signed contract, [proofline.json](proofline.json), are on main:
 
 - truedone.pages.dev: 16 of 18 (WEB-01, WEB-02, WEB-04, WEB-05, WEB-06, WEB-07, WEB-08, WEB-09, WEB-10, WEB-11, WEB-12, WEB-13, WEB-14, WEB-15, WEB-16, WEB-17).
 - `npx truedone`: 7 of 10 (CLI-02, CLI-01, CLI-03, CLI-05, CLI-07, CLI-09, CLI-10).
@@ -105,7 +105,7 @@ At main 0332dda18575 (2026-10-19), 137 of the 178 tasks in the signed contract, 
 - The engine they share: 19 of 23 (CORE-01, CORE-02, CORE-03, CORE-05, CORE-04, CORE-06, CORE-07, CORE-08, CORE-09, CORE-10, CORE-11, CORE-12, RUN-01, RUN-02, RUN-03, RUN-06, RUN-07, RUN-04, JUDGE-01).
 - Measurement gates and the index: 1 of 11 (GATE-06).
 - Releases: 8 of 15 (REL-01, REL-02, REL-P1, REL-P2, REL-P3, REL-P5, REL-P4, REL-W4).
-- Repository, CI, deploys and docs: 40 of 50 (OPS-04, OPS-01, OPS-03A, OPS-02, OPS-03B, ENG-01, BENCH-01, BENCH-02, COLLECT-01, SPK-02, SEC-01, SEC-02, SEC-03, SEC-04, GUARD-01, COLLECT-02, DEP-01, DEP-02, DOM-01, AGENT-01, MCP-01, AGENT-02, OPS-05, REPO-01, REPO-02, REPO-03, ORG-01, MET-01, MET-02, ORG-02, MAP-01, MAP-02, TEST-01, DOC-00, README-01, README-02, README-03, OPS-09, OPS-10, OPS-11).
+- Repository, CI, deploys and docs: 41 of 50 (OPS-04, OPS-01, OPS-03A, OPS-02, OPS-03B, ENG-01, BENCH-01, BENCH-02, COLLECT-01, SPK-02, SEC-01, SEC-02, SEC-03, SEC-04, GUARD-01, COLLECT-02, DEP-01, DEP-02, DOM-01, AGENT-01, MCP-01, MCP-02, AGENT-02, OPS-05, REPO-01, REPO-02, REPO-03, ORG-01, MET-01, MET-02, ORG-02, MAP-01, MAP-02, TEST-01, DOC-00, README-01, README-02, README-03, OPS-09, OPS-10, OPS-11).
 <!-- status: end -->
 
 ## Contributing
