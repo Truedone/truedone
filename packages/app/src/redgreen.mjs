@@ -131,7 +131,7 @@ export function makeRedGreen(env) {
     // request's current head; the label belongs to the pull request, so it is written
     // only while that commit is still the head, and a run on an older commit leaves the
     // newer head's label to that head's own run.
-    await env.postCheck(headSha, judged, { owner, repo, number: pr.number, startedAt });
+    await env.postCheck(headSha, judged, { owner, repo, number: pr.number, startedAt, head: headSha, base: pr.base?.sha, version: env.VERSION ?? "unversioned" });
     if (pr.head.sha === headSha) await env.postLabel(pr.number, judged);
     env.LOG?.({ installation: payload.installation?.id, repository: payload.repository.id, pr: pr.number, verdict: judged.verdict, ms: Date.now() - (delivery._t0 || Date.now()) });
     env.METRICS?.writeDataPoint({ blobs: [judged.verdict, String(payload.repository.id)], doubles: [Date.now() - (delivery._t0 || Date.now())], indexes: [String(pr.number)] });

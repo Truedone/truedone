@@ -37,7 +37,7 @@ test("the entry posts exactly one check run and one label, with core's verdict f
   const check = JSON.parse(checks[0].body);
   assert.equal(check.head_sha, s.pull.head.sha);
   assert.equal(check.output.title, `truedone: ${want.verdict.replace(/_/g, " ")}`);
-  assert.match(check.output.summary, /Why: https:\/\/truedone\.pages\.dev\/mgillr\/truedone-sandbox\/pull\/42$/);
+  assert.match(check.output.summary, /Why: https:\/\/truedone\.pages\.dev\/mgillr\/truedone-sandbox\/pull\/42\n\n\[This verdict is wrong\]\([^)\s]+\)$/);
   const labels = labelWrites(fetch, 42);
   assert.equal(labels.length, 1, "exactly one label");
   assert.deepEqual(JSON.parse(labels[0].body).labels, [want.label]);
