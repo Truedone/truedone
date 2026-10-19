@@ -5,11 +5,11 @@ import path from 'node:path';
 import test from 'node:test';
 import { buildMirror, listMirror, pushMirror } from '../mirror-action.mjs';
 
-test('the mirror tree holds one root action.yml and only its four files', () => {
+test('the mirror tree holds one root action.yml and only its five files', () => {
   const dest = fs.mkdtempSync(path.join(os.tmpdir(), 'mirror-'));
   buildMirror(path.resolve('.'), dest);
   const files = listMirror(dest);
-  assert.deepEqual(files, ['LICENSE', 'README.md', 'action.yml', 'dist/index.mjs']);
+  assert.deepEqual(files, ['LICENSE', 'NOTICE', 'README.md', 'action.yml', 'dist/index.mjs']);
   const actions = files.filter((file) => file.endsWith('action.yml'));
   assert.deepEqual(actions, ['action.yml']);
   const text = fs.readFileSync(path.join(dest, 'action.yml'), 'utf8');

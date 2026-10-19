@@ -71,3 +71,34 @@ $ curl -s -o /dev/null -w '%{http_code}' https://api.github.com/apps/truedone   
 ```
 
 npm's integrity is the one the command line section above checked, so the published package is that tarball.
+
+## The action mirror
+
+Written by `node tools/mirror-action.mjs <out dir>` from main's files; two runs give the same bytes, and each file's SHA-256:
+
+```text
+cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30  LICENSE
+cba9d20ce94fdde27d4e901523663532c97f38fce7d5b45abc622a9843a0273a  NOTICE
+90d18153fc02a3e592cb5768503db0cd2bed4222097895c1ad276ebd9385ca32  README.md
+f926b87e27b37d4399ffd9167cf322b5126d200ed43060a983dd8905a4e3d04e  action.yml
+c21b875fd85a9f4d66f19f589b6fb12ff2c8ca53d1ed60ac23aab87778f6322c  dist/index.mjs
+```
+
+The mirrored README's usage block reads the release tag:
+
+```yaml
+- uses: Truedone/truedone-action@v0.1.0
+  # For production, pin the commit the tag names: Truedone/truedone-action@<40-hex commit sha>
+```
+
+Ryan pushes the tree and the tag with the commands the tool prints (REL-P5):
+
+```text
+$ node tools/mirror-action.mjs <out dir>
+$ cd <out dir>
+$ git init -b main && git add -A && git commit -m "truedone-action v0.1.0"
+$ git remote add origin https://github.com/Truedone/truedone-action.git
+$ git push -u origin main
+$ git tag v0.1.0 && git push origin v0.1.0
+```
+
