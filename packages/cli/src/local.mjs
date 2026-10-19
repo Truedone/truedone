@@ -3,7 +3,8 @@
 // input has the shape of core's analyse input: the files as the PR files API would list them (tracked changes from
 // git diff -M against the merge-base, plus untracked files as added), each with its patch, and base and head contents
 // for the files core classifies as test, setup, runner config, workflow or truedone config. git runs with an argv
-// array, never through a shell. The truedone plugin's Stop hook (PLG-01) builds its input with the same localInput.
+// array, never through a shell, and by default with only the names in GIT_ENV from the environment (PLG-12). The
+// truedone plugin's Stop hook (PLG-01) builds its input with the same localInput.
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -13,9 +14,25 @@ export class NoRepository extends Error {
   constructor(why) { super(why); this.name = 'NoRepository'; }
 }
 
+// The names git needs to read a local repository and the user's own git configuration (PLG-12), and on Windows the
+// three it needs to start. git reads only the local repository, so a token in the environment (GITHUB_TOKEN, GH_TOKEN,
+// an API key) has no use there and is left out.
+const GIT_ENV = ['PATH', 'HOME', 'USER', 'LOGNAME', 'LANG', 'LC_ALL', 'LC_CTYPE', 'TMPDIR', 'TZ', 'XDG_CONFIG_HOME',
+  'GIT_CONFIG_GLOBAL', 'GIT_CONFIG_NOSYSTEM', 'GIT_CEILING_DIRECTORIES'];
+const GIT_ENV_WINDOWS = ['SYSTEMROOT', 'COMSPEC', 'PATHEXT'];
+
+// the listed names that are set in this process's environment; a name that is not set is left out
+function gitEnv() {
+  const env = {};
+  for (const name of process.platform === 'win32' ? [...GIT_ENV, ...GIT_ENV_WINDOWS] : GIT_ENV) {
+    if (process.env[name] !== undefined) env[name] = process.env[name];
+  }
+  return env;
+}
+
 // git(args, { raw, quiet }) runs git in cwd and returns its stdout, trimmed unless raw. On a failure it throws, or with
-// quiet it returns null.
-export function makeGit(cwd, env = process.env) {
+// quiet it returns null. With no env, git gets gitEnv(), read when makeGit is called; a caller that passes env decides.
+export function makeGit(cwd, env = gitEnv()) {
   return (args, { raw = false, quiet = false } = {}) => {
     try {
       const out = execFileSync('git', args, { cwd, env, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] });
