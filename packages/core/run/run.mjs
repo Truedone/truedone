@@ -273,6 +273,37 @@ export async function redGreen({ root, tests, files, base, head, env, exec }) {
     restore(root);
   }
   const headSide = await runSide({ ...shared, tests: chosen, side: 'head', times: HEAD_RUNS });
+  // RUN-07: on the base leg a test file the pull request adds can fail to
+  // load, because the swap removes or empties the module the file imports.
+  // The runner reports that as one row named after the file, which pairs
+  // with nothing and turned the whole verdict into Could not run. The import
+  // failure is the red: every test the head run lists for that file failed
+  // on base because the file never loaded, so the row expands to those tests
+  // as missing-import runs and the report names what happened.
+  const addedPaths = new Set((files || [])
+    .filter((f) => f && (f.status === 'A' || f.status === 'added'))
+    .map((f) => f.path ?? f.to ?? f.from));
+  const headNames = namesOf(headSide.passes);
+  const loadFiles = new Set(baseSide.passes.flat()
+    .filter((run) => run.status === 'fail'
+      && addedPaths.has(run.file)
+      && !(headNames.get(run.file) || []).includes(run.name))
+    .map((run) => run.file));
+  const loadFailures = [];
+  if (loadFiles.size) {
+    for (const file of loadFiles) {
+      loadFailures.push({
+        file,
+        detail: 'the base leg could not load this test file: the swap removes a module the pull request adds, so the import failure is the red for every test the file has on head',
+      });
+    }
+    baseSide.passes = baseSide.passes.map((pass) => [
+      ...pass.filter((run) => !(loadFiles.has(run.file) && !(headNames.get(run.file) || []).includes(run.name))),
+      ...[...loadFiles].flatMap((file) => (headNames.get(file) || []).map((name) => ({
+        file, name, status: 'fail', failure: 'missing', errorType: 'ModuleNotFoundError', duration_ms: 0,
+      }))),
+    ]);
+  }
   // a timeout on one side takes the test names the other side found for that file
   const names = namesOf([...baseSide.passes, ...headSide.passes]);
   const baseTests = zipRuns(expand(baseSide.passes, names), BASE_RUNS);
@@ -300,6 +331,7 @@ export async function redGreen({ root, tests, files, base, head, env, exec }) {
     job: null,
     tests: items.map((item) => item.entry),
     could_not_run: couldNot(items, baseSide.problem || headSide.problem),
+    load_failures: loadFailures.length ? loadFailures : undefined,
     truncated,
   };
 }
