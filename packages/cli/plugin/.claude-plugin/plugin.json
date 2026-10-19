@@ -1,5 +1,6 @@
 {
   "name": "truedone",
+  "displayName": "truedone",
   "version": "0.1.1",
   "description": "One Stop hook: blocks when a changed test fails, a test was weakened, or the agent says tests pass without running them",
   "author": {
@@ -8,5 +9,18 @@
   },
   "license": "Apache-2.0",
   "homepage": "https://truedone.pages.dev",
-  "repository": "https://github.com/Truedone/truedone"
+  "repository": "https://github.com/Truedone/truedone",
+  "keywords": [
+    "testing",
+    "tests",
+    "pull-requests",
+    "code-review",
+    "tdd",
+    "red-green",
+    "hooks"
+  ],
+  "supportUrl": "https://github.com/Truedone/truedone/issues",
+  "documentationUrl": "https://github.com/Truedone/truedone/blob/main/packages/cli/plugin/README.md",
+  "privacyPolicyUrl": "https://truedone.pages.dev/privacy",
+  "termsOfServiceUrl": "https://truedone.pages.dev/terms"
 }

@@ -87,6 +87,12 @@ Uninstalling also deletes the plugin's data directory, and the session files in 
 
 Apache-2.0, the licence of the repository (`LICENSE`).
 
-## A wrong verdict
+## Privacy and terms
 
-The wrong verdict form is at https://github.com/Truedone/truedone/issues/new?template=wrong-verdict.yml
+The privacy policy is at https://truedone.pages.dev/privacy and the terms are at https://truedone.pages.dev/terms. The hook
+itself makes no network request, and the only files it keeps are its session files (What it stores).
+
+## Support
+
+Questions and problems are on the issues page, https://github.com/Truedone/truedone/issues. A wrong verdict has its own
+form, https://github.com/Truedone/truedone/issues/new?template=wrong-verdict.yml
