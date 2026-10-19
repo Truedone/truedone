@@ -1,0 +1,43 @@
+{
+ "pr": "/sindresorhus/ky/pull/883",
+ "api": {
+  "/repos/sindresorhus/ky/pulls/883": {
+   "status": 200,
+   "file": "pr.json"
+  },
+  "/repos/sindresorhus/ky/pulls/883/files?per_page=100&page=1": {
+   "status": 200,
+   "file": "files-1.json"
+  },
+  "/repos/sindresorhus/ky/compare/c2ac4a1ac858cd8b423756c6c686b64071e834eb...045fdd745bf8ce5111fa48309057da5cab2876cc": {
+   "status": 200,
+   "file": "compare.json"
+  }
+ },
+ "raw": {
+  "/sindresorhus/ky/c2ac4a1ac858cd8b423756c6c686b64071e834eb/test/hooks.ts": {
+   "status": 200,
+   "file": "raw/001.txt"
+  },
+  "/sindresorhus/ky/c2ac4a1ac858cd8b423756c6c686b64071e834eb/test/main.ts": {
+   "status": 200,
+   "file": "raw/002.txt"
+  },
+  "/sindresorhus/ky/d27ad21266d162ee218d4ea69dce192b84b6f967/test/hooks.ts": {
+   "status": 200,
+   "file": "raw/003.txt"
+  },
+  "/sindresorhus/ky/d27ad21266d162ee218d4ea69dce192b84b6f967/test/main.ts": {
+   "status": 200,
+   "file": "raw/004.txt"
+  },
+  "/sindresorhus/ky/045fdd745bf8ce5111fa48309057da5cab2876cc/test/hooks.ts": {
+   "status": 200,
+   "file": "raw/005.txt"
+  },
+  "/sindresorhus/ky/045fdd745bf8ce5111fa48309057da5cab2876cc/test/main.ts": {
+   "status": 200,
+   "file": "raw/006.txt"
+  }
+ }
+}

@@ -13,7 +13,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import worker from "../src/index.mjs";
 import { LABELS } from "../src/labels.mjs";
-import { fakeGitHub, writeRoutes, pkcs1Pem, flagsDB, memoryKV, checkRuns, labelWrites, storedZip } from "./lib/github.mjs";
+import { fakeGitHub, writeRoutes, pkcs1Pem, flagsDB, memoryKV, checkRuns, labelWrites, storedZip, compareRoute } from "./lib/github.mjs";
 
 const KEY = await pkcs1Pem();
 const B = "cccccccccccccccccccccccccccccccccccccccc";
@@ -65,6 +65,7 @@ function github({ uses, provedStep, tags = [], text = report(provedStep) }) {
       "GET /repos/o/r/git/ref/heads/main": { ref: "refs/heads/main", url: "https://api.github.com/repos/o/r/git/refs/heads/main", object: { sha: MAIN, type: "commit", url: `https://api.github.com/repos/o/r/git/commits/${MAIN}` } },
       "GET /repos/o/r/contents/.github/workflows": [listing("ci.yml")],
       "GET /repos/Truedone/truedone-action/tags": tags,
+      ...compareRoute("o", "r", B, H),
       ...writeRoutes("o", "r", 41, H),
       "GET /repos/o/r/labels": LABELS.map((l) => ({ name: l.name })),
     },

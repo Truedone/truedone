@@ -7,7 +7,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import { makeApp } from "../src/index.mjs";
-import { flagsDB } from "./lib/github.mjs";
+import { flagsDB, compareAnswer } from "./lib/github.mjs";
 
 const SECRET = "single-secret";
 
@@ -62,6 +62,7 @@ async function runDelivery(t, deliveryId) {
     if (u.includes("raw.githubusercontent.com") && u.includes("/s11/")) return new Response("const a = 2;\n", { status: 200 });
     if (u.includes("raw.githubusercontent.com")) return new Response("const a = 1;\n", { status: 200 });
     if (u.includes("/pulls/11/files")) return json([{ filename: "test/a.test.js", status: "modified", patch: "@@ -1,1 +1,1 @@" }]);
+    if (u.includes("/compare/b11...s11")) return json(compareAnswer("b11", "s11"));
     if (u.includes("/graphql") && method === "POST") { seen.routes.push("graphql"); return json({ data: {} }); }
     if (u.includes("/commits/s11/check-runs") && method !== "POST") return json({ check_runs: [] });
     if (u.includes("/check-runs") && method === "POST") return json({ id: 1 });

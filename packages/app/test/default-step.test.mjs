@@ -13,7 +13,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import worker from "../src/index.mjs";
 import { LABELS } from "../src/labels.mjs";
-import { fakeGitHub, writeRoutes, pkcs1Pem, flagsDB, memoryKV, checkRuns, labelWrites, rawCalls, storedZip } from "./lib/github.mjs";
+import { fakeGitHub, writeRoutes, pkcs1Pem, flagsDB, memoryKV, checkRuns, labelWrites, rawCalls, storedZip, compareRoute } from "./lib/github.mjs";
 
 const KEY = await pkcs1Pem();
 const BASE = "cccccccccccccccccccccccccccccccccccccccc";
@@ -77,6 +77,7 @@ function github({ stale, fresh, provedStep }) {
       "GET /repos/o/r/git/ref/heads/main": gitRef("main", MAIN),
       "GET /repos/o/r/contents/.github/workflows": listing,
       "GET /repos/Truedone/truedone-action/tags": [],
+      ...compareRoute("o", "r", BASE, HEAD),
       ...writeRoutes("o", "r", 41, HEAD),
       "GET /repos/o/r/labels": LABELS.map((l) => ({ name: l.name })),
     },

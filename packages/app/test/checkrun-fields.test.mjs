@@ -7,7 +7,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import worker from "../src/index.mjs";
-import { fakeGitHub, memoryKV, writeRoutes, delivery, pkcs1Pem, storedZip, flagsDB } from "./lib/github.mjs";
+import { fakeGitHub, memoryKV, writeRoutes, delivery, pkcs1Pem, storedZip, flagsDB, compareRoute } from "./lib/github.mjs";
 
 const B = "8888888888888888888888888888888888888888";
 const H = "9999999999999999999999999999999999999999";
@@ -39,6 +39,7 @@ function github({ existing = false } = {}) {
       "GET /repos/o/r": { default_branch: "main" },
       "GET /repos/o/r/git/ref/heads/main": { ref: "refs/heads/main", object: { sha: MAIN, type: "commit" } },
       "GET /repos/o/r/contents/.github/workflows": [{ name: "ci.yml" }],
+      ...compareRoute("o", "r", B, H),
       ...writeRoutes("o", "r", 6, H),
       ...(existing ? {
         [`GET /repos/o/r/commits/${H}/check-runs`]: { total_count: 1, check_runs: [{ id: 9, app: { id: 12345 }, completed_at: "2026-10-18T10:25:31Z", details_url: "https://truedone.pages.dev" }] },

@@ -6,7 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import { makeApp } from "../src/index.mjs";
-import { flagsDB } from "./lib/github.mjs";
+import { flagsDB, compareAnswer } from "./lib/github.mjs";
 
 const SECRET = "phase-secret";
 
@@ -57,6 +57,7 @@ test("one analysed delivery logs exactly one phase-timing line", async () => {
     if (u.includes("raw.githubusercontent.com") && u.includes("truedone.yml")) return new Response("comments: on\n", { status: 200 });
     if (u.includes("raw.githubusercontent.com")) return new Response("export const V = 1;\n", { status: 200 });
     if (u.includes("/pulls/5/files")) return json([]);
+    if (u.includes("/compare/b5...s5")) return json(compareAnswer("b5", "s5"));
     if (u.includes("/check-runs") && init?.method !== "POST") return json({ check_runs: [], id: 1 });
     if (u.includes("/check-runs")) return json({ id: 1 });
     if (u.endsWith("/labels") && init?.method !== "POST") return json([]);

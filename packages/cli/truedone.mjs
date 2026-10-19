@@ -2416,26 +2416,35 @@ if (typeof baseRef !== 'string' || !/^[A-Za-z0-9._\/-]+$/.test(baseRef) || baseR
 return { baseRef };
 }
 
+async function mergeBase(get, baseRepo, pr) {
+const sha = (await get(`${API}/repos/${baseRepo}/compare/${pr.base.sha}...${pr.head.sha}`))?.merge_base_commit?.sha;
+if (typeof sha !== 'string' || !/^[\w-]+$/.test(sha)) throw new GitHubError('without a merge base');
+return sha;
+}
+
 async function loadPR({ owner, repo, number }, { fetch, classify, token = null, limits = LIMITS }) {
 const c = client(fetch, token);
 const prUrl = `${API}/repos/${owner}/${repo}/pulls/${number}`;
 const pr = await c.get(prUrl);
 const total = Math.min(Number(pr.changed_files) || 0, 3000);
 const pages = Math.max(1, Math.ceil(Math.min(total, limits.files) / 100));
-const listed = (await Promise.all(Array.from({ length: pages }, (_, k) => c.get(`${prUrl}/files?per_page=100&page=${k + 1}`)))).flat();
+const baseRepo = pr.base?.repo?.full_name ?? `${owner}/${repo}`;
+const headRepo = pr.head?.repo?.full_name ?? baseRepo;
+const [listed, base] = await Promise.all([
+Promise.all(Array.from({ length: pages }, (_, k) => c.get(`${prUrl}/files?per_page=100&page=${k + 1}`))).then((p) => p.flat()),
+mergeBase(c.get, baseRepo, pr),
+]);
 const files = listed.slice(0, limits.files).map((f) => {
 const out = { path: f.filename, status: STATUS[f.status] ?? 'modified' };
 if (f.previous_filename) out.previous_path = f.previous_filename;
 if (typeof f.patch === 'string') out.patch = f.patch;
 return out;
 });
-const baseRepo = pr.base?.repo?.full_name ?? `${owner}/${repo}`;
-const headRepo = pr.head?.repo?.full_name ?? baseRepo;
 const text = async (url) => { const res = await fetch(url); return res.ok ? res.text() : undefined; };   
 const wanted = files.filter((f) => CONTENT.has(classify(f.path)) || (f.previous_path && CONTENT.has(classify(f.previous_path)))).slice(0, limits.fetched);
 await pool(wanted, 8, async (f) => {
 const [b, h] = await Promise.all([
-f.status === 'added' ? undefined : text(`${RAW}/${baseRepo}/${pr.base.sha}/${rawPath(f.previous_path ?? f.path)}`),
+f.status === 'added' ? undefined : text(`${RAW}/${baseRepo}/${base}/${rawPath(f.previous_path ?? f.path)}`),
 f.status === 'removed' ? undefined : text(`${RAW}/${headRepo}/${pr.head.sha}/${rawPath(f.path)}`),
 ]);
 if (b !== undefined) f.base = b;
@@ -2445,11 +2454,11 @@ return {
 input: { files, pr: { title: pr.title ?? '', body: pr.body ?? '', author: { login: pr.user?.login ?? '', type: pr.user?.type ?? 'User' } }, limits },
 calls: c.calls(),
 head: pr.head?.sha ?? null,   
-base: pr.base?.sha ?? null,
+base,
 };
 }
 
-return {API,RAW,RELEASES_REPO,RateLimited,GitHubError,isRateLimit,fetchReleases,fetchPullBase,loadPR};
+return {API,RAW,RELEASES_REPO,RateLimited,GitHubError,isRateLimit,fetchReleases,fetchPullBase,mergeBase,loadPR};
 })();
 const __m16=(()=>{
 const { CONTENT, LIMITS } = __m15;

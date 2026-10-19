@@ -5,7 +5,7 @@
 // already holds; no read is added. The recording-fetch fake the app tests
 // share, inline, as in escape.test.mjs.
 import { test } from "node:test";
-import { flagsDB, directRun } from "./lib/github.mjs";
+import { flagsDB, directRun, compareAnswer } from "./lib/github.mjs";
 
 function fakeFetch(routes) {
   const calls = [];
@@ -42,6 +42,7 @@ const PR_FILES = [
 function routesFor() {
   return [
     [/\/pulls\/1\/files/, PR_FILES],
+    [/\/compare\/b1\.\.\.h1$/, compareAnswer("b1", "h1")],
     [/\/commits\/h1\/check-runs\?check_name=truedone/, { check_runs: [] }],
     [/repos\/o\/r\/check-runs$/, { id: 100 }],
     [/\/labels$/, []],

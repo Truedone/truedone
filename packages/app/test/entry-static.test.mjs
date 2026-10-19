@@ -7,7 +7,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import worker from "../src/index.mjs";
-import { flagsDB } from "./lib/github.mjs";
+import { flagsDB, compareAnswer } from "./lib/github.mjs";
 
 const API = "https://api.github.com";
 const PR41 = { number: 41, title: "t", body: "", user: { login: "someone" }, head: { ref: "branch", sha: "sha-41" }, base: { ref: "main", sha: "base-41" } };
@@ -54,6 +54,7 @@ test("the entry's queue handler posts one check run and one label for a recorded
       // APP-25: a queued run reads the pull request from GitHub
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/pulls/41$`), PR41],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/pulls/41/files`), [{ filename: "test/a.test.js", status: "modified", patch: "@@ -1,3 +1,3 @@" }]],
+      [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/compare/base-41\\.\\.\\.sha-41$`), compareAnswer("base-41", "sha-41")],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/commits/sha-41/check-runs`), { check_runs: [] }],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/labels`), []],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/issues/41/labels`), []],

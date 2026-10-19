@@ -12,7 +12,7 @@ import assert from "node:assert/strict";
 import worker from "../src/index.mjs";
 import { analyse, judge, classify } from "../../core/core.mjs";
 import { loadPR } from "../../web/lib/github.mjs";
-import { fakeGitHub, memoryKV, writeRoutes, checkRuns, labelWrites, pkcs1Pem, storedZip } from "./lib/github.mjs";
+import { fakeGitHub, memoryKV, writeRoutes, checkRuns, labelWrites, pkcs1Pem, storedZip, compareRoute } from "./lib/github.mjs";
 
 const B = "5555555555555555555555555555555555555555"; // the base
 const R = "6666666666666666666666666666666666666666"; // the commit the report ran on
@@ -47,7 +47,9 @@ function github(atR, head = C) {
       "GET /repos/o/r": { default_branch: "main" },
       "GET /repos/o/r/git/ref/heads/main": { ref: "refs/heads/main", object: { sha: MAIN, type: "commit" } },
       "GET /repos/o/r/contents/.github/workflows": [{ name: "ci.yml" }],
+      ...compareRoute("o", "r", B, C),
       ...writeRoutes("o", "r", 6, C),
+      ...compareRoute("o", "r", B, R),
       ...writeRoutes("o", "r", 6, R),
     },
     raw: {

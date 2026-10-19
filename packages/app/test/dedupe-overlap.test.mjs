@@ -16,7 +16,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import worker from "../src/index.mjs";
 import { LABELS } from "../src/labels.mjs";
-import { fakeGitHub, writeRoutes, pkcs1Pem, flagsDB } from "./lib/github.mjs";
+import { fakeGitHub, writeRoutes, pkcs1Pem, flagsDB, compareRoute } from "./lib/github.mjs";
 
 const SECRET = "overlap-secret";
 const KEY = await pkcs1Pem();
@@ -66,6 +66,7 @@ function world({ seed = {}, filesStatus = 200, sendFails = false } = {}) {
       "GET /repos/o/r/pulls/6/files": () => filesStatus === 200
         ? Response.json([{ filename: FILE, status: "modified", patch: "@@ -5,0 +6,3 @@" }])
         : Response.json({ message: "boom" }, { status: filesStatus }),
+      ...compareRoute("o", "r", B, H),
       ...writeRoutes("o", "r", 6, H),
       "GET /repos/o/r/labels": LABELS.map((l) => ({ name: l.name })),
     },

@@ -8,6 +8,10 @@
    "status": 200,
    "file": "files-1.json"
   },
+  "/repos/octo/demo/compare/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...dddddddddddddddddddddddddddddddddddddddd": {
+   "status": 200,
+   "file": "compare.json"
+  },
   "/repos/Truedone/truedone-action/tags?per_page=100": {
    "status": 200,
    "file": "tags.json"

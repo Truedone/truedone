@@ -14,16 +14,18 @@ const API = "https://api.github.com";
 // The static analysis for one head commit, shared by the static stage and the
 // red-green stage's staticResult (APP-12). APP-13: the input comes from loadPR
 // (packages/web/lib/github.mjs), the site's reader: path from GitHub's filename, a
-// modified or renamed file's base at pull_request.base.sha from the base repository (at
-// the previous path for a rename), its head at the head sha from the head repository,
+// modified or renamed file's base at the merge base of pull_request.base.sha and the
+// head sha (one compare call, CORE-12) from the base repository (at the previous path
+// for a rename), its head at the head sha from the head repository,
 // no base for an added file and no head for a removed one, and core's classify choosing
 // which contents are fetched, so a plain source file's contents never leave the
 // repository. The pull request is the caller's (the delivery's, or the red-green stage's
 // lookup), not a second call, so the contents and the check run name the same head sha.
 // Every request carries the App's user-agent: GitHub's API answers 403 without one, and
-// the site's reader sets none because a browser adds its own.
+// the site's reader sets none because a browser adds its own. read, when given, is told
+// the merge base the contents were read at (read.base), the base the check run names.
 export function makeAnalyser(env, gh) {
-  return async function analyse(env2, owner, repo, prOrPromise) {
+  return async function analyse(env2, owner, repo, prOrPromise, read = {}) {
     // the published shas are read alongside the pull request's files and contents (APP-15), and alongside the pull
     // request itself when a queued run reads it from GitHub (APP-25)
     const shas = gh.publishedShas();
@@ -33,7 +35,8 @@ export function makeAnalyser(env, gh) {
     const github = (url, init = {}) => String(url) === prUrl
       ? Promise.resolve(Response.json(pr))
       : fetch(url, { ...init, headers: { "user-agent": "truedone-app", ...init.headers } });
-    const [releases, { input }] = await Promise.all([shas, loadPR({ owner, repo, number: pr.number }, { fetch: github, classify, token: await env.INSTALLATION_TOKEN })]);
+    const [releases, { input, pr: at }] = await Promise.all([shas, loadPR({ owner, repo, number: pr.number }, { fetch: github, classify, token: await env.INSTALLATION_TOKEN })]);
+    read.base = at.base;
     return env2.core.analyse({ ...input, releases });
   };
 }
@@ -56,10 +59,12 @@ export function makeStatic(env) {
     if (payload.action && !ACTIONS.pull_request.has(payload.action)) return { skipped: payload.action };
     const { repository, pull_request: pr } = payload;
     const owner = repository.owner.login, repo = repository.name;
+    // meta.base becomes the merge base once the analysis has read it (CORE-12): the check run names the commit the
+    // base contents were read at. Both writes wait for the analysis, so they see it.
     const meta = { owner, repo, number: pr.number, head: pr.head.sha, base: pr.base.sha, version: env.VERSION ?? "unversioned" };
     // Three phases (APP-15), each running its calls together. (1) The switch: the repository's
-    // setting, read at the base so a pull request cannot switch truedone off for itself
-    // (APP-13), and both posting flags. Nothing else is read before it, so a repository that
+    // setting, read at the base branch's tip so a pull request cannot switch truedone off for
+    // itself (APP-13), and both posting flags. Nothing else is read before it, so a repository that
     // opted out has only its config read. (2) Only when posting is allowed, every read: the
     // analysis, the check run already on the head and the labels. (3) The two writes.
     const gateStart = Date.now();
@@ -75,7 +80,8 @@ export function makeStatic(env) {
     let analyseDone, labelDone, checkDone;
     const fullP = (known ? Promise.resolve(known) : api(`/repos/${owner}/${repo}/pulls/${pr.number}`))
       .then((full) => ({ ...full, base: { ...full.base, sha: pr.base.sha }, head: { ...full.head, sha: pr.head.sha } }));
-    const analyseP = analyse(env, owner, repo, fullP).then((r) => { analyseDone = Date.now(); return r; });
+    const read = {};
+    const analyseP = analyse(env, owner, repo, fullP, read).then((r) => { analyseDone = Date.now(); meta.base = read.base ?? meta.base; return r; });
     let labelWritten;
     const verdictP = gate ?? Promise.resolve("new");
     const labelChain = Promise.all([analyseP, labelState(owner, repo, pr.number), verdictP]).then(([result, labels, verdict]) => verdict !== "new" ? result : postLabel(owner, repo, pr.number, result, meta, labels).then((written) => { labelDone = Date.now(); labelWritten = written; return result; }));

@@ -6,7 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeStatic } from "../src/static.mjs";
 import { analyse } from "../../core/core.mjs";
-import { fakeGitHub, memoryKV, writeRoutes, delivery, checkRuns, labelWrites, rawCalls, flagsDB, directRun } from "./lib/github.mjs";
+import { fakeGitHub, memoryKV, writeRoutes, delivery, checkRuns, labelWrites, rawCalls, flagsDB, directRun, compareRoute } from "./lib/github.mjs";
 
 const BASE_SHA = "3333333333333333333333333333333333333333";
 const HEAD_SHA = "4444444444444444444444444444444444444444";
@@ -24,7 +24,7 @@ const FILES = [
 ];
 
 async function run(t, raw) {
-  const fetch = fakeGitHub({ api: { "GET /repos/o/r/pulls/5/files": FILES, ...writeRoutes("o", "r", 5, HEAD_SHA) }, raw });
+  const fetch = fakeGitHub({ api: { "GET /repos/o/r/pulls/5/files": FILES, ...compareRoute("o", "r", BASE_SHA, HEAD_SHA), ...writeRoutes("o", "r", 5, HEAD_SHA) }, raw });
   const orig = globalThis.fetch;
   globalThis.fetch = fetch;
   t.after(() => { globalThis.fetch = orig; });

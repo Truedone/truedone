@@ -1,8 +1,8 @@
 // Reads one pull request for core.analyse, for npx truedone <PR> (CLI-01, D24). It does what the truedone.pages.dev page's reader does:
-// the PR and its file pages of 100 (fetched together) from api.github.com, so a PR of 300 files takes 4 calls, and
-// base and head contents of the files core classifies as test, setup, runner config, workflow or truedone config from
-// raw.githubusercontent.com, up to the static limit of 100 fetched files. GITHUB_TOKEN, when set, goes to
-// api.github.com only. Nothing is cloned and no process is started.
+// the PR, then its file pages of 100 and one compare call for its merge base (fetched together) from api.github.com, so
+// a PR of 300 files takes 5 calls, and base (at the merge base, CORE-12) and head contents of the files core classifies
+// as test, setup, runner config, workflow or truedone config from raw.githubusercontent.com, up to the static limit of
+// 100 fetched files. GITHUB_TOKEN, when set, goes to api.github.com only. Nothing is cloned and no process is started.
 import { CONTENT, LIMITS } from './constants.mjs';
 
 export const API = 'https://api.github.com';
@@ -58,26 +58,40 @@ export async function fetchPullBase({ owner, repo, number }, { fetch, token = nu
   return { baseRef };
 }
 
+// The commit GitHub takes a pull request's file list from (CORE-12, D24): the merge base of its base and head, named by
+// one compare call in the base repository, which also holds a fork's head commit. pr.base.sha is the base branch's tip,
+// where a test the base branch gained after the pull request branched would read as one the pull request removed. A
+// failed call throws, as every other read does, and so does an answer whose merge base is missing or is not one path
+// segment of the raw address; nothing falls back to the tip.
+export async function mergeBase(get, baseRepo, pr) {
+  const sha = (await get(`${API}/repos/${baseRepo}/compare/${pr.base.sha}...${pr.head.sha}`))?.merge_base_commit?.sha;
+  if (typeof sha !== 'string' || !/^[\w-]+$/.test(sha)) throw new GitHubError('without a merge base');
+  return sha;
+}
+
 export async function loadPR({ owner, repo, number }, { fetch, classify, token = null, limits = LIMITS }) {
   const c = client(fetch, token);
   const prUrl = `${API}/repos/${owner}/${repo}/pulls/${number}`;
   const pr = await c.get(prUrl);
   const total = Math.min(Number(pr.changed_files) || 0, 3000);
   const pages = Math.max(1, Math.ceil(Math.min(total, limits.files) / 100));
-  const listed = (await Promise.all(Array.from({ length: pages }, (_, k) => c.get(`${prUrl}/files?per_page=100&page=${k + 1}`)))).flat();
+  const baseRepo = pr.base?.repo?.full_name ?? `${owner}/${repo}`;
+  const headRepo = pr.head?.repo?.full_name ?? baseRepo;
+  const [listed, base] = await Promise.all([
+    Promise.all(Array.from({ length: pages }, (_, k) => c.get(`${prUrl}/files?per_page=100&page=${k + 1}`))).then((p) => p.flat()),
+    mergeBase(c.get, baseRepo, pr),
+  ]);
   const files = listed.slice(0, limits.files).map((f) => {
     const out = { path: f.filename, status: STATUS[f.status] ?? 'modified' };
     if (f.previous_filename) out.previous_path = f.previous_filename;
     if (typeof f.patch === 'string') out.patch = f.patch;
     return out;
   });
-  const baseRepo = pr.base?.repo?.full_name ?? `${owner}/${repo}`;
-  const headRepo = pr.head?.repo?.full_name ?? baseRepo;
   const text = async (url) => { const res = await fetch(url); return res.ok ? res.text() : undefined; };   // no token to raw
   const wanted = files.filter((f) => CONTENT.has(classify(f.path)) || (f.previous_path && CONTENT.has(classify(f.previous_path)))).slice(0, limits.fetched);
   await pool(wanted, 8, async (f) => {
     const [b, h] = await Promise.all([
-      f.status === 'added' ? undefined : text(`${RAW}/${baseRepo}/${pr.base.sha}/${rawPath(f.previous_path ?? f.path)}`),
+      f.status === 'added' ? undefined : text(`${RAW}/${baseRepo}/${base}/${rawPath(f.previous_path ?? f.path)}`),
       f.status === 'removed' ? undefined : text(`${RAW}/${headRepo}/${pr.head.sha}/${rawPath(f.path)}`),
     ]);
     if (b !== undefined) f.base = b;
@@ -86,7 +100,7 @@ export async function loadPR({ owner, repo, number }, { fetch, classify, token =
   return {
     input: { files, pr: { title: pr.title ?? '', body: pr.body ?? '', author: { login: pr.user?.login ?? '', type: pr.user?.type ?? 'User' } }, limits },
     calls: c.calls(),
-    head: pr.head?.sha ?? null,   // the commits a wrong-verdict report names (D39)
-    base: pr.base?.sha ?? null,
+    head: pr.head?.sha ?? null,   // the commits a wrong-verdict report names (D39); base is the merge base
+    base,
   };
 }

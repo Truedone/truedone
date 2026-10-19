@@ -114,6 +114,7 @@ test("the entry's queue handler updates the check run and the label for a record
       [new RegExp(`${esc(API)}/app/installations/3/access_tokens`), { token: "tok-1" }],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/commits/h1/pulls`), [{ number: 41, title: "t", body: "", user: { login: "someone" }, head: { sha: "h1", ref: "branch", repo: { owner: { login: "mgillr" }, name: "truedone-sandbox" } }, base: { sha: "base-41", ref: "main" } }]],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/pulls/41/files`), [{ filename: "test/a.test.js", status: "modified", patch: "@@ -1,3 +1,3 @@" }]],
+      [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/compare/base-41\\.\\.\\.h1$`), { status: "ahead", base_commit: { sha: "base-41" }, merge_base_commit: { sha: "base-41" } }],
       [/raw\.githubusercontent\.com\/mgillr\/truedone-sandbox\/base-41\//, "const a = 1;\n"],
       [/raw\.githubusercontent\.com\/mgillr\/truedone-sandbox\/(h1|branch|sha-branch)\//, "const a = 2;\n"],
       [new RegExp(`${esc(API)}/repos/Truedone/truedone-action/tags`), []],
