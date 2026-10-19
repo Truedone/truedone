@@ -91,9 +91,9 @@ The site, the CLI and the plugin read from GitHub and keep nothing on a server. 
 ## Status
 
 <!-- status: written by node tools/readme-status.mjs from the contract and main; do not edit -->
-truedone is pre-release: the npm package, the action, the plugin and the app have no published release, and the release decisions stay open until a record in docs/releases says "Decision: GO".
+Released: docs/releases/w4.md says "Decision: GO".
 
-At main 6c99945c818a (2026-10-19), 108 of the 139 tasks in the signed contract, [proofline.json](proofline.json), are on main:
+At main 4c71b71f909f (2026-10-19), 109 of the 140 tasks in the signed contract, [proofline.json](proofline.json), are on main:
 
 - truedone.pages.dev: 13 of 14 (WEB-01, WEB-02, WEB-04, WEB-05, WEB-06, WEB-07, WEB-08, WEB-09, WEB-10, WEB-11, WEB-12, WEB-13, WEB-14).
 - `npx truedone`: 3 of 3 (CLI-02, CLI-01, CLI-03).
@@ -102,8 +102,8 @@ At main 6c99945c818a (2026-10-19), 108 of the 139 tasks in the signed contract, 
 - GitHub Action: 2 of 4 (ACT-01, ACT-02).
 - The engine they share: 18 of 19 (CORE-01, CORE-02, CORE-03, CORE-05, CORE-04, CORE-06, CORE-07, CORE-08, CORE-09, CORE-10, CORE-11, RUN-01, RUN-02, RUN-03, RUN-06, RUN-07, RUN-04, JUDGE-01).
 - Measurement gates and the index: 1 of 11 (GATE-06).
-- Releases: 4 of 12 (REL-01, REL-02, REL-P1, REL-P3).
-- Repository, CI, deploys and docs: 36 of 44 (OPS-04, OPS-01, OPS-03A, OPS-02, OPS-03B, ENG-01, BENCH-01, BENCH-02, COLLECT-01, SPK-02, SEC-01, SEC-02, SEC-03, SEC-04, GUARD-01, DEP-01, DEP-02, DOM-01, AGENT-01, MCP-01, OPS-05, REPO-01, REPO-02, REPO-03, ORG-01, MET-01, MET-02, ORG-02, MAP-01, MAP-02, DOC-00, README-01, README-02, README-03, OPS-09, OPS-10).
+- Releases: 5 of 12 (REL-01, REL-02, REL-P1, REL-P3, REL-W4).
+- Repository, CI, deploys and docs: 36 of 45 (OPS-04, OPS-01, OPS-03A, OPS-02, OPS-03B, ENG-01, BENCH-01, BENCH-02, COLLECT-01, SPK-02, SEC-01, SEC-02, SEC-03, SEC-04, GUARD-01, DEP-01, DEP-02, DOM-01, AGENT-01, MCP-01, OPS-05, REPO-01, REPO-02, REPO-03, ORG-01, MET-01, MET-02, ORG-02, MAP-01, MAP-02, DOC-00, README-01, README-02, README-03, OPS-09, OPS-10).
 <!-- status: end -->
 
 ## Contributing
