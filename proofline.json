@@ -498,6 +498,9 @@
       "MET-02": [
         "MET-02-AC03",
         "MET-02-AC08"
+      ],
+      "MAP-02": [
+        "MAP-02-AC06"
       ]
     }
   },
@@ -15980,6 +15983,116 @@
         },
         {
           "id": "MAP-01-AC06",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "MAP-02",
+      "title": "[W2] The map check holds its table and diagram to the JSON block, and its scratch test cleans up under load",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "MAP-01"
+      ],
+      "requirements": [
+        "PV-D02"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "#135: docs/DEPENDENCY-MAP.md carries the map as a table, a diagram and a JSON block, and tools/depmap-check.mjs reads only the JSON block, so the forms drift silently. The check derives, from the JSON block, each node's row (its paths, its required updates, its reviews and whether it is planned) and the diagram's update edges, and fails naming the node when the committed table or diagram differs. The map on main already agrees (PLG-01 settled the core-run line), so the check passes on it. Measured twice on 2026-10-19 in the parallel full suite: tools/test/depmap-legal.test.mjs failed once per run with \"ENOTEMPTY: directory not empty, rmdir .../depmap-legal-*/.git\", thrown by its cleanup after the assertions passed; alone it passes. The cleanup retries (fs.rmSync with maxRetries and retryDelay), and the scratch repository is built from the checkout's working tree rather than git archive HEAD, so an uncommitted map change is tested as it stands. No assertion is loosened.",
+      "scope": {
+        "allow": [
+          "tools/depmap-check.mjs",
+          "tools/test/depmap-legal.test.mjs",
+          "tools/test/depmap-drift.test.mjs",
+          "tools/test/fixtures/depmap-drift/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "MAP-02-AC01",
+          "mandatory": true,
+          "statement": "the map check fails, naming the node, when the table or the diagram names an update the JSON block does not",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/depmap-drift.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "MAP-02-AC02",
+          "mandatory": true,
+          "statement": "the map on main holds: every file is mapped, every required downstream update is in the same change, and the table and diagram agree with the JSON block",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MAP-02-AC03",
+          "mandatory": true,
+          "statement": "MAP-01's legal cases pass",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test tools/test/depmap-legal.test.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MAP-02-AC04",
+          "mandatory": true,
+          "statement": "MAP-01's legal cases pass in three runs of the parallel full suite",
+          "verifier": {
+            "type": "command",
+            "cmd": "for i in 1 2 3; do node --test 'packages/*/test/*.test.mjs' 'tools/test/*.test.mjs' 2>&1 | grep -E '^not ok [0-9]+ - a change to docs/(privacy|terms)\\.md' && exit 1; done; exit 0",
+            "expect_exit": 0,
+            "timeout_s": 1800
+          }
+        },
+        {
+          "id": "MAP-02-AC05",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MAP-02-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MAP-02-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "MAP-02-AC08",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
