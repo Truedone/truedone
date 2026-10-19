@@ -66,8 +66,10 @@ test('reportHref fills the form from the result and the PR alone', () => {
 
 test('llms.txt tells an agent what truedone checks and how to run it', () => {
   const t = fs.readFileSync(new URL('../llms.txt', import.meta.url), 'utf8');
-  for (const needle of ['npx truedone', '--pr-line', 'init --global', 'npx truedone mcp', 'https://github.com/apps/truedone/installations/new', 'Truedone/truedone-action@v0.1.0']) {
+  for (const needle of ['npx truedone', '--pr-line', 'init --global', 'npx truedone mcp', 'https://github.com/apps/truedone/installations/new', ...(RELEASED.action ? ['Truedone/truedone-action@v0.1.0'] : [])]) {
     assert.ok(t.includes(needle), `llms.txt names ${needle}`);
   }
+  // the action's uses: line only once release.mjs has it released; until then its line says so (AGENT-02, D40)
+  if (!RELEASED.action) assert.match(t, /^- The GitHub Action\b.*: not released yet\.$/m);
   assert.match(t, /fail without the change and pass with it/);
 });

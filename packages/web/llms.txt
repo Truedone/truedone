@@ -7,6 +7,7 @@ It also flags tests that were skipped, focused or weakened, and gives each pull 
 
 - npx truedone: checks the current branch against the merge-base with the default branch, from the diff.
 - npx truedone <PR link>: checks a pull request through the GitHub API; nothing is cloned.
+- npx truedone --run: adds red-green, the changed tests run on base and head; on someone else's pull request it asks first, since that runs their code, and --docker runs it in a container.
 - npx truedone --json: prints the verdict as truedone.verdict/1.
 - npx truedone --pr-line: prints one line for the pull request description, with the verdict and the link to its public page.
 - npx truedone init: adds the agent snippet to AGENTS.md if it exists, else CLAUDE.md, else a new AGENTS.md.
@@ -19,10 +20,29 @@ It also flags tests that were skipped, focused or weakened, and gives each pull 
 Before reporting a task done, run npx truedone on the branch. Never weaken, disable or delete a test to make it pass.
 Report the verdict word for word, and put the line npx truedone --pr-line prints in the pull request description.
 
+## MCP
+
+An MCP client starts the server from this entry, under the name truedone:
+
+{"command": "npx", "args": ["-y", "truedone", "mcp"]}
+
+## Claude Code plugin
+
+Its Stop hook checks the changed tests each time the agent ends a turn. In Claude Code, two commands install it:
+
+/plugin marketplace add Truedone/truedone
+/plugin install truedone@truedone
+
 ## Other ways in
 
 - Any public pull request, in the browser: https://truedone.pages.dev/<owner>/<repo>/pull/<number>
 - The GitHub App, one check run and at most one label per pull request: https://github.com/apps/truedone/installations/new
-- The GitHub Action, red-green in an existing test job: uses: Truedone/truedone-action@v0.1.0
+- The GitHub Action, red-green in an existing test job: not released yet.
 - What each verdict means: https://truedone.pages.dev/why
 - Source and issues: https://github.com/Truedone/truedone
+
+## What truedone never does
+
+- It posts nothing to a repository that did not install the App. On one that did, the App sets one check run and at most one label on each pull request.
+- init and init --global write only the files they print, adding lines and never editing one; deleting those lines undoes it.
+- The command line talks only to GitHub: api.github.com, and raw.githubusercontent.com for file contents; GITHUB_TOKEN, when set, goes to api.github.com only. With --run on a pull request, it clones the repository from github.com into a temporary directory and deletes it after. The tests --run starts are the project's own, and with --docker, Docker fetches node:24-slim or python:3.12-slim when the machine does not have it.
