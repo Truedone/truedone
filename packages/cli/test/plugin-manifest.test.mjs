@@ -47,7 +47,7 @@ test('the plugin directory holds only its manifest, its hooks file and the one h
   const files = [];
   const walk = (d) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const f = path.join(d, e.name); if (e.isDirectory()) walk(f); else files.push(path.relative(dir, f)); } };
   walk(dir);
-  assert.deepEqual(files.sort().filter((f) => f !== 'hooks/stop.mjs'), ['.claude-plugin/plugin.json', 'README.md', 'hooks/hooks.json']);
+  assert.deepEqual(files.sort().filter((f) => f !== 'hooks/stop.mjs'), ['.claude-plugin/icon.png', '.claude-plugin/plugin.json', 'README.md', 'hooks/hooks.json']);
 });
 
 // PLG-04: the plugin's manifest named https://truedone.dev, a domain that does not exist, and the marketplace's owner was
