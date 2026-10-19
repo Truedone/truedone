@@ -562,6 +562,9 @@
       "PLG-07": [
         "PLG-07-AC02",
         "PLG-07-AC05"
+      ],
+      "PLG-08": [
+        "PLG-08-AC04"
       ]
     }
   },
@@ -14903,7 +14906,7 @@
           "statement": "the plugin installs from the checkout into a throwaway home",
           "verifier": {
             "type": "command",
-            "cmd": "H=$(mktemp -d) && R=$(pwd) && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin marketplace add \"$R\" && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin install truedone@truedone",
+            "cmd": "H=$(mktemp -d) && mkdir -p \"$H/Library\" && ln -s \"$HOME/Library/Keychains\" \"$H/Library/Keychains\" && R=$(pwd) && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin marketplace add \"$R\" && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin install truedone@truedone",
             "expect_exit": 0,
             "timeout_s": 300
           }
@@ -15029,7 +15032,7 @@
           "statement": "the plugin still installs from the checkout into a throwaway home",
           "verifier": {
             "type": "command",
-            "cmd": "H=$(mktemp -d) && R=$(pwd) && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin marketplace add \"$R\" && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin install truedone@truedone",
+            "cmd": "H=$(mktemp -d) && mkdir -p \"$H/Library\" && ln -s \"$HOME/Library/Keychains\" \"$H/Library/Keychains\" && R=$(pwd) && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin marketplace add \"$R\" && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin install truedone@truedone",
             "expect_exit": 0,
             "timeout_s": 300
           }
@@ -15241,7 +15244,7 @@
           "statement": "the plugin installs from the checkout into a throwaway home, with the skill",
           "verifier": {
             "type": "command",
-            "cmd": "H=$(mktemp -d) && R=$(pwd) && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin marketplace add \"$R\" && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin install truedone@truedone && find \"$H/.claude/plugins\" -path '*/skills/truedone/SKILL.md' | grep -q .",
+            "cmd": "H=$(mktemp -d) && mkdir -p \"$H/Library\" && ln -s \"$HOME/Library/Keychains\" \"$H/Library/Keychains\" && R=$(pwd) && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin marketplace add \"$R\" && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin install truedone@truedone && find \"$H/.claude/plugins\" -path '*/skills/truedone/SKILL.md' | grep -q .",
             "expect_exit": 0,
             "timeout_s": 300
           }
@@ -15399,6 +15402,92 @@
         },
         {
           "id": "PLG-07-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PLG-08",
+      "title": "[W3] The release tool's scratch home links the real keychain folder before it runs claude",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "REL-P3"
+      ],
+      "requirements": [
+        "PV-R01"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "tools/release-preview.mjs's plugin walk runs claude plugin marketplace add and claude plugin install with HOME in a scratch directory (release-preview.mjs:226). The claude CLI keeps its login in the macOS Keychain, and with that HOME macOS finds no default keychain (measured: \"SecKeychainCopyDefault: A default keychain could not be found.\") and shows the owner a \"Keychain Not Found\" dialog that offers to reset his keychain. Before it runs anything, the walk links <scratch home>/Library/Keychains to the real user's Library/Keychains (read from os.homedir() of the process that starts the walk, never from the scratch home), so the lookup finds the login keychain, while every configuration stays in the scratch home. The link is made once, in the function that builds the scratch home, and every walk that starts claude uses it. The test drives that function and reads the link.",
+      "scope": {
+        "allow": [
+          "tools/release-preview.mjs",
+          "tools/test/release-preview.test.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "PLG-08-AC01",
+          "mandatory": true,
+          "statement": "the scratch home the plugin walk builds links Library/Keychains to the real user's folder before claude runs",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/release-preview.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "PLG-08-AC02",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-08-AC03",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-08-AC04",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "PLG-08-AC05",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "PLG-08-AC06",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
@@ -18945,7 +19034,7 @@
           "statement": "the plugin installs from GitHub into a throwaway home: the marketplace Truedone/truedone, then truedone@truedone (on GO)",
           "verifier": {
             "type": "command",
-            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w3.md || (H=$(mktemp -d) && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin marketplace add Truedone/truedone && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin install truedone@truedone)",
+            "cmd": "grep -qx \"Decision: STOP\" docs/releases/w3.md || (H=$(mktemp -d) && mkdir -p \"$H/Library\" && ln -s \"$HOME/Library/Keychains\" \"$H/Library/Keychains\" && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin marketplace add Truedone/truedone && env -u CLAUDECODE HOME=\"$H\" CLAUDE_CONFIG_DIR=\"$H/.claude\" claude plugin install truedone@truedone)",
             "expect_exit": 0,
             "timeout_s": 1800
           }
