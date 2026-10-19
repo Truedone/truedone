@@ -19,7 +19,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import worker from "../src/index.mjs";
 import { LABELS } from "../src/labels.mjs";
-import { fakeGitHub, writeRoutes, pkcs1Pem, flagsDB, memoryKV, checkRuns, labelWrites, rawCalls, storedZip } from "./lib/github.mjs";
+import { fakeGitHub, writeRoutes, pkcs1Pem, flagsDB, memoryKV, checkRuns, labelWrites, rawCalls, storedZip, compareRoute } from "./lib/github.mjs";
 
 const SECRET = "slim-secret";
 const KEY = await pkcs1Pem();
@@ -53,6 +53,7 @@ function github(answer, { file = "test/a.test.js", tokens = { token: "tok" } } =
       "POST /app/installations/3/access_tokens": tokens,
       "GET /repos/o/r/pulls/6": answer,
       "GET /repos/o/r/pulls/6/files": [{ filename: file, status: "modified", patch: "@@ -1,1 +1,1 @@" }],
+      ...compareRoute("o", "r", B, H),
       ...writeRoutes("o", "r", 6, H),
       "GET /repos/o/r/labels": LABELS.map((l) => ({ name: l.name })),
     },
@@ -235,6 +236,7 @@ function redGreenGitHub() {
       "GET /repos/o/r": { default_branch: "main" },
       "GET /repos/o/r/git/ref/heads/main": { ref: "refs/heads/main", object: { sha: MAIN, type: "commit" } },
       "GET /repos/o/r/contents/.github/workflows": [{ name: "ci.yml" }],
+      ...compareRoute("o", "r", B, RG_HEAD),
       ...writeRoutes("o", "r", 41, RG_HEAD),
       "GET /repos/o/r/labels": LABELS.map((l) => ({ name: l.name })),
     },

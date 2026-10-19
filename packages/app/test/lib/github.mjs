@@ -52,6 +52,19 @@ export function writeRoutes(owner, repo, n, head) {
   };
 }
 
+// CORE-12: GitHub's compare answer for base...head, trimmed to the fields the reader and a person read: it names the merge
+// base the base contents are read at. mergeBase defaults to base, a pull request whose base branch has not moved since
+// it branched. compareRoute is the route the static stage reads it from.
+export const compareAnswer = (base, head, mergeBase = base) => ({
+  status: mergeBase === base ? "ahead" : "diverged",
+  base_commit: { sha: base },
+  merge_base_commit: { sha: mergeBase },
+  commits: [{ sha: head }],
+});
+export const compareRoute = (owner, repo, base, head, mergeBase = base) => ({
+  [`GET /repos/${owner}/${repo}/compare/${base}...${head}`]: compareAnswer(base, head, mergeBase),
+});
+
 // A pull_request delivery as the queue carries it: the event, the delivery id and GitHub's payload.
 export function delivery(pull, installation = 3) {
   const repo = pull.base.repo;
@@ -96,6 +109,7 @@ export function sandbox42() {
   const api = {
     [`GET /repos/${owner}/${repo}/pulls/42/files`]: files,
     ...writeRoutes(owner, repo, 42, pull.head.sha),
+    ...compareRoute(owner, repo, pull.base.sha, pull.head.sha),
   };
   return { pull, files, raw, api, owner, repo };
 }

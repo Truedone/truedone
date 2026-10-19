@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeStatic } from "../src/static.mjs";
-import { flagsDB, directRun } from "./lib/github.mjs";
+import { flagsDB, directRun, compareAnswer } from "./lib/github.mjs";
 
 // APP-05-AC01 (R5): with posting_enabled off nothing is posted (the D1 rows since APP-19), and
 // enabled: false stops one repository.
@@ -43,6 +43,7 @@ function routesFor({ configText = "", analyseResult } = {}) {
   return [
     [/\.github\/truedone\.yml$/, configText],
     [/\/pulls\/1\/files/, PR_FILES],
+    [/\/compare\/b1\.\.\.h1$/, compareAnswer("b1", "h1")],
     [/\/commits\/h1\/check-runs\?check_name=truedone/, { check_runs: [] }],
     [/repos\/o\/r\/check-runs$/, { id: 100 }],
     [/\/labels$/, []],

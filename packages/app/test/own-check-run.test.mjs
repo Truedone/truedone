@@ -11,7 +11,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import worker from "../src/index.mjs";
 import { LABELS } from "../src/labels.mjs";
-import { fakeGitHub, writeRoutes, pkcs1Pem, flagsDB, memoryKV, storedZip } from "./lib/github.mjs";
+import { fakeGitHub, writeRoutes, pkcs1Pem, flagsDB, memoryKV, storedZip, compareRoute } from "./lib/github.mjs";
 
 const KEY = await pkcs1Pem();
 const B = "cccccccccccccccccccccccccccccccccccccccc";
@@ -45,6 +45,7 @@ function github(app) {
       "GET /repos/o/r/git/ref/heads/main": { ref: "refs/heads/main", object: { sha: B, type: "commit" } },
       "GET /repos/o/r/contents/.github/workflows": [{ name: "ci.yml", path: ".github/workflows/ci.yml", type: "file" }],
       "GET /repos/Truedone/truedone-action/tags": [],
+      ...compareRoute("o", "r", B, H),
       ...writeRoutes("o", "r", 41, H),
       [`GET /repos/o/r/commits/${H}/check-runs`]: answer,
       [`PATCH /repos/o/r/check-runs/${runOf(DEV)}`]: patch(DEV),

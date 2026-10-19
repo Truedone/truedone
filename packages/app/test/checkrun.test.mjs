@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeStatic } from "../src/static.mjs";
-import { flagsDB, directRun } from "./lib/github.mjs";
+import { flagsDB, directRun, compareAnswer } from "./lib/github.mjs";
 
 // A recording fetch fake: every call is answered from routes and remembered.
 function fakeFetch(routes) {
@@ -45,6 +45,7 @@ function routesFor({ analyseResult }) {
     [/\/commits\/h1\/check-runs\?check_name=truedone/, { check_runs: [] }],
     [/repos\/o\/r\/check-runs$/, { id: 100 }],
     [/\/labels$/, []],
+    [/\/compare\/b1\.\.\.h1$/, compareAnswer("b1", "h1")],
   ];
 }
 

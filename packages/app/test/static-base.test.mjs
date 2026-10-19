@@ -10,7 +10,7 @@ import { makeStatic } from "../src/static.mjs";
 import { analyse, classify } from "../../core/core.mjs";
 import { loadPR } from "../../web/lib/github.mjs";
 import fs from "node:fs";
-import { fakeGitHub, memoryKV, writeRoutes, delivery, checkRuns, labelWrites, rawCalls, sandbox42, flagsDB, directRun } from "./lib/github.mjs";
+import { fakeGitHub, memoryKV, writeRoutes, delivery, checkRuns, labelWrites, rawCalls, sandbox42, flagsDB, directRun, compareRoute } from "./lib/github.mjs";
 
 const BASE_SHA = "1111111111111111111111111111111111111111";
 const HEAD_SHA = "2222222222222222222222222222222222222222";
@@ -30,7 +30,7 @@ const pull = (n) => ({
 // The stage run against the fake with the real core, recording the input it hands core.
 async function stage(t, pr, files, raw) {
   const [o, r] = pr.base.repo.full_name.split("/");
-  const fetch = fakeGitHub({ api: { [`GET /repos/${o}/${r}/pulls/${pr.number}/files`]: files, ...writeRoutes(o, r, pr.number, pr.head.sha) }, raw });
+  const fetch = fakeGitHub({ api: { [`GET /repos/${o}/${r}/pulls/${pr.number}/files`]: files, ...compareRoute(o, r, pr.base.sha, pr.head.sha), ...writeRoutes(o, r, pr.number, pr.head.sha) }, raw });
   const orig = globalThis.fetch;
   globalThis.fetch = fetch;
   t.after(() => { globalThis.fetch = orig; });

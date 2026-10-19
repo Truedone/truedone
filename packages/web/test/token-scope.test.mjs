@@ -13,7 +13,7 @@ test('every api.github.com request carries the session token, and no other reque
   await page({ pathname: recorded.pr }, { fetch: f.fetch, doc, root, analyse: () => verdict(), classify, storage: session({ 'truedone.token': 'ghu_session' }) });
   const api = f.log.filter((r) => new URL(r.url).host === 'api.github.com');
   const other = f.log.filter((r) => new URL(r.url).host !== 'api.github.com');
-  assert.equal(api.length, 4);
+  assert.equal(api.length, 5);
   assert.ok(other.length > 0, 'contents were read from raw');
   for (const r of api) assert.equal(r.headers.authorization, 'Bearer ghu_session', r.url);
   for (const r of other) assert.equal(r.headers.authorization, undefined, r.url);

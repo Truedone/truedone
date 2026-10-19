@@ -6,7 +6,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeConsumers } from "../src/index.mjs";
-import { flagsDB } from "./lib/github.mjs";
+import { flagsDB, compareAnswer } from "./lib/github.mjs";
 
 const API = "https://api.github.com";
 const esc = (s) => s.replace(/[./]/g, "\\$&");
@@ -49,6 +49,7 @@ test("a pull_request delivery drives the real static stage to its first GitHub w
     [/raw\.githubusercontent\.com/, null],
     [new RegExp(`${esc(API)}/repos/Truedone/truedone-action/tags`), []],
     [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/pulls/41/files`), [{ filename: "src/a.js", status: "modified", patch: "@@ -1 +1 @@\n-a\n+b" }]],
+    [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/compare/base-41\\.\\.\\.sha-41$`), compareAnswer("base-41", "sha-41")],
     [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/labels`), []],
     [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/issues/41/labels`), []],
     [/.*/, {}],

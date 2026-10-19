@@ -10,7 +10,7 @@ import worker from "../src/index.mjs";
 import { analyse, classify } from "../../core/core.mjs";
 import { loadPR } from "../../web/lib/github.mjs";
 import { LABELS } from "../src/labels.mjs";
-import { fakeGitHub, memoryKV, writeRoutes, delivery, pkcs1Pem, flagsDB } from "./lib/github.mjs";
+import { fakeGitHub, memoryKV, writeRoutes, delivery, pkcs1Pem, flagsDB, compareRoute } from "./lib/github.mjs";
 
 const B = "cccccccccccccccccccccccccccccccccccccccc";
 const H = "dddddddddddddddddddddddddddddddddddddddd";
@@ -29,6 +29,7 @@ function github(names, raw = {}) {
     // APP-25: a queued run reads the pull request from GitHub
     "GET /repos/o/r/pulls/6": pull,
     "GET /repos/o/r/pulls/6/files": files,
+    ...compareRoute("o", "r", B, H),
     ...writeRoutes("o", "r", 6, H),
     "GET /repos/o/r/labels": LABELS.map((l) => ({ name: l.name })),
   };

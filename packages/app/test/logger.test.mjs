@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeStatic } from "../src/static.mjs";
-import { flagsDB, directRun } from "./lib/github.mjs";
+import { flagsDB, directRun, compareAnswer } from "./lib/github.mjs";
 
 // APP-03-AC05 (S8): the Worker logs installation id, repository id, PR number,
 // verdict and timings, never diff content, file contents or PR text.
@@ -44,6 +44,7 @@ const PR_FILES = [
 function routesFor({ analyseResult }) {
   return [
     [/\/pulls\/1\/files/, PR_FILES],
+    [/\/compare\/b1\.\.\.h1$/, compareAnswer("b1", "h1")],
     [/\/commits\/h1\/check-runs\?check_name=truedone/, { check_runs: [] }],
     [/repos\/o\/r\/check-runs$/, { id: 100 }],
     [/\/labels$/, []],

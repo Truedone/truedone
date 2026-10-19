@@ -1,0 +1,11 @@
+{
+ "url": "https://api.github.com/repos/octo/demo/compare/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...dddddddddddddddddddddddddddddddddddddddd",
+ "status": "ahead",
+ "ahead_by": 1,
+ "behind_by": 0,
+ "total_commits": 1,
+ "base_commit": { "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+ "merge_base_commit": { "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+ "commits": [{ "sha": "dddddddddddddddddddddddddddddddddddddddd" }],
+ "files": []
+}

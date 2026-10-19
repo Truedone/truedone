@@ -15,7 +15,7 @@ import worker from "../src/index.mjs";
 // a namespace import, so each test fails on its own outcome where the intake has no budget yet
 import * as webhook from "../src/webhook.mjs";
 import { LABELS } from "../src/labels.mjs";
-import { fakeGitHub, memoryKV, writeRoutes, pkcs1Pem, flagsDB } from "./lib/github.mjs";
+import { fakeGitHub, memoryKV, writeRoutes, pkcs1Pem, flagsDB, compareRoute } from "./lib/github.mjs";
 
 const SECRET = "test-secret";
 const TOKEN = "ghs_intake_direct_token";
@@ -33,6 +33,7 @@ function github({ filesStatus = 200 } = {}) {
   const api = {
     "POST /app/installations/3/access_tokens": { token: TOKEN, expires_at: new Date(Date.now() + 3600_000).toISOString() },
     "GET /repos/o/r/pulls/6/files": [{ filename: FILE, status: "modified", patch: "@@ -5,0 +6,3 @@" }],
+    ...compareRoute("o", "r", B, H),
     ...writeRoutes("o", "r", 6, H),
     "GET /repos/o/r/labels": LABELS.map((l) => ({ name: l.name })),
     "PATCH /repos/o/r/issues/6": {},

@@ -16,6 +16,10 @@
   "/repos/octo/demo/pulls/7/files?per_page=100&page=3": {
    "status": 200,
    "file": "files-3.json"
+  },
+  "/repos/octo/demo/compare/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb...cccccccccccccccccccccccccccccccccccccccc": {
+   "status": 200,
+   "file": "compare.json"
   }
  },
  "raw": {

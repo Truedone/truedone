@@ -16,9 +16,9 @@ test('a PR of 300 files takes 4 api.github.com calls and renders the verdict cor
   let input;
   const analyse = (i) => { input = i; return verdict({ verdict: 'no_evidence', label: 'truedone:no-evidence', reasons: [{ check: 'source_no_test', file: 'src/mod001.js', message: 'source changed and no test fails without it' }] }); };
   const r = await page(loc, { fetch: f.fetch, doc, root, analyse, classify });
-  assert.equal(f.count('api.github.com'), 4);
-  assert.ok(f.count('api.github.com') <= 4);
-  assert.equal(r.calls, 4);
+  assert.equal(f.count('api.github.com'), 5);
+  assert.ok(f.count('api.github.com') <= 5);
+  assert.equal(r.calls, 5);
   assert.equal(input.files.length, 300);
   const text = textOf(root);
   assert.match(text, /Verdict:\s*No red-green evidence/);   // the visually hidden label, then the badge (WEB-07)
@@ -81,7 +81,7 @@ test('a PR over the 300-file limit reads 3 pages and is shown as partial', async
   const f = fakeFetch({ 'https://api.github.com/repos/octo/demo/pulls/7': { status: 200, body: JSON.stringify(big) } });
   const { doc, root } = fakeDoc();
   await page(loc, { fetch: f.fetch, doc, root, analyse: () => verdict(), classify });
-  assert.equal(f.count('api.github.com'), 4);
+  assert.equal(f.count('api.github.com'), 5);
   assert.match(textOf(root), /\(partial\)/);
   assert.match(textOf(root), /Analysed 300 of the 1200 changed files/);
 });

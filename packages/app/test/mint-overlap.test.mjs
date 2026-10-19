@@ -7,7 +7,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import { makeApp } from "../src/index.mjs";
-import { flagsDB } from "./lib/github.mjs";
+import { flagsDB, compareAnswer } from "./lib/github.mjs";
 
 const SECRET = "overlap-secret";
 
@@ -64,6 +64,7 @@ test("the config read starts while the mint is still in flight", async () => {
     }
     if (u.includes("raw.githubusercontent.com")) return new Response("export const V = 1;\n", { status: 200 });
     if (u.includes("/pulls/3/files")) return json([]);
+    if (u.includes("/compare/b3...s3")) return json(compareAnswer("b3", "s3"));
     if (u.includes("/check-runs") && init?.method !== "POST") return json({ check_runs: [], id: 1 });
     if (u.endsWith("/labels") && init?.method !== "POST") return json([]);
     if (u.includes("/repos/Truedone/truedone-action/tags")) return json([]);

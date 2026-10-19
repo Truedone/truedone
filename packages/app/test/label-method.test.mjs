@@ -10,7 +10,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import { makeApp } from "../src/index.mjs";
-import { labelWrites, flagsDB } from "./lib/github.mjs";
+import { labelWrites, flagsDB, compareAnswer } from "./lib/github.mjs";
 
 const SECRET = "method-secret";
 
@@ -65,6 +65,7 @@ async function runDelivery(t, { deliveryId, issueLabels }) {
     if (u.includes("raw.githubusercontent.com") && u.includes("/s9/")) return new Response("const a = 2;\n", { status: 200 });
     if (u.includes("raw.githubusercontent.com")) return new Response("const a = 1;\n", { status: 200 });
     if (u.includes("/pulls/9/files")) return json([{ filename: "test/a.test.js", status: "modified", patch: "@@ -1,1 +1,1 @@" }]);
+    if (u.includes("/compare/b9...s9")) return json(compareAnswer("b9", "s9"));
     if (u.includes("/graphql") && method === "POST") { seen.graphqlCalls += 1; return json({ data: {} }); }
     if (u.includes("/commits/s9/check-runs") && method !== "POST") return json({ check_runs: [] });
     if (u.includes("/check-runs") && method === "POST") return json({ id: 1 });

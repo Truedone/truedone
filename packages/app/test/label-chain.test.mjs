@@ -7,7 +7,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import { makeApp } from "../src/index.mjs";
-import { flagsDB } from "./lib/github.mjs";
+import { flagsDB, compareAnswer } from "./lib/github.mjs";
 
 const SECRET = "chain-secret";
 
@@ -59,6 +59,7 @@ test("the label POST is sent while the check-run lookup is held open", async () 
     if (u.includes("raw.githubusercontent.com") && u.includes("/b7/")) return new Response("const a = 2;\n", { status: 200 });
     if (u.includes("raw.githubusercontent.com")) return new Response("const a = 1;\n", { status: 200 });
     if (u.includes("/pulls/7/files")) return json([{ filename: "test/a.test.js", status: "modified", patch: "@@ -1,1 +1,1 @@" }]);
+    if (u.includes("/compare/b7...s7")) return json(compareAnswer("b7", "s7"));
     if (u.includes("/commits/s7/check-runs") && init?.method !== "POST") { await checkGate; return json({ check_runs: [] }); }
     if (u.includes("/check-runs") && init?.method === "POST") return json({ id: 1 });
     if (u.endsWith("/labels") && init?.method !== "POST") return json([]);
