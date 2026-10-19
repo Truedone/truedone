@@ -548,6 +548,16 @@
       ],
       "WEB-15": [
         "WEB-15-AC06"
+      ],
+      "MCP-02": [
+        "MCP-02-AC05"
+      ],
+      "REPO-04": [
+        "REPO-04-AC02",
+        "REPO-04-AC05"
+      ],
+      "WEB-16": [
+        "WEB-16-AC04"
       ]
     }
   },
@@ -13194,6 +13204,93 @@
       ]
     },
     {
+      "id": "WEB-16",
+      "title": "[W2] The site gives crawlers a sitemap and a robots file",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "WEB-14"
+      ],
+      "requirements": [
+        "PV-W02"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "packages/web/sitemap.xml lists the site's pages at https://truedone.pages.dev (/, /why, /privacy, /terms) and /llms.txt, and packages/web/robots.txt allows every crawler and names the sitemap. The test reads both and holds the sitemap's addresses to the pages the site serves (the same list the site's 404 test uses, read from the code), so a page added later without a sitemap line fails it. Pages serves both files as they are.",
+      "scope": {
+        "allow": [
+          "packages/web/sitemap.xml",
+          "packages/web/robots.txt",
+          "packages/web/test/**",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "WEB-16-AC01",
+          "mandatory": true,
+          "statement": "the sitemap lists every page the site serves and llms.txt, and robots.txt names it",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/web/test/sitemap.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "WEB-16-AC02",
+          "mandatory": true,
+          "statement": "web suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/web/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-16-AC03",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-16-AC04",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "WEB-16-AC05",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "WEB-16-AC06",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "CLI-02",
       "title": "[W1] npx truedone init",
       "phase": "implement",
@@ -14099,6 +14196,214 @@
         },
         {
           "id": "CLI-06-AC09",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "MCP-02",
+      "title": "[W2] The MCP tools say they only read",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "MCP-01",
+        "CLI-05"
+      ],
+      "requirements": [
+        "PV-L01",
+        "PV-L02"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "The MCP server's two tools (packages/cli/src/mcp.mjs) read and never write: truedone_check_pr reads a pull request from GitHub, truedone_check_branch reads the local branch and working tree. Each tool's definition in tools/list carries a title and the protocol's annotations, read from the code: readOnlyHint true, destructiveHint false, idempotentHint true, and openWorldHint true for the pull request tool (it reads GitHub) and false for the branch tool unless the code shows it calls the network. The test drives the real server over stdio, as mcp.test.mjs does, and reads the annotations from its tools/list answer.",
+      "scope": {
+        "allow": [
+          "packages/cli/**",
+          "docs/DEPENDENCY-MAP.md",
+          "tools/bundle.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/action/dist/index.mjs",
+          "tools/test/bundle-version.test.mjs"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "MCP-02-AC01",
+          "mandatory": true,
+          "statement": "tools/list gives each tool a title and annotations that say it only reads",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/cli/test/mcp-annotations.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "MCP-02-AC02",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MCP-02-AC03",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MCP-02-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MCP-02-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "MCP-02-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "MCP-02-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "REPO-04",
+      "title": "[W2] The repository root names the MCP server for agent clients and directories",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "CLI-05",
+        "REL-P7",
+        "PLG-06"
+      ],
+      "requirements": [
+        "PV-L01",
+        "PV-L02",
+        "PV-L04"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Three files at the repository root, each read from its reader's own documentation: .mcp.json, {\"mcpServers\": {\"truedone\": {\"command\": \"npx\", \"args\": [\"-y\", \"truedone@<version>\", \"mcp\"]}}}, pinned to packages/cli/package.json's version (Anthropic's plugin checklist blocks an unpinned npx launcher); glama.json, {\"$schema\": \"https://glama.ai/mcp/schemas/server.json\", \"maintainers\": [\"mgillr\"]}; and gemini-extension.json, the Gemini CLI extension manifest: name truedone, version, and the same mcpServers entry. It names a context file only if Gemini's documentation allows one outside the root, and then skills/truedone/SKILL.md (D40). The test holds every pinned version to package.json's and the two server entries equal. npm has the pinned version (REL-P7) before this lands, so no file names a version that does not exist.",
+      "scope": {
+        "allow": [
+          ".mcp.json",
+          "glama.json",
+          "gemini-extension.json",
+          "tools/test/discovery-files.test.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "REPO-04-AC01",
+          "mandatory": true,
+          "statement": "the root's .mcp.json, glama.json and gemini-extension.json parse, pin package.json's version, and name the same server",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/discovery-files.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "REPO-04-AC02",
+          "mandatory": true,
+          "statement": "npm has the version the files pin",
+          "verifier": {
+            "type": "command",
+            "cmd": "v=$(node -p 'require(\"./packages/cli/package.json\").version') && NPM_CONFIG_USERCONFIG=/dev/null npm view truedone@$v version | grep -qx \"$v\"",
+            "expect_exit": 0,
+            "timeout_s": 300
+          }
+        },
+        {
+          "id": "REPO-04-AC03",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REPO-04-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REPO-04-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "REPO-04-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "REPO-04-AC07",
           "mandatory": true,
           "statement": "Merged to main (gate after the pull request merges)",
           "verifier": {
