@@ -491,6 +491,9 @@
       "PLG-04": [
         "PLG-04-AC05",
         "PLG-04-AC08"
+      ],
+      "SEC-04": [
+        "SEC-04-AC05"
       ]
     }
   },
@@ -6366,6 +6369,104 @@
         "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ]
+    },
+    {
+      "id": "SEC-04",
+      "title": "[W2] The CI gate reads every task id from the pull request title",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "SEC-03",
+        "GUARD-01"
+      ],
+      "requirements": [
+        "PV-B01"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "Measured on 2026-10-19 at 00:11Z: REL-P1's pull request #147 failed the required check with \"ci-gate: no task id from the PR title\", because parseTaskId (tools/ci-gate.mjs) needs digits right after the hyphen, and 10 of the contract's ids (REL-P1 to REL-P6, REL-W2, REL-W3, REL-W4, REL-W6) have a letter there. parseTaskId accepts the contract's id form: an upper-case letter, then upper-case letters or digits, a hyphen, then upper-case letters or digits, then a colon and a space. Lower-case titles stay refused, and the titles SEC-01's test already holds keep their answers. A new test reads proofline.json and asserts that \"<id>: a title\" parses to that id for every task, so an id of a new shape fails the suite before it can reach the gate.",
+      "scope": {
+        "allow": [
+          "tools/ci-gate.mjs",
+          "tools/test/ci-gate*.test.mjs",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "SEC-04-AC01",
+          "mandatory": true,
+          "statement": "every task id in proofline.json parses from a pull request title \"<id>: a title\"",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "tools/test/ci-gate-ids.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "SEC-04-AC02",
+          "mandatory": true,
+          "statement": "the CI gate's own tests stay green, SEC-01's title rule included",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test tools/test/ci-gate.test.mjs tools/test/ci-gate-main.test.mjs tools/test/ci-gate-envbound.test.mjs tools/test/ci-gate-restore.test.mjs tools/test/ci-gate-key.test.mjs tools/test/ci-gate-ids.test.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "SEC-04-AC03",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "SEC-04-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "SEC-04-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "SEC-04-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "SEC-04-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
       ]
     },
     {
