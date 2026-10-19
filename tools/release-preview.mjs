@@ -217,6 +217,26 @@ export function stopCommand(hooks) {
   return typeof cmd === 'string' ? cmd : null;
 }
 
+// PLG-08: the plugin walk's scratch directory, with HOME in it. The claude CLI keeps its login in the macOS Keychain, and
+// with HOME in a scratch directory macOS finds no default keychain ("SecKeychainCopyDefault: A default keychain could not
+// be found.") and shows the owner a "Keychain Not Found" dialog that offers to reset his keychain. So the scratch home's
+// Library/Keychains links to the real user's, read from the home of the process that starts the walk, never from the
+// scratch home; every configuration stays in the scratch home. remove() unlinks that link before it deletes the scratch
+// directory, so the delete can never reach the real keychains.
+export function pluginScratch({ realHome = os.homedir() } = {}) {
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'truedone-plugin-'));
+  const home = path.join(scratch, 'home'), data = path.join(scratch, 'data'), repo = path.join(scratch, 'repo');
+  for (const d of [home, data, repo]) fs.mkdirSync(d);
+  const keychains = path.join(home, 'Library', 'Keychains');
+  fs.mkdirSync(path.dirname(keychains));
+  fs.symlinkSync(path.join(realHome, 'Library', 'Keychains'), keychains);
+  const remove = () => {
+    try { fs.unlinkSync(keychains); } catch { /* gone already */ }
+    fs.rmSync(scratch, { recursive: true, force: true });
+  };
+  return { scratch, home, data, repo, keychains, remove };
+}
+
 async function plugin(args) {
   const lines = [];
   const say = (s) => { console.log(s); lines.push(s); };
@@ -224,9 +244,8 @@ async function plugin(args) {
   const local = at >= 0 ? path.resolve(args[at + 1] || ROOT) : null;
   const source = local ?? 'Truedone/truedone';
   const version = JSON.parse(fs.readFileSync(path.join(ROOT, 'packages/cli/package.json'), 'utf8')).version;
-  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'truedone-plugin-'));
-  const home = path.join(scratch, 'home'), data = path.join(scratch, 'data'), repo = path.join(scratch, 'repo');
-  for (const d of [home, data, repo]) fs.mkdirSync(d);
+  const box = pluginScratch();
+  const { scratch, home, data, repo } = box;
   const env = { PATH: process.env.PATH, HOME: home, TERM: 'dumb' };
   let failed = false;
   const check = (ok, line) => { say(ok ? line : `${line}   FAIL`); if (!ok) failed = true; };
@@ -287,7 +306,7 @@ async function plugin(args) {
     say(`FAIL: ${e.message}`);
     failed = true;
   } finally {
-    fs.rmSync(scratch, { recursive: true, force: true });
+    box.remove();
   }
   say(failed ? 'result: FAIL' : 'result: pass');
   if (failed) return unchanged();
