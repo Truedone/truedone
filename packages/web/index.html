@@ -4,11 +4,40 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>truedone</title>
+<meta name="description" content="truedone checks whether a pull request's tests prove its change: a test should fail without the change and pass with it.">
+<meta property="og:title" content="truedone">
+<meta property="og:description" content="truedone checks whether a pull request's tests prove its change: a test should fail without the change and pass with it.">
+<meta property="og:url" content="https://truedone.pages.dev/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://truedone.pages.dev/logo.png">
+<meta name="twitter:card" content="summary">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/style.css">
 <script type="module" src="/app.mjs"></script>
 </head>
 <body>
-<div id="app" aria-busy="true"><main><p>Loading…</p></main></div>
+<div id="app" aria-busy="true"><div class="page">
+<header class="site-header">
+<p class="name"><a href="/">truedone</a></p>
+<p class="tagline">Checks whether a pull request's tests prove its change: red without it, green with it.</p>
+</header>
+<main>
+<h1>What truedone checks</h1>
+<p>truedone checks whether a pull request's tests prove its change: a test should fail without the change and pass with it.</p>
+<h2>Ways to use it</h2>
+<ul>
+<li>A pull request on this site: replace github.com with truedone.pages.dev in its address, as in <a href="/Truedone/truedone-sandbox/pull/31">truedone.pages.dev/Truedone/truedone-sandbox/pull/31</a>.</li>
+<li>The command line: <a href="https://www.npmjs.com/package/truedone">npx truedone</a> checks the branch you are on, and <code>npx truedone &lt;PR link&gt;</code> checks a pull request.</li>
+<li>The GitHub App: <a href="https://github.com/apps/truedone">github.com/apps/truedone</a> sets one check run and at most one label on each pull request of a repository that installed it.</li>
+<li>The Claude Code plugin: <a href="https://github.com/Truedone/truedone/blob/main/packages/cli/plugin/README.md">truedone for Claude Code</a>, with <code>/plugin marketplace add Truedone/truedone</code>, then <code>/plugin install truedone@truedone</code>.</li>
+<li>The MCP server: <a href="https://github.com/Truedone/truedone/blob/main/packages/cli/README.md#as-a-tool-for-agents-mcp">npx truedone mcp</a> serves the check to an agent over the Model Context Protocol.</li>
+</ul>
+<p><a href="/why">What each verdict and label means</a></p>
+<p>For coding agents: <a href="/llms.txt">/llms.txt</a> says what truedone checks and how to run it.</p>
+</main>
+<footer class="site-footer">
+<ul><li><a href="/why">Why</a></li><li><a href="/privacy">Privacy</a></li><li><a href="/terms">Terms</a></li><li><a href="https://github.com/Truedone/truedone">GitHub</a></li><li class="signin-item"><a href="/signin?return=%2F">Sign in with GitHub</a></li></ul>
+</footer>
+</div></div>
 </body>
 </html>

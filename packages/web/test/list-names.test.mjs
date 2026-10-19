@@ -1,7 +1,8 @@
 // WEB-09-AC03 (#85, WCAG 1.3.1; and #app's busy state): both reasons lists on a PR page carry an accessible name, read
 // from the mounted tree as a browser computes it from aria-labelledby. The reasons that give the verdict are named
 // "Reasons for the verdict" by a visually hidden label; the lesser ones are named by "Also noted". #app is aria-busy in
-// index.html and while page() reads the PR, and not once a view is mounted.
+// index.html, around the static page a reader without scripts sees (WEB-15), and while page() reads the PR, and not
+// once a view is mounted.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -39,9 +40,9 @@ test('a PR whose reasons all give the verdict has the one named list', () => {
   assert.deepEqual(lists(tree).map((e) => nameOf(tree, e)), ['Reasons for the verdict']);
 });
 
-test('index.html marks #app aria-busy while it shows Loading', () => {
+test('index.html marks #app aria-busy while it shows its static page', () => {
   const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-  assert.match(html, /<div id="app" aria-busy="true"><main><p>Loading/);
+  assert.match(html, /<div id="app" aria-busy="true"><div class="page">\n<header class="site-header">/);
 });
 
 test('#app stays aria-busy while page() reads the PR, and is not once the view is mounted', async () => {
