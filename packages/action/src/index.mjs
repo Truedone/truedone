@@ -19,5 +19,7 @@ const context = {
   timeoutS: Number(process.env.INPUT_TIMEOUT || 1200),
 };
 
-const code = await runGate(context);
+// runGate resolves to { code, report? }; destructure so process.exit never
+// receives the object (the lead's 5083, fault 2).
+const { code = 0 } = await runGate(context);
 process.exit(code);
