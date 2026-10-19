@@ -2,8 +2,8 @@
   "name": "truedone",
   "description": "truedone: a Claude Code plugin that checks an agent's test claims before it reports a task done",
   "owner": {
-    "name": "mgillr",
-    "url": "https://github.com/mgillr"
+    "name": "Truedone",
+    "url": "https://github.com/Truedone"
   },
   "plugins": [
     {
