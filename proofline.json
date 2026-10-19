@@ -501,6 +501,9 @@
       ],
       "MAP-02": [
         "MAP-02-AC06"
+      ],
+      "APP-27": [
+        "APP-27-AC05"
       ]
     }
   },
@@ -8981,6 +8984,111 @@
       ]
     },
     {
+      "id": "APP-27",
+      "title": "[W5] The App trusts the pinned truedone step in both forms and reads releases from Truedone/truedone-action",
+      "phase": "implement",
+      "owner": "lane-b",
+      "depends_on": [
+        "APP-26",
+        "APP-12"
+      ],
+      "requirements": [
+        "PV-A06",
+        "PV-A08",
+        "PV-A09",
+        "PV-A11",
+        "PV-R06"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "#164, measured 2026-10-19: publishedShas (packages/app/src/github.mjs) reads the tags of truedone/action, which answers 404, so no published release is ever known; the release repository is Truedone/truedone-action (R3, D36). defaultStepSha (packages/app/src/index.mjs) matches only a step of the form truedone-action@<40 hex>, so the sandbox's documented interim step Truedone/truedone/packages/action@<sha> gives null. PV-A06 accepts a report only for a truedone step matching the default branch or a published release, and names no form. The App reads the tags of Truedone/truedone-action, and takes the default branch's step in either form, Truedone/truedone-action@<sha> or Truedone/truedone/packages/action@<sha>, still only when pinned by a full 40-hex SHA; an unpinned step (@main, a tag) matches nothing. The red-green stage logs one line naming the reason whenever it refuses a report, so a refusal is visible in the Worker log. The test drives both forms, an unpinned step and the release tags through fakes in the GitHub API's real answer shapes.",
+      "scope": {
+        "allow": [
+          "packages/app/src/**",
+          "packages/app/test/**",
+          "docs/ops/apps.md",
+          "docs/DEPENDENCY-MAP.md"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "APP-27-AC01",
+          "mandatory": true,
+          "statement": "the default branch step is found in both pinned forms and never when unpinned, published releases come from the tags of Truedone/truedone-action, and a refused report logs its reason",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/app/test/step-match.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "APP-27-AC02",
+          "mandatory": true,
+          "statement": "the app imports nothing from Node and evaluates no code",
+          "verifier": {
+            "type": "command",
+            "cmd": "! grep -rnE \"from .node:|require\\(|child_process|eval\\(|new Function\" packages/app/src",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-27-AC03",
+          "mandatory": true,
+          "statement": "app suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/app/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900,
+            "min_tests": 40,
+            "max_skipped": 0
+          }
+        },
+        {
+          "id": "APP-27-AC04",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-27-AC05",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "APP-27-AC06",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "APP-27-AC07",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "COLLECT-02",
       "title": "[W2] Every check run carries a link to report a wrong verdict",
       "phase": "implement",
@@ -10383,7 +10491,8 @@
         "RUN-04",
         "APP-04",
         "APP-06",
-        "APP-12"
+        "APP-12",
+        "APP-27"
       ],
       "requirements": [
         "PV-X02",
