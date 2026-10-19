@@ -30,21 +30,33 @@ const BEFORE = `import { test } from 'node:test';\nimport assert from 'node:asse
 const AFTER = `${BEFORE}test('a again', () => {\n  assert.equal(f(), 1);\n});\n`;
 const turn = () => new Promise((resolve) => setImmediate(resolve));
 
-// one ordered log of every KV call, fetch and queue send
+// one ordered log of every KV call, fetch (sent, then answered) and queue send. when(pred) resolves true once an entry
+// matching pred is logged, at once if one already is: the tests wait for the event itself, not for a number of turns,
+// which ran out under load before the token mint's RSA signature did (APP-27, 2 of 5 full suites in the gate container).
+// It resolves false after a wall-clock minute, so the test's assertion names what never happened; that never makes a test
+// pass.
 function world({ seed = {}, filesStatus = 200, sendFails = false } = {}) {
   const log = [];
+  const waiters = new Set();
+  const note = (e) => { log.push(e); for (const w of waiters) if (w.pred(e)) { waiters.delete(w); w.done(); } };
+  const when = (pred) => log.some(pred) ? Promise.resolve(true) : new Promise((resolve) => {
+    const w = { pred, done: () => { clearTimeout(timer); resolve(true); } };
+    const timer = setTimeout(() => { waiters.delete(w); resolve(false); }, 60_000);
+    waiters.add(w);
+  });
+  let pending = 0;
   const store = new Map(Object.entries(seed));
   const holds = {};
   // a hold on the read or write of a delivery: record; release() lets it go on, release(true) makes it fail
   const hold = (op) => { let release; const p = new Promise((r) => { release = r; }); holds[op] = p; return (fail = false) => { delete holds[op]; release(fail); }; };
   const held = async (op, k) => {
     if (!k.startsWith("delivery:") || !holds[op]) return;
-    if (await holds[op]) { log.push([`kv.${op}.failed`, k]); throw new Error(`KV ${op} failed for ${k}`); }
+    if (await holds[op]) { note([`kv.${op}.failed`, k]); throw new Error(`KV ${op} failed for ${k}`); }
   };
   const kv = {
-    async get(k) { log.push(["kv.get", k]); await held("get", k); await turn(); const v = store.has(k) ? store.get(k) : null; log.push(["kv.got", k]); return v; },
-    async put(k, v, opts) { log.push(["kv.put", k, opts?.expirationTtl ?? null]); await held("put", k); await turn(); store.set(k, v); log.push(["kv.put.done", k]); },
-    async delete(k) { log.push(["kv.delete", k]); await turn(); store.delete(k); },
+    async get(k) { note(["kv.get", k]); await held("get", k); await turn(); const v = store.has(k) ? store.get(k) : null; note(["kv.got", k]); return v; },
+    async put(k, v, opts) { note(["kv.put", k, opts?.expirationTtl ?? null]); await held("put", k); await turn(); store.set(k, v); note(["kv.put.done", k]); },
+    async delete(k) { note(["kv.delete", k]); await turn(); store.delete(k); },
     async list() { return { keys: [], list_complete: true, cursor: undefined }; },
   };
   const gh = fakeGitHub({
@@ -59,14 +71,18 @@ function world({ seed = {}, filesStatus = 200, sendFails = false } = {}) {
     },
     raw: { [`o/r/${B}/${FILE}`]: BEFORE, [`o/r/${H}/${FILE}`]: AFTER },
   });
-  const fetch = async (url, init = {}) => { log.push(["fetch", init.method || "GET", String(url)]); return gh(url, init); };
+  const fetch = async (url, init = {}) => {
+    note(["fetch", init.method || "GET", String(url)]);
+    pending += 1;
+    try { return await gh(url, init); } finally { pending -= 1; note(["fetch.answered", init.method || "GET", String(url)]); }
+  };
   fetch.calls = gh.calls;
   const sent = [];
   const env = {
     WEBHOOK_SECRET: SECRET, APP_ID: "12345", PRIVATE_KEY: KEY, KV: kv, FLAGS: flagsDB({ posting_enabled: "on" }), VERSION: "v",
-    QUEUE: { async send(body, opts) { log.push(["queue.send", body.delivery]); if (sendFails) throw new Error("queue send failed"); sent.push([body, opts]); } },
+    QUEUE: { async send(body, opts) { note(["queue.send", body.delivery]); if (sendFails) throw new Error("queue send failed"); sent.push([body, opts]); } },
   };
-  return { log, store, hold, env, sent, fetch };
+  return { log, store, hold, env, sent, fetch, when, pending: () => pending };
 }
 function useFetch(t, fetch) {
   const orig = globalThis.fetch;
@@ -100,9 +116,16 @@ const CONFIG = isFetch("GET", /raw\.githubusercontent\.com\/o\/r\/c+\/\.github\/
 const CHECK_WRITE = (e) => e[0] === "fetch" && /\/repos\/o\/r\/check-runs(\/\d+)?$/.test(e[2]) && e[1] !== "GET";
 const LABEL_WRITE = (e) => e[0] === "fetch" && e[1] !== "GET" && (/\/issues\/6\/labels/.test(e[2]) || /\/issues\/6$/.test(e[2]) || /\/graphql$/.test(e[2]));
 const WRITE = (e) => CHECK_WRITE(e) || LABEL_WRITE(e);
-async function until(pred, what) {
-  for (let i = 0; i < 500; i++) { if (pred()) return; await turn(); }
-  assert.fail(`never happened: ${what}`);
+// Idle: every fetch sent has answered, and then ten turns log nothing. The only work on the stage's path that leaves the
+// thread is the signature check and the token mint, both before its first API read, so once the reads have answered what
+// is left runs in turns whatever the load: a write or send the code was going to make before the verdict has been made.
+async function idle(w) {
+  for (let quiet = 0; quiet < 10;) {
+    if (w.pending()) { assert.ok(await w.when((e) => e[0] === "fetch.answered" && w.pending() === 0), "never happened: every fetch answered"); quiet = 0; }
+    const seen = w.log.length;
+    await turn();
+    quiet = w.log.length === seen && !w.pending() ? quiet + 1 : 0;
+  }
 }
 
 test("with the dedupe read held, the config read is sent and nothing is written; released as new, the record is written once, then the check run and the label", async (t) => {
@@ -112,7 +135,7 @@ test("with the dedupe read held, the config read is sent and nothing is written;
   const c = ctx();
   const r = start(w.env, await signed(prPayload(), "pull_request", "d-1"), c);
   // the stage runs its switch and read phases while the read is held
-  await until(() => at(w.log, isFetch("GET", /\/issues\/6\/labels$/)) >= 0, "the labels read");
+  assert.ok(await w.when(isFetch("GET", /\/issues\/6\/labels$/)), "never happened: the labels read");
   assert.ok(at(w.log, CONFIG) >= 0, "the config read is sent before the dedupe read answers");
   assert.equal(at(w.log, (e) => e[0] === "kv.got" && e[1] === "delivery:d-1"), -1, "the dedupe read has not answered");
   assert.equal(at(w.log, WRITE), -1, "nothing is written before the verdict");
@@ -136,8 +159,8 @@ test("with the record's write held, the check run and the label wait for it", as
   const release = w.hold("put");
   const c = ctx();
   const r = start(w.env, await signed(prPayload(), "pull_request", "d-2"), c);
-  await until(() => at(w.log, (e) => e[0] === "kv.put" && e[1] === "delivery:d-2") >= 0 && at(w.log, isFetch("GET", /\/issues\/6\/labels$/)) >= 0, "the read phase and the record's write");
-  for (let i = 0; i < 50; i++) await turn();
+  assert.deepEqual(await Promise.all([w.when((e) => e[0] === "kv.put" && e[1] === "delivery:d-2"), w.when(isFetch("GET", /\/issues\/6\/labels$/))]), [true, true], "never happened: the record's write and the read phase");
+  await idle(w);
   assert.equal(at(w.log, WRITE), -1, "no write while the record's write is held");
   assert.equal(r.settled, false);
   release();
@@ -171,7 +194,7 @@ for (const op of ["get", "put"]) {
     const release = w.hold(op);
     const c = ctx();
     const r = start(w.env, await signed(prPayload(), "pull_request", `d-${op}`), c);
-    await until(() => at(w.log, isFetch("GET", /\/issues\/6\/labels$/)) >= 0, "the read phase");
+    assert.ok(await w.when(isFetch("GET", /\/issues\/6\/labels$/)), "never happened: the read phase");
     release(true);
     await assert.rejects(r.promise, new RegExp(`KV ${op} failed`));
     await Promise.all(c.waited);
@@ -188,8 +211,8 @@ for (const [verdict, sends] of [["new", 1], ["duplicate", 0]]) {
     const release = w.hold("get");
     const c = ctx();
     const r = start(w.env, await signed(prPayload(), "pull_request", "d-5"), c);
-    await until(() => at(w.log, isFetch("GET", /\/pulls\/6\/files/)) >= 0, "the failing files read");
-    for (let i = 0; i < 20; i++) await turn();
+    assert.ok(await w.when(isFetch("GET", /\/pulls\/6\/files/)), "never happened: the failing files read");
+    await idle(w);
     assert.deepEqual(w.log.filter((e) => e[0] === "queue.send"), [], "nothing is sent before the verdict");
     if (verdict === "duplicate") w.store.set("delivery:d-5", "1");
     release();

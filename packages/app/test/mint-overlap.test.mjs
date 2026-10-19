@@ -66,7 +66,7 @@ test("the config read starts while the mint is still in flight", async () => {
     if (u.includes("/pulls/3/files")) return json([]);
     if (u.includes("/check-runs") && init?.method !== "POST") return json({ check_runs: [], id: 1 });
     if (u.endsWith("/labels") && init?.method !== "POST") return json([]);
-    if (u.includes("/repos/truedone/action/tags")) return json([]);
+    if (u.includes("/repos/Truedone/truedone-action/tags")) return json([]);
     if (u.includes("/check-runs") && init?.method === "POST") { seen.checkWritten = true; return json({ id: 1 }); }
     return json({});
   };

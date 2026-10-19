@@ -57,6 +57,16 @@ deduped before its send. The read and the write are not one atomic step and KV r
 write, so two copies of one delivery id within about a minute can both pass; that was so before APP-26, and closing it needs a
 strongly consistent record, such as a D1 insert on the id.
 
+The red-green stage believes a report only when its `proved_step` is the truedone step the repository's default branch pins,
+or the commit of a published release (PV-A06; APP-27, #164). The step counts in either form, `Truedone/truedone-action@<sha>`
+or the interim `Truedone/truedone/packages/action@<sha>`, and only when it is pinned by a full 40-hex SHA on a step's `uses:`
+line: `@main`, a tag or a short SHA names no commit and matches nothing, and so does a comment or a step of another
+repository, `mgillr/truedone-action@<sha>` included. The published releases are the tags of `Truedone/truedone-action`. Until
+APP-27 the App read the tags of `truedone/action`, which answers 404, and matched only the first form, so the sandbox's
+interim step was never found. On 2026-10-19 `Truedone/truedone-action` had no tags, so for now a report is believed only
+through the default branch's step. Each refused report logs one line (`"stage": "red-green"`, with the delivery id, the
+repository id, the pull request number and the reason in `refused`) and writes nothing.
+
 The development app belongs to the Truedone organisation since 2026-10-18 (D36), with the repositories; its installation on
 the old account ended with the transfer.
 

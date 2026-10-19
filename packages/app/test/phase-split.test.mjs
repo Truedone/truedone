@@ -62,7 +62,7 @@ test("one analysed delivery logs exactly one phase-timing line", async () => {
     if (u.endsWith("/labels") && init?.method !== "POST") return json([]);
     if (u.includes("/repos/o/r/labels")) return json([]);
     if (u.includes("/issues/5/labels") && init?.method === "POST") return json({ id: 2 });
-    if (u.includes("/repos/truedone/action/tags")) return json([]);
+    if (u.includes("/repos/Truedone/truedone-action/tags")) return json([]);
     return json({});
   };
   try {

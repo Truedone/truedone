@@ -45,7 +45,7 @@ function github({ existing = false } = {}) {
     raw: {
       [`o/r/${B}/test/a.test.js`]: KEPT,
       [`o/r/${H}/test/a.test.js`]: ADDED_CASE,
-      "o/r/main/.github/workflows/ci.yml": `steps:\n  - uses: mgillr/truedone-action@${STEP} # v1\n`,
+      "o/r/main/.github/workflows/ci.yml": `steps:\n  - uses: Truedone/truedone-action@${STEP} # v1\n`,
     },
   });
 }

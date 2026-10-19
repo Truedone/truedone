@@ -50,7 +50,7 @@ test("the entry's queue handler posts one check run and one label for a recorded
       [new RegExp(`${esc(API)}/app/installations/3/access_tokens`), { token: "tok-1" }],
       [/raw\.githubusercontent\.com\/mgillr\/truedone-sandbox\/base-41\//, "const a = 1;\n"],
       [/raw\.githubusercontent\.com\/mgillr\/truedone-sandbox\/sha-41\//, "const a = 2;\n"],
-      [new RegExp(`${esc(API)}/repos/truedone/action/tags`), []],
+      [new RegExp(`${esc(API)}/repos/Truedone/truedone-action/tags`), []],
       // APP-25: a queued run reads the pull request from GitHub
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/pulls/41$`), PR41],
       [new RegExp(`${esc(API)}/repos/mgillr/truedone-sandbox/pulls/41/files`), [{ filename: "test/a.test.js", status: "modified", patch: "@@ -1,3 +1,3 @@" }]],
