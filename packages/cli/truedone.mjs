@@ -1945,6 +1945,10 @@ fs.unlinkSync(recordPath(root));
 return { restored: true, files: rec.files.map((entry) => entry.path) };
 }
 
+function restorePending(root) {
+return restore(root);
+}
+
 function swapToBase({ root, files, classify: classifyFn = classify }) {
 if (readRecord(root)) restore(root);
 const chosen = [];
@@ -1970,7 +1974,7 @@ else writeBytes(root, entry.path, Buffer.from(entry.swapped, 'base64'));
 return { swapped: chosen.map((entry) => entry.path) };
 }
 
-return {readRecord,restore,swapToBase};
+return {readRecord,restore,restorePending,swapToBase};
 })();
 const __m4=(()=>{
 const { BASE_RUNS, HEAD_RUNS, MAX_TESTS, RUN_TIMEOUT_MS, STEP_TIMEOUT_MS } = __m5;

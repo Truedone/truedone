@@ -85,6 +85,12 @@ export function restore(root) {
   return { restored: true, files: rec.files.map((entry) => entry.path) };
 }
 
+// S1, PV-L05 (CLI-07): a run that finds the record restores first. The CLI's --run calls this before it reads the tree,
+// so the files of a run killed mid-way come back from .git/truedone-restore; with no record it does nothing.
+export function restorePending(root) {
+  return restore(root);
+}
+
 export function swapToBase({ root, files, classify: classifyFn = classify }) {
   if (readRecord(root)) restore(root);
   const chosen = [];
