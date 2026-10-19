@@ -15867,14 +15867,16 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "D35. tools/mirror-action.mjs <out dir> writes the tree Truedone/truedone-action carries, from main and nothing else: action.yml at the root, dist/index.mjs, README.md (its usage block says uses: Truedone/truedone-action@v0.1.0 and how to pin the commit the tag names), LICENSE and NOTICE; two runs give the same bytes. Ryan pushes the tree and the tag v0.1.0 with the commands the tool prints (REL-P5). The file list and each file's SHA-256 are in the \"## The action\" section of docs/releases/preview-0.1.0.md.",
+      "description": "D35. tools/mirror-action.mjs <out dir> writes the tree Truedone/truedone-action carries, from main and nothing else: action.yml at the root, dist/index.mjs, README.md (its usage block says uses: Truedone/truedone-action@v0.1.0 and how to pin the commit the tag names), LICENSE and NOTICE; two runs give the same bytes. Ryan pushes the tree and the tag v0.1.0 with the commands the tool prints (REL-P5). The file list and each file's SHA-256 are in the \"## The action\" section of docs/releases/preview-0.1.0.md. NOTICE stays in the mirror (Apache-2.0 section 4(d); its copyright line goes with every copy): tools/test/mirror.test.mjs's expected file list and tools/test/entry-guard.test.mjs's mirror-action copies list each gain NOTICE, and nothing else in those two tests changes.",
       "scope": {
         "allow": [
           "docs/DEPENDENCY-MAP.md",
           "docs/releases/preview-0.1.0.md",
           "packages/action/**",
           "tools/mirror-action.mjs",
-          "tools/test/mirror-action.test.mjs"
+          "tools/test/mirror-action.test.mjs",
+          "tools/test/mirror.test.mjs",
+          "tools/test/entry-guard.test.mjs"
         ]
       },
       "criteria": [
