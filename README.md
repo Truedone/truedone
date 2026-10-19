@@ -95,9 +95,9 @@ The site, the CLI and the plugin read from GitHub and keep nothing on a server. 
 <!-- status: written by node tools/readme-status.mjs from the contract and main; do not edit -->
 Released: docs/releases/w4.md says "Decision: GO".
 
-At main 43f48b2bfca8 (2026-10-19), 135 of the 178 tasks in the signed contract, [proofline.json](proofline.json), are on main:
+At main 7cef1b0f0aed (2026-10-19), 136 of the 178 tasks in the signed contract, [proofline.json](proofline.json), are on main:
 
-- truedone.pages.dev: 15 of 18 (WEB-01, WEB-02, WEB-04, WEB-05, WEB-06, WEB-07, WEB-08, WEB-09, WEB-10, WEB-11, WEB-12, WEB-13, WEB-14, WEB-15, WEB-17).
+- truedone.pages.dev: 16 of 18 (WEB-01, WEB-02, WEB-04, WEB-05, WEB-06, WEB-07, WEB-08, WEB-09, WEB-10, WEB-11, WEB-12, WEB-13, WEB-14, WEB-15, WEB-16, WEB-17).
 - `npx truedone`: 6 of 10 (CLI-02, CLI-01, CLI-03, CLI-05, CLI-07, CLI-09).
 - Claude Code plugin: 11 of 13 (PLG-00, PLG-01, PLG-02, PLG-04, PLG-05, PLG-07, PLG-08, PLG-09, PLG-10, PLG-11, PLG-12).
 - GitHub App: 32 of 34 (APP-02, APP-01, APP-07, APP-08, APP-09, APP-10, APP-11, APP-12, APP-13, APP-14, APP-15, APP-16, APP-17, APP-18, APP-19, APP-20, APP-21, APP-22, APP-23, APP-24, APP-25, APP-26, APP-27, APP-28, APP-29, APP-30, APP-31, APP-32, APP-03, APP-05, APP-06, APP-04).
