@@ -1,0 +1,10 @@
+{
+  "name": "fixture-plugin",
+  "displayName": "Fixture Plugin",
+  "version": "1.0.0",
+  "description": "A plugin folder for the checklist test",
+  "author": {
+    "name": "mgillr"
+  },
+  "license": "Apache-2.0"
+}
