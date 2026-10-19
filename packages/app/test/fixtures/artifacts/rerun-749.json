@@ -1,0 +1,25 @@
+{
+  "total_count": 1,
+  "artifacts": [
+    {
+      "id": 12179029474,
+      "node_id": "MDg6QXJ0aWZhY3QxMjE3OTAyOTQ3NA==",
+      "name": "truedone-report-test",
+      "size_in_bytes": 1114,
+      "url": "https://api.github.com/repos/Truedone/truedone-sandbox/actions/artifacts/12179029474",
+      "archive_download_url": "https://api.github.com/repos/Truedone/truedone-sandbox/actions/artifacts/12179029474/zip",
+      "expired": false,
+      "digest": "sha256:ea952a4b02c78bb9eafc818149c2d0227048678e1525915c0ec98c1a752a659c",
+      "created_at": "2026-10-19T10:37:24Z",
+      "updated_at": "2026-10-19T10:37:24Z",
+      "expires_at": "2027-01-17T10:37:08Z",
+      "workflow_run": {
+        "id": 39235471997,
+        "repository_id": 1423535438,
+        "head_repository_id": 1423535438,
+        "head_branch": "act-smoke-1792404595307",
+        "head_sha": "853816c43ee143bb11944067f3776e84f1936662"
+      }
+    }
+  ]
+}

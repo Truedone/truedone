@@ -70,6 +70,11 @@ development App, on the same build, set `truedone:yes` (APP-29). The published r
 first form, so the sandbox's interim step was never found. On 2026-10-19 `Truedone/truedone-action` had no tags, so for now a
 report is believed only through the default branch's step. Each refused report logs one line (`"stage": "red-green"`, with
 the delivery id, the repository id, the pull request number and the reason in `refused`) and writes nothing.
+The report is the run's artifacts named `truedone-report-*` (APP-31): every one from the run's latest attempt that has not
+expired, created at or after the attempt started (`run_started_at`), the newest of each name. Each is held to the four
+checks and the S6 limits, and all of them are judged together. The action names its artifact after the job's key
+(`truedone-report-${GITHUB_JOB}`), and both legs of a matrix share that key, so a matrix is found only once the action
+names each leg apart.
 
 The development app belongs to the Truedone organisation since 2026-10-18 (D36), with the repositories; its installation on
 the old account ended with the transfer.

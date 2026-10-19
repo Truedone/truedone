@@ -7,6 +7,7 @@ import { slim } from "./webhook.mjs";
 const API = "https://api.github.com";
 const MAX_ARTIFACT = 256 * 1024;
 const MAX_TESTS = 500;
+const REPORT_PREFIX = "truedone-report-";
 
 function esc(s) {
   return String(s).replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\*/g, "\\*").replace(/_/g, "\\_").replace(/@/g, "@`");
@@ -40,12 +41,26 @@ export function makeRedGreen(env) {
     return prs.find((p) => `${p.head.repo.owner.login}/${p.head.repo.name}` === headRepo) || null;
   }
 
-  // S6: refuse an artifact over the cap or holding more than one file BEFORE unzipping.
-  async function takeReportArtifact(owner, repo, runId, jobName) {
-    const arts = await api(`/repos/${owner}/${repo}/actions/runs/${runId}/artifacts`);
-    const mine = (arts.artifacts || []).filter((a) => a.name === `truedone-report-${jobName}` && !a.expired);
-    if (!mine.length) return null;
-    const art = mine[0];
+  // APP-31 (PV-A06): the action uploads its report as truedone-report-${GITHUB_JOB}, the job's key, while the jobs API
+  // names a job by its display name, so the report of a job with name: was never found. The stage takes every report
+  // artifact of the run's latest attempt: a name starting truedone-report-, not expired, created at or after the attempt
+  // started (a re-run keeps the run id, and an earlier attempt's artifacts were made before it), and the newest of each
+  // name. A matrix is found only when the action names each leg apart (docs/ops/apps.md).
+  async function takeReportArtifacts(owner, repo, run) {
+    const arts = await api(`/repos/${owner}/${repo}/actions/runs/${run.id}/artifacts?per_page=100`);
+    const since = Date.parse(run.run_started_at ?? "") || 0;
+    const newest = new Map();
+    for (const a of arts.artifacts || []) {
+      if (!a.name.startsWith(REPORT_PREFIX) || a.expired || Date.parse(a.created_at) < since) continue;
+      if (!newest.has(a.name) || Date.parse(a.created_at) > Date.parse(newest.get(a.name).created_at)) newest.set(a.name, a);
+    }
+    const texts = [];
+    for (const art of newest.values()) texts.push(await readReport(art));
+    return texts;
+  }
+
+  // S6: refuse an artifact over the cap or holding more than one file BEFORE unzipping, for each one.
+  async function readReport(art) {
     if (art.size_in_bytes > MAX_ARTIFACT) throw new Error(`artifact over ${MAX_ARTIFACT} bytes`);
     const zip = await fetch(art.archive_download_url, { headers: { authorization: `Bearer ${await env.INSTALLATION_TOKEN}`, "user-agent": "truedone-app" } });
     const buf = new Uint8Array(await zip.arrayBuffer());
@@ -81,19 +96,23 @@ export function makeRedGreen(env) {
       return { verdict: "pending", pr: pr.number };
     }
 
-    const job = run.jobs_url ? (await api(run.jobs_url.split(API)[1])).jobs?.[0] : null;
-    const text = await takeReportArtifact(owner, repo, run.id, job?.name || "test");
-    if (!text) return { skipped: "no_report" };
+    const texts = await takeReportArtifacts(owner, repo, run);
+    if (!texts.length) return { skipped: "no_report" };
 
+    // APP-31: each report is held to the four checks, and every one must pass: a refused one is logged (APP-27) and
+    // nothing is written. The reports are judged together, since core's judge takes a list (a workflow with several
+    // truedone jobs).
     const defaultBranchStep = await env.defaultStepSha(owner, repo);
-    const check = reportChecks(text, { headSha, defaultBranchStep, publishedShas: await env.publishedShas() });
-    if (!check.ok) {
+    const publishedShas = await env.publishedShas();
+    const checks = texts.map((text) => reportChecks(text, { headSha, defaultBranchStep, publishedShas }));
+    const refused = checks.filter((c) => !c.ok);
+    if (refused.length) {
       // APP-27 (#164): a refused report is visible in the Worker log, one line of identifiers and the reason only (S8)
-      console.log(JSON.stringify({ stage: "red-green", delivery: delivery.delivery, repository: payload.repository.id, pr: pr.number, refused: check.why }));
-      return { refused: check.why, pr: pr.number };
+      for (const c of refused) console.log(JSON.stringify({ stage: "red-green", delivery: delivery.delivery, repository: payload.repository.id, pr: pr.number, refused: c.why }));
+      return { refused: refused[0].why, pr: pr.number };
     }
 
-    const judged = await env.core.judge(await env.staticResult(headSha), [check.report]);
+    const judged = await env.core.judge(await env.staticResult(headSha), checks.map((c) => c.report));
     // D10: the app's own static verdict stands; no report overrides tampered or review.
     // The entry builds both from the shared static analysis, so both may be async; each
     // is awaited (APP-13).
