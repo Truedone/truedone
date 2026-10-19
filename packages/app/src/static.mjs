@@ -56,7 +56,7 @@ export function makeStatic(env) {
     if (payload.action && !ACTIONS.pull_request.has(payload.action)) return { skipped: payload.action };
     const { repository, pull_request: pr } = payload;
     const owner = repository.owner.login, repo = repository.name;
-    const meta = { owner, repo, number: pr.number };
+    const meta = { owner, repo, number: pr.number, head: pr.head.sha, base: pr.base.sha, version: env.VERSION ?? "unversioned" };
     // Three phases (APP-15), each running its calls together. (1) The switch: the repository's
     // setting, read at the base so a pull request cannot switch truedone off for itself
     // (APP-13), and both posting flags. Nothing else is read before it, so a repository that

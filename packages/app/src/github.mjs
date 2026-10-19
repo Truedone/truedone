@@ -129,7 +129,25 @@ function summary(result, prMeta) {
   if (result.reasons.length > 10) lines.push(`- and ${result.reasons.length - 10} more`);
   if (result.next) lines.push("", `What would change this: ${esc(result.next)}`);
   lines.push("", `Why: ${pageUrl(prMeta)}`);
+  lines.push("", wrongVerdictLink(result, prMeta));
   return lines.join("\n");
+}
+
+// D39: the summary ends with the wrong-verdict issue form, prefilled with the
+// repository, the pull request number, both commits, the verdict, the reason
+// codes and the App's version, and never with pull request text. The link is
+// built from the result and what the stage already holds; no read is added.
+function wrongVerdictLink(result, prMeta) {
+  const params = new URLSearchParams({
+    template: "wrong-verdict.yml",
+    pr: `https://github.com/${prMeta.owner}/${prMeta.repo}/pull/${prMeta.number}`,
+    head: prMeta.head ?? "",
+    base: prMeta.base ?? "",
+    verdict: result.verdict,
+    reasons: [...new Set((result.reasons ?? []).map((r) => r.check))].join(","),
+    version: prMeta.version ?? "unversioned",
+  });
+  return `[This verdict is wrong](https://github.com/Truedone/truedone/issues/new?${params})`;
 }
 
 import { VERDICT_LABEL, LABELS } from "./labels.mjs";
