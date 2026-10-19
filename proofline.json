@@ -608,6 +608,9 @@
       "PLG-12": [
         "PLG-12-AC02",
         "PLG-12-AC06"
+      ],
+      "CLI-09": [
+        "CLI-09-AC06"
       ]
     }
   },
@@ -3280,7 +3283,7 @@
         "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
         "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
       ],
-      "description": "Measured: sindresorhus/ky#883 (test/hooks.ts +33 -0, test/main.ts +52 -0) is called tampered, four tests \"removed\". The site (packages/web/lib/github.mjs), the command line (packages/cli/src/github.mjs) and the App (packages/app/src/static.mjs) read each changed file's base content at pr.base.sha, the base branch's tip, so a test the base branch gained after the pull request branched reads as one the pull request removed. GitHub's pull request file list is taken from the merge base. Each surface reads the merge base with the compare API (GET /repos/<base repo>/compare/<base sha>...<head sha>, merge_base_commit.sha; a fork's head commit is reachable in the base repository) and reads base content there; the base sha a verdict names becomes the merge base. .github/truedone.yml is still read from the base branch's tip, the repository's current setting. The tests use recorded answers of ky#883 in GitHub's real shape (read with gh api, stored as fixtures): before the change the verdict is tampered, after it no test is removed. The App's test drives its static stage.",
+      "description": "Measured: sindresorhus/ky#883 (test/hooks.ts +33 -0, test/main.ts +52 -0) is called tampered, four tests \"removed\". The site (packages/web/lib/github.mjs), the command line (packages/cli/src/github.mjs) and the App (packages/app/src/static.mjs) read each changed file's base content at pr.base.sha, the base branch's tip, so a test the base branch gained after the pull request branched reads as one the pull request removed. GitHub's pull request file list is taken from the merge base. Each surface reads the merge base with the compare API (GET /repos/<base repo>/compare/<base sha>...<head sha>, merge_base_commit.sha; a fork's head commit is reachable in the base repository) and reads base content there; the base sha a verdict names becomes the merge base. .github/truedone.yml is still read from the base branch's tip, the repository's current setting. The tests use recorded answers of ky#883 in GitHub's real shape (read with gh api, stored as fixtures): before the change the verdict is tampered, after it no test is removed. The App's test drives its static stage. D24 counts 5 api.github.com calls for a 300-file pull request (the pull request, three file pages and the compare call): packages/web/test/render.test.mjs's call counts and token-scope.test.mjs's move from 4 to 5 and nothing else in them changes. A pull request that changes .github/truedone.yml has that file's base read at the merge base like any changed file; only the App's setting read stays on the base tip. The red-green stage keeps pr.base.sha (D6).",
       "scope": {
         "allow": [
           "packages/web/lib/**",
@@ -12022,7 +12025,7 @@
         {
           "id": "WEB-01-AC01",
           "mandatory": true,
-          "statement": "a PR renders its verdict from recorded responses with at most 4 api.github.com calls for 300 files",
+          "statement": "a PR renders its verdict from recorded responses with at most 5 api.github.com calls for 300 files (D24: the merge base)",
           "verifier": {
             "type": "test_red_green",
             "test_file": "packages/web/test/render.test.mjs",
@@ -14976,12 +14979,131 @@
       ]
     },
     {
+      "id": "CLI-09",
+      "title": "[W2] --run on your own branch gives red-green the base of every changed file",
+      "phase": "implement",
+      "owner": "lane-a",
+      "depends_on": [
+        "CLI-07"
+      ],
+      "requirements": [
+        "PV-L03",
+        "PV-L05",
+        "PV-L06",
+        "PV-C08"
+      ],
+      "stop_rules": [
+        "If a criterion cannot pass without loosening a threshold, skipping or deleting a test, raising a timeout, widening the scope or editing a file only Ryan changes: STOP and report file:line and the measured value.",
+        "If the task needs a decision that docs/spec.md does not settle: STOP and report BLOCKED naming the question. Do not choose.",
+        "If the environment a criterion needs is missing (the lead runner login, a token, the development app, Chromium, Python with pytest, Docker, the claude CLI): report BLOCKED naming the missing item; never mark a criterion passed by hand."
+      ],
+      "description": "D7: modified files get their base content. packages/cli/src/local.mjs adds base content only for the files core reads statically (test, setup, runner_config, workflow, truedone_config), so --run hands red-green a changed source file with no base, core/run writes it empty on the base leg, and a correct fix is \"Could not run\" (measured by CLI-07's worker). For --run, every changed file that is not added gets its base from git show <merge base>:<path>, as the action does; the static analysis still reads only what it reads today, and the plugin, which does not run red-green on base, is unchanged. The test runs the real command line with --run in a scratch repository: a source fix with a test that fails on base and passes on head is Proven or Proven (weak), never Could not run.",
+      "scope": {
+        "allow": [
+          "packages/cli/src/**",
+          "packages/cli/test/**",
+          "docs/DEPENDENCY-MAP.md",
+          "tools/bundle.mjs",
+          "packages/core/core.mjs",
+          "packages/web/core.mjs",
+          "packages/cli/truedone.mjs",
+          "packages/cli/plugin/hooks/stop.mjs",
+          "packages/action/dist/index.mjs",
+          "tools/test/bundle-version.test.mjs"
+        ]
+      },
+      "criteria": [
+        {
+          "id": "CLI-09-AC01",
+          "mandatory": true,
+          "statement": "a source fix on your own branch is proven red-green by --run",
+          "verifier": {
+            "type": "test_red_green",
+            "test_file": "packages/cli/test/run-source-base.test.mjs",
+            "cmd": "node --test {test}"
+          }
+        },
+        {
+          "id": "CLI-09-AC02",
+          "mandatory": true,
+          "statement": "cli suite green (docker.test.mjs, which needs Docker, runs in CLI-03-AC04 on the lead runner)",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test $(ls packages/cli/test/*.test.mjs | grep -v '/docker.test.mjs$')",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-09-AC03",
+          "mandatory": true,
+          "statement": "core suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'packages/core/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-09-AC04",
+          "mandatory": true,
+          "statement": "tools suite green",
+          "verifier": {
+            "type": "command",
+            "cmd": "node --test 'tools/test/*.test.mjs'",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-09-AC05",
+          "mandatory": true,
+          "statement": "the dependency map holds: every file is mapped, and every required downstream update is in the same change",
+          "verifier": {
+            "type": "command",
+            "cmd": "node tools/depmap-check.mjs",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-09-AC06",
+          "mandatory": true,
+          "statement": "this task is gated by the lead runner, logged in to GitHub as mgillr",
+          "verifier": {
+            "type": "command",
+            "cmd": "test \"$(gh api user --jq .login)\" = mgillr",
+            "expect_exit": 0,
+            "timeout_s": 900
+          }
+        },
+        {
+          "id": "CLI-09-AC07",
+          "mandatory": true,
+          "statement": "Changes stay in scope",
+          "verifier": {
+            "type": "scope"
+          }
+        },
+        {
+          "id": "CLI-09-AC08",
+          "mandatory": true,
+          "statement": "Merged to main (gate after the pull request merges)",
+          "verifier": {
+            "type": "pushed"
+          }
+        }
+      ]
+    },
+    {
       "id": "CLI-08",
       "title": "[W2] --run reports the coverage condition the action reports",
       "phase": "implement",
       "owner": "lane-a",
       "depends_on": [
-        "CLI-07"
+        "CLI-07",
+        "CLI-09"
       ],
       "requirements": [
         "PV-L03",
