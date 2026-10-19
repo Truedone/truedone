@@ -16,8 +16,12 @@ and the CLI and plugin from npm.
   requests write for the label and the comment. It never runs the pull request's code.
 - **The action.** It runs in your workflow, on your runner. It reads the checkout and runs the pull request's changed
   tests there.
-- **The CLI and the plugin.** They run on your machine. They read your local repository, or a pull request you name,
-  from api.github.com. They send nothing to truedone.
+- **The CLI.** It runs on your machine. It reads your local repository, with its git user name and last commit
+  subject, or a pull request you name, from api.github.com. It sends nothing to truedone.
+- **The Claude Code plugin.** It runs on your machine when the agent ends a turn. It reads what Claude Code hands the
+  hook (the session id, the working directory, the transcript's path and the agent's last message), the session
+  transcript, to see whether the changed tests ran after the agent's last file edit, and your local repository with
+  its git user name. It runs the changed tests there. It makes no network request and sends nothing to truedone.
 
 ## What we store
 
@@ -32,7 +36,9 @@ and the CLI and plugin from npm.
   comment only when the repository sets `comments: on`.
 - **The action** uploads one report per job to your workflow run.
 - **The CLI and the plugin** store nothing outside your machine. During a red-green run they keep a restore record
-  in `.git/truedone-restore`, and they delete it once your files are back as they were.
+  in `.git/truedone-restore`, and they delete it once your files are back as they were. The plugin also keeps one
+  small file per Claude Code session in its data folder on your machine: how many times in a row it has blocked, a
+  hash of the last change, and the last 50 findings it showed.
 
 ## How long
 
@@ -44,9 +50,10 @@ and the CLI and plugin from npm.
 - The app's log lines are not stored. They can be read only live, while I watch the Worker's log stream, and neither
   truedone nor Cloudflare keeps a copy. Cloudflare keeps its own counts and timings of the Worker's requests.
 - An action report lasts as long as your repository keeps workflow artifacts.
+- The plugin's session files stay on your machine until you uninstall the plugin, which deletes its data folder.
 
 ## Who to ask
 
 Contact: data@optitransfer.ch
 
-Approved by Ryan Gillespie on 2026-10-18
+Approved by Ryan Gillespie on 2026-10-19

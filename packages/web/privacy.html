@@ -21,7 +21,8 @@
 <li><strong>The token exchange.</strong> When you sign in, it reads the one-time code GitHub gives your browser. It trades that code for your token with GitHub and returns the token to your browser.</li>
 <li><strong>The GitHub App.</strong> On the repositories where it is installed, it reads each pull request's title, body and author, its changed files and the contents the checks need, the repository's <code>.github/truedone.yml</code>, and the report the truedone action uploads. Its permissions are: contents and metadata read, actions read, checks write, and pull requests write for the label and the comment. It never runs the pull request's code.</li>
 <li><strong>The action.</strong> It runs in your workflow, on your runner. It reads the checkout and runs the pull request's changed tests there.</li>
-<li><strong>The CLI and the plugin.</strong> They run on your machine. They read your local repository, or a pull request you name, from api.github.com. They send nothing to truedone.</li>
+<li><strong>The CLI.</strong> It runs on your machine. It reads your local repository, with its git user name and last commit subject, or a pull request you name, from api.github.com. It sends nothing to truedone.</li>
+<li><strong>The Claude Code plugin.</strong> It runs on your machine when the agent ends a turn. It reads what Claude Code hands the hook (the session id, the working directory, the transcript's path and the agent's last message), the session transcript, to see whether the changed tests ran after the agent's last file edit, and your local repository with its git user name. It runs the changed tests there. It makes no network request and sends nothing to truedone.</li>
 </ul>
 <h2>What we store</h2>
 <ul>
@@ -29,7 +30,7 @@
 <li><strong>The token exchange</strong> stores nothing. It has no storage and writes no log line.</li>
 <li><strong>The GitHub App</strong> keeps one setting per installation, the switch that turns its posting off. Its log lines hold the installation id, the repository id, the pull request number, the verdict and timings, and never diff content, file contents or pull request text. A delivery waiting in its queue holds only identifiers: the installation, repository and pull request numbers, the commit shas, the event's action, and the repository's owner and name. In your repository it writes one check run per head commit and at most one <code>truedone:*</code> label per pull request. It writes a comment only when the repository sets <code>comments: on</code>.</li>
 <li><strong>The action</strong> uploads one report per job to your workflow run.</li>
-<li><strong>The CLI and the plugin</strong> store nothing outside your machine. During a red-green run they keep a restore record in <code>.git/truedone-restore</code>, and they delete it once your files are back as they were.</li>
+<li><strong>The CLI and the plugin</strong> store nothing outside your machine. During a red-green run they keep a restore record in <code>.git/truedone-restore</code>, and they delete it once your files are back as they were. The plugin also keeps one small file per Claude Code session in its data folder on your machine: how many times in a row it has blocked, a hash of the last change, and the last 50 findings it showed.</li>
 </ul>
 <h2>How long</h2>
 <ul>
@@ -38,10 +39,11 @@
 <li>A delivery waits in the app's queue only until it is handled. One that keeps failing goes to a dead-letter queue, where it is logged by its identifiers and dropped.</li>
 <li>The app's log lines are not stored. They can be read only live, while I watch the Worker's log stream, and neither truedone nor Cloudflare keeps a copy. Cloudflare keeps its own counts and timings of the Worker's requests.</li>
 <li>An action report lasts as long as your repository keeps workflow artifacts.</li>
+<li>The plugin's session files stay on your machine until you uninstall the plugin, which deletes its data folder.</li>
 </ul>
 <h2>Who to ask</h2>
 <p>Contact: data@optitransfer.ch</p>
-<p>Approved by Ryan Gillespie on 2026-10-18</p>
+<p>Approved by Ryan Gillespie on 2026-10-19</p>
 </main>
 <footer class="site-footer">
 <ul><li><a href="/why">Why</a></li><li><a href="/privacy">Privacy</a></li><li><a href="/terms">Terms</a></li><li><a href="https://github.com/Truedone/truedone">GitHub</a></li><li class="signin-item"><a href="/signin?return=%2Fprivacy">Sign in with GitHub</a></li></ul>
