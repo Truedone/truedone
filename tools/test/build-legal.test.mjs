@@ -19,7 +19,7 @@ test('a page has the site shell, the title "<heading> - truedone", and no script
   assert.match(html, /<link rel="stylesheet" href="\/style\.css">/);
   assert.match(html, /<header class="site-header">\n<p class="name"><a href="\/">truedone<\/a><\/p>\n<p class="tagline">Checks whether a pull request's tests prove its change/);
   const footer = html.match(/<footer class="site-footer">([\s\S]*?)<\/footer>/)[1];
-  assert.deepEqual([...footer.matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)].map((m) => [m[2], m[1]]), [['Why', '/why'], ['Privacy', '/privacy'], ['Terms', '/terms'], ['GitHub', 'https://github.com/Truedone/truedone'], ['Sign in with GitHub', '/signin?return=%2Fprivacy']]);
+  assert.deepEqual([...footer.matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)].map((m) => [m[2], m[1]]), [['Why', '/why'], ['Privacy', '/privacy'], ['Terms', '/terms'], ['GitHub', 'https://github.com/Truedone/truedone'], ['For coding agents', '/llms.txt'], ['Sign in with GitHub', '/signin?return=%2Fprivacy']]);
   assert.doesNotMatch(html, /<script|<style|\sstyle\s*=|\son[a-z]+\s*=|javascript:/i);
 });
 
