@@ -61,7 +61,8 @@ test('--pr-line on a pull request prints one line: the verdict, its reason and t
 test('--pr-line on the current branch, before any pull request exists, links the why page', async (t) => {
   const d = scratch(t, 'truedone-prline-');
   const env = { PATH: process.env.PATH, HOME: d, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1', GIT_AUTHOR_NAME: 'Dev', GIT_AUTHOR_EMAIL: 'dev@example.com', GIT_COMMITTER_NAME: 'Dev', GIT_COMMITTER_EMAIL: 'dev@example.com' };
-  const sh = (...a) => execFileSync('git', a, { cwd: d, env, encoding: 'utf8' });
+  // TEST-01: git maintenance off, so no detached auto-maintenance writes into .git while the directory is removed (MAP-02)
+  const sh = (...a) => execFileSync('git', ['-c', 'maintenance.auto=false', '-c', 'gc.auto=0', ...a], { cwd: d, env, encoding: 'utf8' });
   sh('init', '-q', '-b', 'main');
   fs.writeFileSync(path.join(d, 'a.js'), 'export const a = 1;\n');
   sh('add', '-A'); sh('commit', '-qm', 'base');

@@ -9,7 +9,8 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { restoreContract } from "../ci-gate.mjs";
 
-const git = (...a) => execFileSync("git", a.flat(), { encoding: "utf8" });
+// TEST-01: git maintenance off, so no detached auto-maintenance writes into .git while the directory is removed (MAP-02)
+const git = (...a) => execFileSync("git", ["-c", "maintenance.auto=false", "-c", "gc.auto=0", ...a.flat()], { encoding: "utf8" });
 const PATHS = ["proofline.json", "proofline.json.sig", "guard/owner.pub"];
 
 test("restoreContract restores the three contract paths byte-exact", () => {

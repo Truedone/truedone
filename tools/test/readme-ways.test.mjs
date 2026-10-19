@@ -62,7 +62,8 @@ test('--check passes on what the script wrote, and fails on a hand-edited cell o
   for (const k of ['log', 'error']) t.mock.method(console, k, () => {});
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'readme-ways-repo-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
-  const git = (...a) => execFileSync('git', a, { cwd: dir, env: ENV, encoding: 'utf8' }).trim();
+  // TEST-01: git maintenance off, so no detached auto-maintenance writes into .git while the directory is removed (MAP-02)
+  const git = (...a) => execFileSync('git', ['-c', 'maintenance.auto=false', '-c', 'gc.auto=0', ...a], { cwd: dir, env: ENV, encoding: 'utf8' }).trim();
   const write = (p, s) => { fs.mkdirSync(path.dirname(path.join(dir, p)), { recursive: true }); fs.writeFileSync(path.join(dir, p), s); };
   git('init', '-q', '-b', 'main');
   write('proofline.json', JSON.stringify({ tasks: [{ id: 'WEB-01' }] }));
