@@ -1238,7 +1238,7 @@
       "requirements": [
         "PV-B01"
       ],
-      "description": "Ruleset on main: require a pull request (no required approval: the lead runner opens every pull request with Ryan login, and GitHub does not let an author approve their own), require the status check truedone-gate, block force pushes and deletions. Repository settings: merge commits only, so a task commit stays on main and proofline's pushed check passes (D25). Record it in docs/ops/ruleset.md. Live since 2026-10-17 (docs/ops/ruleset.md, signed at 2290da9): the ruleset main-history blocks force pushes and deletion of main (non_fast_forward and deletion, no bypass), and main-review requires a pull request and the status check \"truedone-gate (lead runner, docker)\", with admin bypass for Ryan's signed contract and ops commits. While GitHub Actions are locked on the account (D22, v2i) the required check is that commit status from the lead runner's container; when Actions run again it becomes truedone-gate.",
+      "description": "Ruleset on main: require a pull request (no required approval: the lead runner opens every pull request with Ryan login, and GitHub does not let an author approve their own), require the status check truedone-gate, block force pushes and deletions. Repository settings: merge commits only, so a task commit stays on main and proofline's pushed check passes (D25). Record it in docs/ops/ruleset.md. Live since 2026-10-17 (docs/ops/ruleset.md, signed at 2290da9): the ruleset main-history blocks force pushes and deletion of main (non_fast_forward and deletion, no bypass), and main-review requires a pull request and the status check \"truedone-gate\", with admin bypass for Ryan's signed contract and ops commits. While GitHub Actions are locked on the account (D22, v2i) the required check is that commit status from the lead runner's container; when Actions run again it becomes truedone-gate.",
       "scope": {
         "allow": [
           "docs/ops/ruleset.md",
@@ -20420,7 +20420,7 @@
           "statement": "the live repository is Truedone/truedone, an organisation repository, with the container gate as the required check, history protection, and Ryan as the production reviewer",
           "verifier": {
             "type": "command",
-            "cmd": "test \"$(gh api repos/Truedone/truedone --jq '.full_name + \" \" + .owner.type')\" = \"Truedone/truedone Organization\" && gh api repos/Truedone/truedone/rules/branches/main --jq '.[] | select(.type == \"required_status_checks\") | .parameters.required_status_checks[].context' | grep -qxF \"truedone-gate (lead runner, docker)\" && gh api repos/Truedone/truedone/rules/branches/main --jq \".[].type\" | grep -qx non_fast_forward && gh api repos/Truedone/truedone/environments/production --jq \".protection_rules[].reviewers[]?.reviewer.login\" | grep -qx mgillr",
+            "cmd": "test \"$(gh api repos/Truedone/truedone --jq '.full_name + \" \" + .owner.type')\" = \"Truedone/truedone Organization\" && gh api repos/Truedone/truedone/rules/branches/main --jq '.[] | select(.type == \"required_status_checks\") | .parameters.required_status_checks[].context' | grep -qxF \"truedone-gate\" && gh api repos/Truedone/truedone/rules/branches/main --jq \".[].type\" | grep -qx non_fast_forward && gh api repos/Truedone/truedone/environments/production --jq \".protection_rules[].reviewers[]?.reviewer.login\" | grep -qx mgillr",
             "expect_exit": 0,
             "timeout_s": 900
           }
