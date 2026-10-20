@@ -17,11 +17,14 @@ and the CLI and plugin from npm.
 - **The action.** It runs in your workflow, on your runner. It reads the checkout and runs the pull request's changed
   tests there.
 - **The CLI.** It runs on your machine. It reads your local repository, with its git user name and last commit
-  subject, or a pull request you name, from api.github.com. It sends nothing to truedone.
+  subject, or a pull request you name, from api.github.com. With `--run` on your own branch, it runs your changed
+  tests there with the session's environment, as your project's own test command would, while every git command it
+  starts gets an environment that holds no credential. It sends nothing to truedone.
 - **The Claude Code plugin.** It runs on your machine when the agent ends a turn. It reads what Claude Code hands the
   hook (the session id, the working directory, the transcript's path and the agent's last message), the session
   transcript, to see whether the changed tests ran after the agent's last file edit, and your local repository with
-  its git user name. It runs the changed tests there. It makes no network request and sends nothing to truedone.
+  its git user name. It runs the changed tests there, with the session's environment, as the CLI does. It makes no
+  network request and sends nothing to truedone.
 
 ## What we store
 
