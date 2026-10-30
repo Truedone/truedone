@@ -1,17 +1,17 @@
 {
   "schema": "truedone.metrics/1",
-  "generated_at": "2026-10-29T13:19:24.810Z",
+  "generated_at": "2026-10-30T13:11:12.418Z",
   "organisation": "Truedone",
   "window": {
-    "from": "2026-09-29T13:19:24.810Z",
-    "to": "2026-10-29T13:19:24.810Z",
+    "from": "2026-09-30T13:11:12.418Z",
+    "to": "2026-10-30T13:11:12.418Z",
     "days": 30
   },
   "figures": {
     "public_repositories": {
       "value": 8,
       "window": {
-        "at": "2026-10-29T13:19:24.810Z"
+        "at": "2026-10-30T13:11:12.418Z"
       },
       "source": "https://api.github.com/orgs/Truedone/repos?type=public&per_page=100",
       "n": 8
@@ -19,7 +19,7 @@
     "stars_total": {
       "value": 0,
       "window": {
-        "at": "2026-10-29T13:19:24.810Z"
+        "at": "2026-10-30T13:11:12.418Z"
       },
       "source": "https://api.github.com/orgs/Truedone/repos?type=public&per_page=100",
       "n": 8
@@ -27,7 +27,7 @@
     "forks_total": {
       "value": 0,
       "window": {
-        "at": "2026-10-29T13:19:24.810Z"
+        "at": "2026-10-30T13:11:12.418Z"
       },
       "source": "https://api.github.com/orgs/Truedone/repos?type=public&per_page=100",
       "n": 8
@@ -35,8 +35,8 @@
     "repositories_pushed_in_window": {
       "value": 8,
       "window": {
-        "from": "2026-09-29T13:19:24.810Z",
-        "to": "2026-10-29T13:19:24.810Z",
+        "from": "2026-09-30T13:11:12.418Z",
+        "to": "2026-10-30T13:11:12.418Z",
         "days": 30
       },
       "source": "https://api.github.com/orgs/Truedone/repos?type=public&per_page=100",
@@ -45,8 +45,8 @@
     "releases_in_window": {
       "value": 0,
       "window": {
-        "from": "2026-09-29T13:19:24.810Z",
-        "to": "2026-10-29T13:19:24.810Z",
+        "from": "2026-09-30T13:11:12.418Z",
+        "to": "2026-10-30T13:11:12.418Z",
         "days": 30
       },
       "source": "https://api.github.com/repos/Truedone/truedone/releases?per_page=100 https://api.github.com/repos/Truedone/truedone-sandbox/releases?per_page=100 https://api.github.com/repos/Truedone/truedone-action/releases?per_page=100 https://api.github.com/repos/Truedone/actions-probe/releases?per_page=100 https://api.github.com/repos/Truedone/.github/releases?per_page=100 https://api.github.com/repos/Truedone/e2e-agentkey/releases?per_page=100 https://api.github.com/repos/Truedone/e2e-crdt-merge-ts/releases?per_page=100 https://api.github.com/repos/Truedone/e2e-crdt-merge/releases?per_page=100",
@@ -55,57 +55,57 @@
     "workflow_runs_in_window": {
       "value": 250,
       "window": {
-        "from": "2026-09-29T13:19:24.810Z",
-        "to": "2026-10-29T13:19:24.810Z",
+        "from": "2026-09-30T13:11:12.418Z",
+        "to": "2026-10-30T13:11:12.418Z",
         "days": 30
       },
-      "source": "https://api.github.com/repos/Truedone/truedone/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/truedone-sandbox/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/truedone-action/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/actions-probe/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/.github/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/e2e-agentkey/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/e2e-crdt-merge-ts/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/e2e-crdt-merge/actions/runs?per_page=100&created=>2026-09-29",
+      "source": "https://api.github.com/repos/Truedone/truedone/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/truedone-sandbox/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/truedone-action/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/actions-probe/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/.github/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/e2e-agentkey/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/e2e-crdt-merge-ts/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/e2e-crdt-merge/actions/runs?per_page=100&created=>2026-09-30",
       "n": 8
     },
     "workflow_runs_success": {
-      "value": 177,
+      "value": 178,
       "window": {
-        "from": "2026-09-29T13:19:24.810Z",
-        "to": "2026-10-29T13:19:24.810Z",
+        "from": "2026-09-30T13:11:12.418Z",
+        "to": "2026-10-30T13:11:12.418Z",
         "days": 30
       },
-      "source": "https://api.github.com/repos/Truedone/truedone/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/truedone-sandbox/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/truedone-action/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/actions-probe/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/.github/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/e2e-agentkey/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/e2e-crdt-merge-ts/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/e2e-crdt-merge/actions/runs?per_page=100&created=>2026-09-29",
+      "source": "https://api.github.com/repos/Truedone/truedone/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/truedone-sandbox/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/truedone-action/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/actions-probe/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/.github/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/e2e-agentkey/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/e2e-crdt-merge-ts/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/e2e-crdt-merge/actions/runs?per_page=100&created=>2026-09-30",
       "n": 250
     },
     "workflow_runs_failure": {
-      "value": 73,
+      "value": 72,
       "window": {
-        "from": "2026-09-29T13:19:24.810Z",
-        "to": "2026-10-29T13:19:24.810Z",
+        "from": "2026-09-30T13:11:12.418Z",
+        "to": "2026-10-30T13:11:12.418Z",
         "days": 30
       },
-      "source": "https://api.github.com/repos/Truedone/truedone/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/truedone-sandbox/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/truedone-action/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/actions-probe/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/.github/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/e2e-agentkey/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/e2e-crdt-merge-ts/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/e2e-crdt-merge/actions/runs?per_page=100&created=>2026-09-29",
+      "source": "https://api.github.com/repos/Truedone/truedone/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/truedone-sandbox/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/truedone-action/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/actions-probe/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/.github/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/e2e-agentkey/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/e2e-crdt-merge-ts/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/e2e-crdt-merge/actions/runs?per_page=100&created=>2026-09-30",
       "n": 250
     },
     "workflow_runs_cancelled": {
       "value": 0,
       "window": {
-        "from": "2026-09-29T13:19:24.810Z",
-        "to": "2026-10-29T13:19:24.810Z",
+        "from": "2026-09-30T13:11:12.418Z",
+        "to": "2026-10-30T13:11:12.418Z",
         "days": 30
       },
-      "source": "https://api.github.com/repos/Truedone/truedone/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/truedone-sandbox/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/truedone-action/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/actions-probe/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/.github/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/e2e-agentkey/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/e2e-crdt-merge-ts/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/e2e-crdt-merge/actions/runs?per_page=100&created=>2026-09-29",
+      "source": "https://api.github.com/repos/Truedone/truedone/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/truedone-sandbox/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/truedone-action/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/actions-probe/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/.github/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/e2e-agentkey/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/e2e-crdt-merge-ts/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/e2e-crdt-merge/actions/runs?per_page=100&created=>2026-09-30",
       "n": 250
     },
     "workflow_success_rate": {
-      "value": 0.708,
+      "value": 0.712,
       "window": {
-        "from": "2026-09-29T13:19:24.810Z",
-        "to": "2026-10-29T13:19:24.810Z",
+        "from": "2026-09-30T13:11:12.418Z",
+        "to": "2026-10-30T13:11:12.418Z",
         "days": 30
       },
-      "source": "https://api.github.com/repos/Truedone/truedone/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/truedone-sandbox/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/truedone-action/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/actions-probe/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/.github/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/e2e-agentkey/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/e2e-crdt-merge-ts/actions/runs?per_page=100&created=>2026-09-29 https://api.github.com/repos/Truedone/e2e-crdt-merge/actions/runs?per_page=100&created=>2026-09-29",
+      "source": "https://api.github.com/repos/Truedone/truedone/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/truedone-sandbox/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/truedone-action/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/actions-probe/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/.github/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/e2e-agentkey/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/e2e-crdt-merge-ts/actions/runs?per_page=100&created=>2026-09-30 https://api.github.com/repos/Truedone/e2e-crdt-merge/actions/runs?per_page=100&created=>2026-09-30",
       "n": 250
     },
     "open_issues": {
       "value": 8,
       "window": {
-        "at": "2026-10-29T13:19:24.810Z"
+        "at": "2026-10-30T13:11:12.418Z"
       },
       "source": "https://api.github.com/repos/Truedone/truedone/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/truedone-sandbox/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/truedone-action/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/actions-probe/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/.github/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/e2e-agentkey/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/e2e-crdt-merge-ts/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/e2e-crdt-merge/issues?state=all&per_page=100&sort=created&direction=desc",
       "n": 8
@@ -113,7 +113,7 @@
     "open_pull_requests": {
       "value": 28,
       "window": {
-        "at": "2026-10-29T13:19:24.810Z"
+        "at": "2026-10-30T13:11:12.418Z"
       },
       "source": "https://api.github.com/repos/Truedone/truedone/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/truedone-sandbox/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/truedone-action/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/actions-probe/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/.github/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/e2e-agentkey/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/e2e-crdt-merge-ts/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/e2e-crdt-merge/issues?state=all&per_page=100&sort=created&direction=desc",
       "n": 8
@@ -121,8 +121,8 @@
     "issues_opened_in_window": {
       "value": 21,
       "window": {
-        "from": "2026-09-29T13:19:24.810Z",
-        "to": "2026-10-29T13:19:24.810Z",
+        "from": "2026-09-30T13:11:12.418Z",
+        "to": "2026-10-30T13:11:12.418Z",
         "days": 30
       },
       "source": "https://api.github.com/repos/Truedone/truedone/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/truedone-sandbox/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/truedone-action/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/actions-probe/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/.github/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/e2e-agentkey/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/e2e-crdt-merge-ts/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/e2e-crdt-merge/issues?state=all&per_page=100&sort=created&direction=desc",
@@ -131,8 +131,8 @@
     "pull_requests_opened_in_window": {
       "value": 205,
       "window": {
-        "from": "2026-09-29T13:19:24.810Z",
-        "to": "2026-10-29T13:19:24.810Z",
+        "from": "2026-09-30T13:11:12.418Z",
+        "to": "2026-10-30T13:11:12.418Z",
         "days": 30
       },
       "source": "https://api.github.com/repos/Truedone/truedone/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/truedone-sandbox/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/truedone-action/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/actions-probe/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/.github/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/e2e-agentkey/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/e2e-crdt-merge-ts/issues?state=all&per_page=100&sort=created&direction=desc https://api.github.com/repos/Truedone/e2e-crdt-merge/issues?state=all&per_page=100&sort=created&direction=desc",
@@ -141,8 +141,8 @@
     "median_hours_to_first_issue_response": {
       "value": 1.12,
       "window": {
-        "from": "2026-09-29T13:19:24.810Z",
-        "to": "2026-10-29T13:19:24.810Z",
+        "from": "2026-09-30T13:11:12.418Z",
+        "to": "2026-10-30T13:11:12.418Z",
         "days": 30
       },
       "source": "https://api.github.com/repos/Truedone/truedone/issues/165/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/164/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/150/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/135/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/125/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/122/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/115/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/111/comments?per_page=1 https://api.github.com/repos/Truedone/truedone/issues/110/comments?per_page=1",
@@ -152,7 +152,7 @@
       "value": 0,
       "window": {
         "from": "2026-10-18T00:00:00.000Z",
-        "to": "2026-10-29T13:19:40.526Z"
+        "to": "2026-10-30T13:11:28.743Z"
       },
       "source": "https://api.github.com/repos/Truedone/truedone/issues?labels=wrong-verdict&state=all&per_page=100",
       "n": 0
@@ -161,7 +161,7 @@
       "value": 0,
       "window": {
         "from": "2026-10-18T00:00:00.000Z",
-        "to": "2026-10-29T13:19:40.526Z"
+        "to": "2026-10-30T13:11:28.743Z"
       },
       "source": "https://api.github.com/repos/Truedone/truedone/issues?labels=wrong-verdict&state=all&per_page=100",
       "n": 0
@@ -170,7 +170,7 @@
       "value": 0,
       "window": {
         "from": "2026-10-18T00:00:00.000Z",
-        "to": "2026-10-29T13:19:40.526Z"
+        "to": "2026-10-30T13:11:28.743Z"
       },
       "source": "https://api.github.com/repos/Truedone/truedone/issues?labels=wrong-verdict&state=all&per_page=100 https://github.com/Truedone/truedone/tree/main/tools/test/fixtures/detect",
       "n": 0
@@ -179,7 +179,7 @@
       "value": 0,
       "window": {
         "from": "2026-10-18T00:00:00.000Z",
-        "to": "2026-10-29T13:19:40.526Z"
+        "to": "2026-10-30T13:11:28.743Z"
       },
       "source": "https://api.github.com/repos/Truedone/truedone/issues?labels=wrong-verdict&state=all&per_page=100",
       "n": 0
@@ -188,7 +188,7 @@
       "value": 0,
       "window": {
         "from": "2026-10-18T00:00:00.000Z",
-        "to": "2026-10-29T13:19:40.526Z"
+        "to": "2026-10-30T13:11:28.743Z"
       },
       "source": "https://api.github.com/repos/Truedone/truedone/issues?labels=wrong-verdict&state=all&per_page=100",
       "n": 0
@@ -234,13 +234,13 @@
       "url": "https://github.com/Truedone/truedone",
       "stars": 0,
       "forks": 0,
-      "pushed_at": "2026-10-28T13:13:05Z",
+      "pushed_at": "2026-10-29T13:19:42Z",
       "pushed_in_window": true,
       "releases_in_window": 0,
       "workflow_runs_in_window": {
         "total": 99,
-        "success": 79,
-        "failure": 20,
+        "success": 80,
+        "failure": 19,
         "cancelled": 0,
         "other": 0
       },
